@@ -8,6 +8,7 @@ import { ScanToast } from "./ScanToast";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import { formatCurrency, formatDate } from "@/lib/categories";
 import { prepareReceiptImage } from "@/lib/image-utils";
+import { scanReceiptFile } from "@/lib/scan-receipt-client";
 
 type ScanStep = "idle" | "preview" | "scanning" | "result";
 
@@ -68,20 +69,8 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
     setStep("scanning");
 
     try {
-      const formData = new FormData();
-      formData.append("image", uploadFile);
-
-      const response = await fetch("/api/scan-receipt", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error ?? "Scan failed");
-      }
-
-      setResult(data as ScannedReceipt);
+      const { result: scanned } = await scanReceiptFile(uploadFile);
+      setResult(scanned);
       setStep("result");
       setShowScannedToast(true);
     } catch (err) {

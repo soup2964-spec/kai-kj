@@ -1,8 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
-import { IconExpenses, IconReceipt, IconTrash } from "./icons";
+import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
+import {
+  IconChevronDown,
+  IconExpenses,
+  IconReceipt,
+  IconTrash,
+} from "./icons";
 import { formatCurrency, formatDate } from "@/lib/categories";
 
 interface ExpenseListProps {
@@ -10,7 +17,112 @@ interface ExpenseListProps {
   onRemove: (id: string) => void;
 }
 
+function ExpenseRow({
+  expense,
+  expanded,
+  onToggle,
+  onRemove,
+}: {
+  expense: Expense;
+  expanded: boolean;
+  onToggle: () => void;
+  onRemove: () => void;
+}) {
+  const hasLineItems = expense.lineItems.length > 0;
+
+  return (
+    <li className="group">
+      <div
+        className={`flex items-center gap-3 px-4 py-3.5 lg:px-5 ${
+          expanded ? "bg-qb-bg/50" : "lg:hover:bg-qb-bg/40"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={!hasLineItems}
+          aria-expanded={expanded}
+          aria-controls={`expense-items-${expense.id}`}
+          className={`flex min-w-0 flex-1 items-center gap-3 text-left ${
+            hasLineItems ? "cursor-pointer active:opacity-80" : "cursor-default"
+          }`}
+        >
+          {expense.receiptImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={expense.receiptImage}
+              alt=""
+              className="h-11 w-11 shrink-0 rounded border border-qb-border object-cover lg:h-10 lg:w-10"
+            />
+          ) : (
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg lg:h-10 lg:w-10">
+              <IconReceipt className="h-4 w-4 text-qb-text-muted" />
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-sm font-semibold text-qb-text">
+                {expense.merchant}
+              </p>
+              {hasLineItems && (
+                <IconChevronDown
+                  className={`h-4 w-4 shrink-0 text-qb-text-muted transition-transform ${
+                    expanded ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </div>
+            <p className="text-xs text-qb-text-muted">
+              {formatDate(expense.date)}
+              {hasLineItems && !expanded && (
+                <span className="ml-1.5 text-qb-text-secondary">
+                  · {expense.lineItems.length} item
+                  {expense.lineItems.length === 1 ? "" : "s"}
+                </span>
+              )}
+            </p>
+            <div className="mt-1.5">
+              <CategoryBadge category={expense.category} />
+            </div>
+          </div>
+
+          <p className="shrink-0 text-sm font-bold tabular-nums text-qb-text">
+            {formatCurrency(expense.amount)}
+          </p>
+        </button>
+
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${expense.merchant}`}
+          className="qb-btn-ghost shrink-0 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
+        >
+          <IconTrash />
+        </button>
+      </div>
+
+      {expanded && hasLineItems && (
+        <div
+          id={`expense-items-${expense.id}`}
+          className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 lg:px-5 qb-animate-in"
+        >
+          <ReceiptLineItemsList items={expense.lineItems} />
+        </div>
+      )}
+
+      {expanded && !hasLineItems && (
+        <div className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 text-sm text-qb-text-muted lg:px-5">
+          No line items saved for this receipt.
+        </div>
+      )}
+    </li>
+  );
+}
+
 export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   if (expenses.length === 0) {
     return (
       <section className="qb-card">
@@ -20,8 +132,8 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
           </div>
           <p className="font-semibold text-qb-text">No expenses recorded</p>
           <p className="mt-1 max-w-xs text-sm text-qb-text-secondary">
-            Scan your first receipt above — it&apos;ll show up here and in the
-            live feed.
+            Scan your first receipt above — tap a transaction to view line
+            items.
           </p>
         </div>
       </section>
@@ -42,71 +154,26 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
         </span>
       </div>
 
-      <div className="hidden border-b border-qb-border-light bg-qb-bg/50 px-5 py-2 lg:grid lg:grid-cols-[1fr_120px_120px_40px] lg:gap-4">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
-          Vendor
-        </span>
-        <span className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
-          Category
-        </span>
-        <span className="text-right text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
-          Amount
-        </span>
-        <span />
-      </div>
+      <p className="border-b border-qb-border-light px-4 py-2 text-xs text-qb-text-muted lg:px-5">
+        Tap a transaction to view receipt line items
+      </p>
 
       <ul className="divide-y divide-qb-border-light">
         {expenses.map((expense) => (
-          <li
+          <ExpenseRow
             key={expense.id}
-            className="group px-4 py-3.5 active:bg-qb-bg/60 lg:grid lg:grid-cols-[1fr_120px_120px_40px] lg:items-center lg:gap-4 lg:px-5 lg:hover:bg-qb-bg/40"
-          >
-            {/* Mobile: compact card row */}
-            <div className="flex items-center gap-3 lg:contents">
-              {expense.receiptImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={expense.receiptImage}
-                  alt=""
-                  className="h-11 w-11 shrink-0 rounded border border-qb-border object-cover lg:h-10 lg:w-10"
-                />
-              ) : (
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg lg:h-10 lg:w-10">
-                  <IconReceipt className="h-4 w-4 text-qb-text-muted" />
-                </div>
-              )}
-
-              <div className="min-w-0 flex-1 lg:block">
-                <p className="truncate text-sm font-semibold text-qb-text">
-                  {expense.merchant}
-                </p>
-                <p className="text-xs text-qb-text-muted lg:mt-0">
-                  {formatDate(expense.date)}
-                </p>
-                <div className="mt-1.5 lg:hidden">
-                  <CategoryBadge category={expense.category} />
-                </div>
-              </div>
-
-              <div className="flex shrink-0 flex-col items-end gap-1 lg:contents">
-                <p className="text-sm font-bold tabular-nums text-qb-text">
-                  {formatCurrency(expense.amount)}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onRemove(expense.id)}
-                  aria-label={`Remove ${expense.merchant}`}
-                  className="qb-btn-ghost -mr-1 lg:justify-self-end lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
-                >
-                  <IconTrash />
-                </button>
-              </div>
-            </div>
-
-            <div className="hidden lg:block">
-              <CategoryBadge category={expense.category} />
-            </div>
-          </li>
+            expense={expense}
+            expanded={expandedId === expense.id}
+            onToggle={() =>
+              setExpandedId((current) =>
+                current === expense.id ? null : expense.id,
+              )
+            }
+            onRemove={() => {
+              if (expandedId === expense.id) setExpandedId(null);
+              onRemove(expense.id);
+            }}
+          />
         ))}
       </ul>
     </section>

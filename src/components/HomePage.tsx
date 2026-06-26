@@ -1,5 +1,6 @@
 "use client";
 
+import { BulkUpload } from "@/components/BulkUpload";
 import { ExpenseList } from "@/components/ExpenseList";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LiveDashboard } from "@/components/LiveDashboard";
@@ -55,6 +56,11 @@ export function HomePage() {
           className={`ios-main ${DESKTOP_CONTENT_CLASS} flex flex-col gap-4 py-4 lg:gap-5 lg:py-6`}
         >
           <ReceiptScanner
+            onScanComplete={(result, thumbnailUrl) => {
+              addExpense(result, thumbnailUrl);
+            }}
+          />
+          <BulkUpload
             onScanComplete={(result, thumbnailUrl) => {
               addExpense(result, thumbnailUrl);
             }}
