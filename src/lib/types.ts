@@ -13,13 +13,18 @@ export const EXPENSE_CATEGORIES = [
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
+export interface ReceiptLineItem {
+  name: string;
+  amount: number | null;
+}
+
 export interface ScannedReceipt {
   merchant: string;
   amount: number;
   date: string;
   category: ExpenseCategory;
   categoryReason: string;
-  lineItems: string[];
+  lineItems: ReceiptLineItem[];
   confidence: number;
 }
 

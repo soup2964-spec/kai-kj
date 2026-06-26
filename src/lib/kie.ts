@@ -1,4 +1,5 @@
 import { EXPENSE_CATEGORIES, type ScannedReceipt } from "@/lib/types";
+import { normalizeLineItems } from "@/lib/receipt-line-items";
 
 const KIE_CHAT_URL =
   "https://api.kie.ai/gemini-3-flash/v1/chat/completions";
@@ -12,7 +13,10 @@ Return ONLY valid JSON with this shape:
   "date": "YYYY-MM-DD",
   "category": "one of: ${EXPENSE_CATEGORIES.join(", ")}",
   "categoryReason": "brief explanation for the category",
-  "lineItems": ["item 1", "item 2"],
+  "lineItems": [
+    { "name": "Coffee", "amount": 4.50 },
+    { "name": "Sandwich", "amount": 8.99 }
+  ],
   "confidence": 0.95
 }
 
@@ -21,7 +25,8 @@ Rules:
 - date should be the receipt date; use today's date if unclear
 - category must be exactly one of the allowed values
 - confidence is 0-1 based on image clarity and extraction certainty
-- lineItems should list notable purchased items when visible
+- lineItems must list purchased items visible on the receipt with name and price when shown
+- each lineItems[].amount must be a number (use null only if price is not visible on the receipt)
 - respond with JSON only, no markdown fences or extra text`;
 
 interface KieChatResponse {
@@ -68,7 +73,11 @@ function validateReceipt(parsed: ScannedReceipt): ScannedReceipt {
   ) {
     throw new Error("Invalid receipt data returned");
   }
-  return parsed;
+
+  return {
+    ...parsed,
+    lineItems: normalizeLineItems(parsed.lineItems),
+  };
 }
 
 export async function scanReceiptWithKie(

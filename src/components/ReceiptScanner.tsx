@@ -5,6 +5,7 @@ import type { ScannedReceipt } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
 import { IconCamera, IconCheck, IconPhoto, IconSpark } from "./icons";
 import { ScanToast } from "./ScanToast";
+import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import { formatCurrency, formatDate } from "@/lib/categories";
 import { prepareReceiptImage } from "@/lib/image-utils";
 
@@ -256,13 +257,7 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
                     </p>
 
                     {result.lineItems.length > 0 && (
-                      <ul className="rounded border border-qb-border bg-white px-3 py-2 text-sm text-qb-text-secondary">
-                        {result.lineItems.slice(0, 4).map((item) => (
-                          <li key={item} className="py-0.5">
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                      <ReceiptLineItemsList items={result.lineItems} limit={8} />
                     )}
 
                     <div className="flex items-center gap-2 text-xs text-qb-text-muted">

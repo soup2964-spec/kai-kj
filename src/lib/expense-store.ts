@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { normalizeLineItems } from "./receipt-line-items";
 import type { Expense, ScannedReceipt } from "./types";
 
 const STORAGE_KEY = "kai-kj-expenses";
@@ -9,7 +10,12 @@ function readExpenses(): Expense[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Expense[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Expense[];
+    return parsed.map((expense) => ({
+      ...expense,
+      lineItems: normalizeLineItems(expense.lineItems),
+    }));
   } catch {
     return [];
   }
