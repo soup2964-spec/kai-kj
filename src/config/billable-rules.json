@@ -179,6 +179,13 @@
       "reason": "Personal spending categories are not billable"
     },
     {
+      "id": "category-credit-cards",
+      "type": "category",
+      "categories": ["credit_cards"],
+      "billableStatus": "non_billable",
+      "reason": "Credit card payments and fees are not billable"
+    },
+    {
       "id": "allow-hardware-stores",
       "type": "merchant_allowlist",
       "patterns": [
@@ -355,6 +362,13 @@
       ],
       "billableStatus": "billable",
       "reason": "Property insurance is billable"
+    },
+    {
+      "id": "category-months",
+      "type": "category",
+      "categories": ["months"],
+      "billableStatus": "billable",
+      "reason": "Recurring monthly property or client costs are billable"
     },
     {
       "id": "category-utilities",

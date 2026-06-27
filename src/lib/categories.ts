@@ -13,6 +13,8 @@ export const CATEGORY_META: Record<
   utilities: { label: "Utilities", color: "#854d0e", bg: "#fef9c3", dot: "#ca8a04" },
   travel: { label: "Travel", color: "#026aa2", bg: "#e0f2fe", dot: "#0ba5ec" },
   business: { label: "Business", color: "#3538cd", bg: "#eef4ff", dot: "#444ce7" },
+  months: { label: "Monthly", color: "#0e7490", bg: "#ecfeff", dot: "#06b6d4" },
+  credit_cards: { label: "Credit Cards", color: "#93370d", bg: "#fffaeb", dot: "#f59e0b" },
   other: { label: "Other", color: "#393a3d", bg: "#eceef1", dot: "#6b6c72" },
 };
 

@@ -8,6 +8,8 @@ export const EXPENSE_CATEGORIES = [
   "utilities",
   "travel",
   "business",
+  "months",
+  "credit_cards",
   "other",
 ] as const;
 

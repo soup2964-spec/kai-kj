@@ -27,6 +27,8 @@ Rules:
 - confidence is 0-1 based on image clarity and extraction certainty
 - lineItems must list purchased items visible on the receipt with name and price when shown
 - each lineItems[].amount must be a number (use null only if price is not visible on the receipt)
+- use category "months" for recurring monthly charges (rent, lease payments, subscriptions, membership fees, monthly insurance premiums)
+- use category "credit_cards" for credit card payments, card statements, finance charges, or purchases where the merchant is a bank/card issuer (Visa, Mastercard, Amex, Chase, Capital One, etc.)
 - respond with JSON only, no markdown fences or extra text`;
 
 interface KieChatResponse {
