@@ -8,32 +8,243 @@
       "reason": "Personal streaming subscriptions are not billable"
     },
     {
+      "id": "block-grocery-stores",
+      "type": "merchant_blocklist",
+      "patterns": [
+        "whole foods",
+        "trader joe",
+        "kroger",
+        "safeway",
+        "aldi",
+        "publix",
+        "food lion",
+        "wegmans",
+        "h-e-b",
+        "stop & shop",
+        "giant food"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Groceries are not billable"
+    },
+    {
+      "id": "block-office-supply-stores",
+      "type": "merchant_blocklist",
+      "patterns": ["staples", "office depot", "officemax", "office max"],
+      "billableStatus": "non_billable",
+      "reason": "Office supplies are not billable"
+    },
+    {
+      "id": "block-equipment-stores",
+      "type": "merchant_blocklist",
+      "patterns": ["best buy", "apple store", "micro center", "b&h photo"],
+      "billableStatus": "non_billable",
+      "reason": "Equipment purchases are not billable"
+    },
+    {
+      "id": "keyword-alcohol",
+      "type": "line_item_keyword",
+      "keywords": ["beer", "wine", "vodka", "whiskey", "alcohol"],
+      "billableStatus": "non_billable",
+      "reason": "Alcohol purchases are not billable"
+    },
+    {
+      "id": "keyword-personal-items",
+      "type": "line_item_keyword",
+      "keywords": [
+        "personal",
+        "clothing",
+        "apparel",
+        "shoes",
+        "sneakers",
+        "jewelry",
+        "cosmetics",
+        "perfume",
+        "toy",
+        "video game",
+        "gift card"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Personal items are not billable"
+    },
+    {
+      "id": "keyword-groceries",
+      "type": "line_item_keyword",
+      "keywords": [
+        "grocery",
+        "groceries",
+        "supermarket",
+        "produce",
+        "meat",
+        "dairy",
+        "bakery",
+        "deli",
+        "milk",
+        "eggs",
+        "bread",
+        "cereal",
+        "snack",
+        "fruit",
+        "vegetable"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Groceries are not billable"
+    },
+    {
+      "id": "keyword-office-supplies",
+      "type": "line_item_keyword",
+      "keywords": [
+        "office supply",
+        "office supplies",
+        "printer ink",
+        "toner",
+        "copy paper",
+        "ream of paper",
+        "stapler",
+        "paper clip",
+        "binder",
+        "file folder",
+        "highlighter",
+        "whiteboard marker",
+        "desk organizer",
+        "manila folder",
+        "post-it"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Office supplies are not billable"
+    },
+    {
+      "id": "keyword-equipment",
+      "type": "line_item_keyword",
+      "keywords": [
+        "equipment",
+        "laptop",
+        "computer",
+        "monitor",
+        "desktop",
+        "tablet",
+        "printer",
+        "server",
+        "projector",
+        "camera",
+        "microphone",
+        "headphones",
+        "keyboard",
+        "mouse pad"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Equipment purchases are not billable"
+    },
+    {
+      "id": "keyword-inventory",
+      "type": "line_item_keyword",
+      "keywords": [
+        "inventory",
+        "restock",
+        "wholesale",
+        "bulk stock",
+        "warehouse stock",
+        "sku",
+        "stock order"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Inventory purchases are not billable"
+    },
+    {
+      "id": "keyword-operating-expense",
+      "type": "line_item_keyword",
+      "keywords": [
+        "operating expense",
+        "overhead",
+        "payroll",
+        "accounting",
+        "bookkeeping",
+        "legal fee",
+        "attorney",
+        "bank fee",
+        "merchant fee",
+        "saas",
+        "software subscription",
+        "cloud subscription",
+        "admin fee",
+        "consulting fee"
+      ],
+      "billableStatus": "non_billable",
+      "reason": "Operating expenses are not billable"
+    },
+    {
+      "id": "category-personal",
+      "type": "category",
+      "categories": ["groceries", "entertainment", "shopping"],
+      "billableStatus": "non_billable",
+      "reason": "Personal spending categories are not billable"
+    },
+    {
+      "id": "allow-hardware-stores",
+      "type": "merchant_allowlist",
+      "patterns": [
+        "home depot",
+        "lowe's",
+        "lowes",
+        "menards",
+        "ace hardware",
+        "true value",
+        "harbor freight",
+        "ferguson",
+        "supply house"
+      ],
+      "billableStatus": "billable",
+      "reason": "Materials and supplies for property or client work are billable"
+    },
+    {
+      "id": "allow-appliance-parts",
+      "type": "merchant_allowlist",
+      "patterns": [
+        "appliance parts",
+        "repair clinic",
+        "partselect",
+        "appliance warehouse"
+      ],
+      "billableStatus": "billable",
+      "reason": "Appliance repair materials for the property are billable"
+    },
+    {
+      "id": "allow-insurance",
+      "type": "merchant_allowlist",
+      "patterns": [
+        "state farm",
+        "allstate",
+        "progressive",
+        "geico",
+        "liberty mutual",
+        "farmers insurance",
+        "nationwide",
+        "travelers",
+        "usaa",
+        "lemonade",
+        "hippo"
+      ],
+      "billableStatus": "billable",
+      "reason": "Property insurance is billable"
+    },
+    {
+      "id": "allow-property-management",
+      "type": "merchant_allowlist",
+      "patterns": [
+        "property management",
+        "real estate",
+        "rent payment",
+        "landlord",
+        "apartment association"
+      ],
+      "billableStatus": "billable",
+      "reason": "Rent and property management costs are billable"
+    },
+    {
       "id": "allow-rideshare",
       "type": "merchant_allowlist",
       "patterns": ["uber", "lyft"],
       "billableStatus": "billable",
       "reason": "Client transportation is billable"
-    },
-    {
-      "id": "allow-airlines",
-      "type": "merchant_allowlist",
-      "patterns": ["delta", "united", "american airlines", "southwest", "jetblue"],
-      "billableStatus": "billable",
-      "reason": "Air travel is billable"
-    },
-    {
-      "id": "category-business-travel",
-      "type": "category",
-      "categories": ["travel", "business"],
-      "billableStatus": "billable",
-      "reason": "Business travel and supplies are billable"
-    },
-    {
-      "id": "category-personal",
-      "type": "category",
-      "categories": ["groceries", "entertainment"],
-      "billableStatus": "non_billable",
-      "reason": "Personal spending categories are not billable"
     },
     {
       "id": "dining-over-limit",
@@ -44,15 +255,124 @@
       "reason": "Dining over $75 requires review before billing"
     },
     {
-      "id": "keyword-alcohol",
+      "id": "keyword-property-repairs",
       "type": "line_item_keyword",
-      "keywords": ["beer", "wine", "vodka", "whiskey", "alcohol"],
-      "billableStatus": "non_billable",
-      "reason": "Alcohol purchases are not billable"
+      "keywords": [
+        "repair",
+        "fix",
+        "maintenance",
+        "washing machine",
+        "washer",
+        "dryer",
+        "appliance",
+        "plumbing",
+        "hvac",
+        "electrical",
+        "water heater",
+        "furnace",
+        "air conditioner",
+        "toilet",
+        "faucet",
+        "pipe",
+        "leak",
+        "broken"
+      ],
+      "billableStatus": "billable",
+      "reason": "Property maintenance and repair expenses are billable"
+    },
+    {
+      "id": "keyword-materials",
+      "type": "line_item_keyword",
+      "keywords": [
+        "materials",
+        "parts",
+        "supplies",
+        "hardware",
+        "lumber",
+        "screw",
+        "bolt",
+        "valve",
+        "fitting",
+        "wire",
+        "outlet",
+        "switch",
+        "filter",
+        "hose",
+        "sealant",
+        "caulk"
+      ],
+      "billableStatus": "billable",
+      "reason": "Materials to fix or maintain the property are billable"
+    },
+    {
+      "id": "keyword-renovation",
+      "type": "line_item_keyword",
+      "keywords": [
+        "renovation",
+        "remodel",
+        "contractor",
+        "construction",
+        "drywall",
+        "flooring",
+        "tile",
+        "paint",
+        "cabinet",
+        "countertop",
+        "demolition",
+        "install",
+        "replacement"
+      ],
+      "billableStatus": "billable",
+      "reason": "Renovation work at the property is billable"
+    },
+    {
+      "id": "keyword-rent",
+      "type": "line_item_keyword",
+      "keywords": [
+        "rent",
+        "rent increase",
+        "lease",
+        "monthly rent",
+        "landlord",
+        "tenant",
+        "property management"
+      ],
+      "billableStatus": "billable",
+      "reason": "Rent and rent-related property costs are billable"
+    },
+    {
+      "id": "keyword-insurance",
+      "type": "line_item_keyword",
+      "keywords": [
+        "insurance",
+        "premium",
+        "policy",
+        "liability",
+        "property insurance",
+        "homeowners",
+        "landlord insurance",
+        "dwelling"
+      ],
+      "billableStatus": "billable",
+      "reason": "Property insurance is billable"
+    },
+    {
+      "id": "category-utilities",
+      "type": "category",
+      "categories": ["utilities"],
+      "billableStatus": "billable",
+      "reason": "Property utilities are billable"
+    },
+    {
+      "id": "category-business-travel",
+      "type": "category",
+      "categories": ["travel", "business"],
+      "billableStatus": "billable",
+      "reason": "Business and client-related expenses are billable"
     }
   ],
   "default": {
     "billableStatus": "review",
-    "reason": "No matching rule — needs manual review"
+    "reason": "Not clearly a property or client expense — needs manual review"
   }
 }

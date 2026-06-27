@@ -85,22 +85,41 @@ function evaluateRule(
   }
 }
 
-const RULE_ORDER: RuleType[] = [
-  "merchant_blocklist",
-  "merchant_allowlist",
-  "amount_over",
-  "line_item_keyword",
-  "category",
+interface EvaluationPhase {
+  types: RuleType[];
+  statuses?: BillableStatus[];
+}
+
+function findMatchingRule(
+  rules: BillableRule[],
+  receipt: ExtractedReceipt,
+  phase: EvaluationPhase,
+): BillableRule | undefined {
+  return rules.find(
+    (rule) =>
+      phase.types.includes(rule.type) &&
+      (!phase.statuses || phase.statuses.includes(rule.billableStatus)) &&
+      evaluateRule(rule, receipt),
+  );
+}
+
+/** Non-billable checks run before allowlists so item context wins over store name. */
+const EVALUATION_PHASES: EvaluationPhase[] = [
+  { types: ["merchant_blocklist"] },
+  { types: ["line_item_keyword"], statuses: ["non_billable"] },
+  { types: ["category"], statuses: ["non_billable"] },
+  { types: ["merchant_allowlist"] },
+  { types: ["amount_over"] },
+  { types: ["line_item_keyword"], statuses: ["billable", "review"] },
+  { types: ["category"], statuses: ["billable", "review"] },
 ];
 
 export function evaluateBillable(
   receipt: ExtractedReceipt,
   rules: BillableRulesConfig = config,
 ): BillableEvaluation {
-  for (const type of RULE_ORDER) {
-    const matchingRule = rules.rules.find(
-      (rule) => rule.type === type && evaluateRule(rule, receipt),
-    );
+  for (const phase of EVALUATION_PHASES) {
+    const matchingRule = findMatchingRule(rules.rules, receipt, phase);
 
     if (matchingRule) {
       return {
