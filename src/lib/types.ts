@@ -13,12 +13,17 @@ export const EXPENSE_CATEGORIES = [
 
 export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
+export type BillableStatus = "billable" | "non_billable" | "review";
+
+export type BillableSource = "rule" | "default";
+
 export interface ReceiptLineItem {
   name: string;
   amount: number | null;
 }
 
-export interface ScannedReceipt {
+/** Raw fields extracted by AI — no billable decision yet */
+export interface ExtractedReceipt {
   merchant: string;
   amount: number;
   date: string;
@@ -26,6 +31,14 @@ export interface ScannedReceipt {
   categoryReason: string;
   lineItems: ReceiptLineItem[];
   confidence: number;
+}
+
+/** Full scan result after billable rules are applied */
+export interface ScannedReceipt extends ExtractedReceipt {
+  billableStatus: BillableStatus;
+  billableReason: string;
+  billableSource: BillableSource;
+  matchedRuleId?: string;
 }
 
 export interface Expense extends ScannedReceipt {

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { ScannedReceipt } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
+import { BillableBadge } from "./BillableBadge";
 import { IconPhoto } from "./icons";
 import { formatCurrency } from "@/lib/categories";
 import {
@@ -183,6 +184,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
                         </p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           <CategoryBadge category={item.result.category} />
+                          <BillableBadge status={item.result.billableStatus} />
                           <span className="text-sm font-bold tabular-nums text-qb-text">
                             {formatCurrency(item.result.amount)}
                           </span>

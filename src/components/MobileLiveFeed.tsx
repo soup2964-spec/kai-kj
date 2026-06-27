@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
+import { BillableBadge } from "./BillableBadge";
 import { formatCurrency } from "@/lib/categories";
 
 interface MobileLiveFeedProps {
@@ -83,8 +84,9 @@ export function MobileLiveFeed({ expenses }: MobileLiveFeedProps) {
                   </p>
                 </div>
               </div>
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-1">
                 <CategoryBadge category={expense.category} />
+                <BillableBadge status={expense.billableStatus} />
               </div>
             </div>
           ))}

@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import type { ScannedReceipt } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
+import { BillableBadge } from "./BillableBadge";
 import { IconCamera, IconCheck, IconPhoto, IconSpark } from "./icons";
 import { ScanToast } from "./ScanToast";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
@@ -239,10 +240,17 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
                       </p>
                     </div>
 
-                    <CategoryBadge category={result.category} size="md" />
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CategoryBadge category={result.category} size="md" />
+                      <BillableBadge status={result.billableStatus} size="md" />
+                    </div>
 
                     <p className="text-sm leading-relaxed text-qb-text-secondary">
                       {result.categoryReason}
+                    </p>
+
+                    <p className="text-sm leading-relaxed text-qb-text-secondary">
+                      {result.billableReason}
                     </p>
 
                     {result.lineItems.length > 0 && (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
+import { BillableBadge } from "./BillableBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import {
   IconChevronDown,
@@ -40,12 +41,9 @@ function ExpenseRow({
         <button
           type="button"
           onClick={onToggle}
-          disabled={!hasLineItems}
           aria-expanded={expanded}
           aria-controls={`expense-items-${expense.id}`}
-          className={`flex min-w-0 flex-1 items-center gap-3 text-left ${
-            hasLineItems ? "cursor-pointer active:opacity-80" : "cursor-default"
-          }`}
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left active:opacity-80"
         >
           {expense.receiptImage ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -65,13 +63,11 @@ function ExpenseRow({
               <p className="truncate text-sm font-semibold text-qb-text">
                 {expense.merchant}
               </p>
-              {hasLineItems && (
-                <IconChevronDown
-                  className={`h-4 w-4 shrink-0 text-qb-text-muted transition-transform ${
-                    expanded ? "rotate-180" : ""
-                  }`}
-                />
-              )}
+              <IconChevronDown
+                className={`h-4 w-4 shrink-0 text-qb-text-muted transition-transform ${
+                  expanded ? "rotate-180" : ""
+                }`}
+              />
             </div>
             <p className="text-xs text-qb-text-muted">
               {formatDate(expense.date)}
@@ -81,9 +77,15 @@ function ExpenseRow({
                   {expense.lineItems.length === 1 ? "" : "s"}
                 </span>
               )}
+              {!expanded && (
+                <span className="ml-1.5 text-qb-text-secondary">
+                  · tap for details
+                </span>
+              )}
             </p>
-            <div className="mt-1.5">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={expense.category} />
+              <BillableBadge status={expense.billableStatus} />
             </div>
           </div>
 
@@ -102,18 +104,30 @@ function ExpenseRow({
         </button>
       </div>
 
-      {expanded && hasLineItems && (
+      {expanded && (
         <div
           id={`expense-items-${expense.id}`}
-          className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 lg:px-5 qb-animate-in"
+          className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 lg:px-5 qb-animate-in space-y-3"
         >
-          <ReceiptLineItemsList items={expense.lineItems} />
-        </div>
-      )}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
+              Billable
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <BillableBadge status={expense.billableStatus} size="md" />
+              <span className="text-xs text-qb-text-secondary">
+                {expense.billableReason}
+              </span>
+            </div>
+          </div>
 
-      {expanded && !hasLineItems && (
-        <div className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 text-sm text-qb-text-muted lg:px-5">
-          No line items saved for this receipt.
+          {hasLineItems ? (
+            <ReceiptLineItemsList items={expense.lineItems} />
+          ) : (
+            <p className="text-sm text-qb-text-muted">
+              No line items saved for this receipt.
+            </p>
+          )}
         </div>
       )}
     </li>

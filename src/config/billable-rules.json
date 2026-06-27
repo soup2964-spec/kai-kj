@@ -1,0 +1,58 @@
+{
+  "rules": [
+    {
+      "id": "block-streaming",
+      "type": "merchant_blocklist",
+      "patterns": ["netflix", "spotify", "hulu", "disney+"],
+      "billableStatus": "non_billable",
+      "reason": "Personal streaming subscriptions are not billable"
+    },
+    {
+      "id": "allow-rideshare",
+      "type": "merchant_allowlist",
+      "patterns": ["uber", "lyft"],
+      "billableStatus": "billable",
+      "reason": "Client transportation is billable"
+    },
+    {
+      "id": "allow-airlines",
+      "type": "merchant_allowlist",
+      "patterns": ["delta", "united", "american airlines", "southwest", "jetblue"],
+      "billableStatus": "billable",
+      "reason": "Air travel is billable"
+    },
+    {
+      "id": "category-business-travel",
+      "type": "category",
+      "categories": ["travel", "business"],
+      "billableStatus": "billable",
+      "reason": "Business travel and supplies are billable"
+    },
+    {
+      "id": "category-personal",
+      "type": "category",
+      "categories": ["groceries", "entertainment"],
+      "billableStatus": "non_billable",
+      "reason": "Personal spending categories are not billable"
+    },
+    {
+      "id": "dining-over-limit",
+      "type": "amount_over",
+      "category": "dining",
+      "maxAmount": 75,
+      "billableStatus": "review",
+      "reason": "Dining over $75 requires review before billing"
+    },
+    {
+      "id": "keyword-alcohol",
+      "type": "line_item_keyword",
+      "keywords": ["beer", "wine", "vodka", "whiskey", "alcohol"],
+      "billableStatus": "non_billable",
+      "reason": "Alcohol purchases are not billable"
+    }
+  ],
+  "default": {
+    "billableStatus": "review",
+    "reason": "No matching rule — needs manual review"
+  }
+}

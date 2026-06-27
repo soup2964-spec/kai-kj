@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
+import { BillableBadge } from "./BillableBadge";
 import { IconDashboard, IconReceipt } from "./icons";
 import {
   CATEGORY_META,
@@ -169,8 +170,11 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
                         {formatCurrency(expense.amount)}
                       </p>
                     </div>
-                    <div className="mt-2 flex items-center justify-between gap-2">
-                      <CategoryBadge category={expense.category} />
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <CategoryBadge category={expense.category} />
+                        <BillableBadge status={expense.billableStatus} />
+                      </div>
                       <span className="shrink-0 text-[11px] font-medium text-qb-text-muted">
                         {formatScanTime(expense.createdAt)}
                       </span>

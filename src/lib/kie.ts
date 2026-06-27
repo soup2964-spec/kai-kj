@@ -1,4 +1,4 @@
-import { EXPENSE_CATEGORIES, type ScannedReceipt } from "@/lib/types";
+import { EXPENSE_CATEGORIES, type ExtractedReceipt } from "@/lib/types";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 
 const KIE_CHAT_URL =
@@ -58,14 +58,14 @@ function extractTextContent(content: unknown): string {
   return "";
 }
 
-function parseJsonFromModel(text: string): ScannedReceipt {
+function parseJsonFromModel(text: string): ExtractedReceipt {
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   const jsonText = fenced ? fenced[1].trim() : trimmed;
-  return JSON.parse(jsonText) as ScannedReceipt;
+  return JSON.parse(jsonText) as ExtractedReceipt;
 }
 
-function validateReceipt(parsed: ScannedReceipt): ScannedReceipt {
+function validateReceipt(parsed: ExtractedReceipt): ExtractedReceipt {
   if (
     !parsed.merchant ||
     typeof parsed.amount !== "number" ||
@@ -84,7 +84,7 @@ export async function scanReceiptWithKie(
   apiKey: string,
   imageBase64: string,
   mimeType: string,
-): Promise<ScannedReceipt> {
+): Promise<ExtractedReceipt> {
   const response = await fetch(KIE_CHAT_URL, {
     method: "POST",
     headers: {

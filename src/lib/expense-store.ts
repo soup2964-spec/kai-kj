@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { normalizeBillableFields } from "./billable-engine";
 import { normalizeLineItems } from "./receipt-line-items";
 import type { Expense, ScannedReceipt } from "./types";
 
@@ -15,6 +16,7 @@ function readExpenses(): Expense[] {
     return parsed.map((expense) => ({
       ...expense,
       lineItems: normalizeLineItems(expense.lineItems),
+      ...normalizeBillableFields(expense),
     }));
   } catch {
     return [];

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { evaluateAndApplyBillable } from "@/lib/billable-engine";
 import { scanReceiptWithKie } from "@/lib/kie";
 
 export async function POST(request: Request) {
@@ -35,7 +36,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await scanReceiptWithKie(apiKey, imageBase64, mimeType);
+    const extracted = await scanReceiptWithKie(apiKey, imageBase64, mimeType);
+    const result = evaluateAndApplyBillable(extracted);
     return NextResponse.json(result);
   } catch (error) {
     const message =
