@@ -25,6 +25,10 @@ export interface Database {
           billable_source: "rule" | "default";
           matched_rule_id: string | null;
           receipt_image: string | null;
+          accounting_status: "pending" | "rejected" | "synced" | "failed";
+          accounting_synced_at: string | null;
+          accounting_reference: string | null;
+          accounting_error: string | null;
           created_at: string;
         };
         Insert: {
@@ -42,6 +46,10 @@ export interface Database {
           billable_source?: "rule" | "default";
           matched_rule_id?: string | null;
           receipt_image?: string | null;
+          accounting_status?: "pending" | "rejected" | "synced" | "failed";
+          accounting_synced_at?: string | null;
+          accounting_reference?: string | null;
+          accounting_error?: string | null;
           created_at?: string;
         };
         Update: {
@@ -59,6 +67,10 @@ export interface Database {
           billable_source?: "rule" | "default";
           matched_rule_id?: string | null;
           receipt_image?: string | null;
+          accounting_status?: "pending" | "rejected" | "synced" | "failed";
+          accounting_synced_at?: string | null;
+          accounting_reference?: string | null;
+          accounting_error?: string | null;
           created_at?: string;
         };
         Relationships: [];

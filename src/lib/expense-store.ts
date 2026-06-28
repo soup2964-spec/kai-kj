@@ -1,16 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { normalizeAccountingFields } from "./accounting-fields";
 import { normalizeBillableFields } from "./billable-engine";
 import {
   deleteExpenseRemote,
   fetchExpensesRemote,
   saveExpenseRemote,
+  submitAccountingDecisionRemote,
+  type AccountingDecision,
 } from "./expense-sync";
 import { normalizeLineItems } from "./receipt-line-items";
 import type { Expense, ScannedReceipt } from "./types";
 
 const STORAGE_KEY = "kai-kj-expenses";
+
+function normalizeExpense(expense: Expense): Expense {
+  return {
+    ...expense,
+    lineItems: normalizeLineItems(expense.lineItems),
+    ...normalizeBillableFields(expense),
+    ...normalizeAccountingFields(expense),
+  };
+}
 
 function readExpenses(): Expense[] {
   if (typeof window === "undefined") return [];
@@ -18,11 +30,7 @@ function readExpenses(): Expense[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Expense[];
-    return parsed.map((expense) => ({
-      ...expense,
-      lineItems: normalizeLineItems(expense.lineItems),
-      ...normalizeBillableFields(expense),
-    }));
+    return parsed.map(normalizeExpense);
   } catch {
     return [];
   }
@@ -32,26 +40,32 @@ function writeExpenses(expenses: Expense[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
 }
 
-function mergeLocalReceiptImages(
+function mergeLocalOnlyFields(
   remoteExpenses: Expense[],
   localExpenses: Expense[],
 ): Expense[] {
-  const imagesById = new Map(
-    localExpenses
-      .filter((expense) => expense.receiptImage)
-      .map((expense) => [expense.id, expense.receiptImage] as const),
-  );
+  const localById = new Map(localExpenses.map((expense) => [expense.id, expense]));
 
-  return remoteExpenses.map((expense) => ({
-    ...expense,
-    receiptImage: imagesById.get(expense.id) ?? expense.receiptImage,
-  }));
+  return remoteExpenses.map((expense) => {
+    const local = localById.get(expense.id);
+    return normalizeExpense({
+      ...expense,
+      receiptImage: local?.receiptImage ?? expense.receiptImage,
+    });
+  });
+}
+
+function replaceExpense(expenses: Expense[], updated: Expense) {
+  return expenses.map((expense) =>
+    expense.id === updated.id ? normalizeExpense(updated) : expense,
+  );
 }
 
 export function useExpenses() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [accountingBusyId, setAccountingBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +75,7 @@ export function useExpenses() {
 
       try {
         const remoteExpenses = await fetchExpensesRemote();
-        const merged = mergeLocalReceiptImages(remoteExpenses, localExpenses);
+        const merged = mergeLocalOnlyFields(remoteExpenses, localExpenses);
         if (!cancelled) {
           setExpenses(merged);
           writeExpenses(merged);
@@ -93,12 +107,13 @@ export function useExpenses() {
 
   const addExpense = useCallback(
     (scan: ScannedReceipt, receiptImage?: string) => {
-      const expense: Expense = {
+      const expense: Expense = normalizeExpense({
         ...scan,
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         receiptImage,
-      };
+        accountingStatus: "pending",
+      });
 
       const next = [expense, ...readExpenses()];
       persist(next);
@@ -131,6 +146,31 @@ export function useExpenses() {
     [persist],
   );
 
+  const submitAccountingDecision = useCallback(
+    async (id: string, decision: AccountingDecision) => {
+      setAccountingBusyId(id);
+      setSyncError(null);
+
+      try {
+        const { expense, error } = await submitAccountingDecisionRemote(
+          id,
+          decision,
+        );
+        persist(replaceExpense(readExpenses(), expense));
+        setSyncError(error ?? null);
+      } catch (error) {
+        setSyncError(
+          error instanceof Error
+            ? error.message
+            : "Could not update accounting status.",
+        );
+      } finally {
+        setAccountingBusyId(null);
+      }
+    },
+    [persist],
+  );
+
   const clearExpenses = useCallback(() => {
     persist([]);
   }, [persist]);
@@ -139,8 +179,10 @@ export function useExpenses() {
     expenses,
     loaded,
     syncError,
+    accountingBusyId,
     addExpense,
     removeExpense,
+    submitAccountingDecision,
     clearExpenses,
   };
 }

@@ -181,6 +181,12 @@ html {
   background: white;
 }
 
+.qb-btn-compact {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
 /* Momentum scrolling for horizontal live feed on iPhone */
 .ios-scroll-x {
   -webkit-overflow-scrolling: touch;

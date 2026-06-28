@@ -1,6 +1,8 @@
 import type { Expense } from "@/lib/types";
 import { getOwnerId } from "@/lib/owner-id";
 
+export type AccountingDecision = "approve" | "disapprove";
+
 async function parseJsonResponse(response: Response) {
   const data = await response.json();
   if (!response.ok) {
@@ -38,4 +40,30 @@ export async function deleteExpenseRemote(expenseId: string): Promise<void> {
     { method: "DELETE" },
   );
   await parseJsonResponse(response);
+}
+
+export async function submitAccountingDecisionRemote(
+  expenseId: string,
+  decision: AccountingDecision,
+): Promise<{ expense: Expense; error?: string }> {
+  const ownerId = getOwnerId();
+  const response = await fetch(`/api/expenses/${expenseId}/accounting`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerId, decision }),
+  });
+  const data = await response.json();
+
+  if (data.expense) {
+    return {
+      expense: data.expense as Expense,
+      error:
+        !response.ok && typeof data.error === "string"
+          ? data.error
+          : undefined,
+    };
+  }
+
+  await parseJsonResponse(response);
+  throw new Error("Accounting response was missing expense data.");
 }

@@ -19,6 +19,19 @@ export type BillableStatus = "billable" | "non_billable" | "review";
 
 export type BillableSource = "rule" | "default";
 
+export type AccountingSyncStatus =
+  | "pending"
+  | "rejected"
+  | "synced"
+  | "failed";
+
+export interface AccountingFields {
+  accountingStatus: AccountingSyncStatus;
+  accountingSyncedAt?: string;
+  accountingReference?: string;
+  accountingError?: string;
+}
+
 export interface ReceiptLineItem {
   name: string;
   amount: number | null;
@@ -43,7 +56,7 @@ export interface ScannedReceipt extends ExtractedReceipt {
   matchedRuleId?: string;
 }
 
-export interface Expense extends ScannedReceipt {
+export interface Expense extends ScannedReceipt, AccountingFields {
   id: string;
   createdAt: string;
   receiptImage?: string;

@@ -1,7 +1,9 @@
 import { normalizeBillableFields } from "@/lib/billable-engine";
+import { normalizeAccountingFields } from "@/lib/accounting-fields";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 import {
   EXPENSE_CATEGORIES,
+  type AccountingSyncStatus,
   type BillableSource,
   type BillableStatus,
   type Expense,
@@ -70,6 +72,24 @@ export function parseExpensePayload(value: unknown): Expense {
       matchedRuleId:
         typeof input.matchedRuleId === "string"
           ? input.matchedRuleId
+          : undefined,
+    }),
+    ...normalizeAccountingFields({
+      accountingStatus:
+        typeof input.accountingStatus === "string"
+          ? (input.accountingStatus as AccountingSyncStatus)
+          : undefined,
+      accountingSyncedAt:
+        typeof input.accountingSyncedAt === "string"
+          ? input.accountingSyncedAt
+          : undefined,
+      accountingReference:
+        typeof input.accountingReference === "string"
+          ? input.accountingReference
+          : undefined,
+      accountingError:
+        typeof input.accountingError === "string"
+          ? input.accountingError
           : undefined,
     }),
   };
