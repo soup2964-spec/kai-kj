@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AccountEmailCard } from "@/components/AccountEmailCard";
 import {
   DEFAULT_EXPENSE_PERIOD_FILTER,
   ExpensePeriodFilterBar,
@@ -16,8 +15,7 @@ import {
 import { useExpenseContext } from "@/lib/expense-context";
 
 export function ExpensesPage() {
-  const { expenses, removeExpense, updateExpense, refreshAccount } =
-    useExpenseContext();
+  const { expenses, removeExpense, updateExpense } = useExpenseContext();
   const [dateSort, setDateSort] = useState<ExpenseDateSort>("newest");
   const [period, setPeriod] = useState<ExpensePeriodFilter>(
     DEFAULT_EXPENSE_PERIOD_FILTER,
@@ -30,11 +28,6 @@ export function ExpensesPage() {
 
   return (
     <>
-      <AccountEmailCard
-        onAccountSaved={() => {
-          void refreshAccount();
-        }}
-      />
       <ExpensePeriodFilterBar
         expenses={expenses}
         period={period}
