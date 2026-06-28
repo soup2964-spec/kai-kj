@@ -38,8 +38,8 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
   );
 
   const canSave = useMemo(
-    () => step === "result" && Boolean(result && thumbnailUrl),
-    [step, result, thumbnailUrl],
+    () => step === "result" && Boolean(result && preview),
+    [step, result, preview],
   );
 
   async function handlePhotoSelected(file: File) {
@@ -95,8 +95,8 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
   }
 
   function save() {
-    if (!result || !thumbnailUrl) return;
-    onScanComplete(result, thumbnailUrl);
+    if (!result || !preview) return;
+    onScanComplete(result, preview);
     reset();
   }
 

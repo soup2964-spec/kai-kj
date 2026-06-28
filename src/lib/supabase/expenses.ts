@@ -25,6 +25,7 @@ function rowToExpense(row: ExpenseRow): Expense {
     confidence: Number(row.confidence),
     cardLastFour: normalizeCardLastFour(row.card_last_four),
     workOrderNumber: normalizeWorkOrderNumber(row.work_order_number),
+    receiptImage: row.receipt_image ?? undefined,
     createdAt: row.created_at,
     ...normalizeBillableFields({
       billableStatus: row.billable_status,

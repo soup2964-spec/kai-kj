@@ -25,7 +25,7 @@ export async function scanReceiptFile(
 
   return {
     result: data as ScannedReceipt,
-    thumbnailUrl: prepared.thumbnailUrl,
+    thumbnailUrl: prepared.previewUrl,
   };
 }
 

@@ -17,7 +17,7 @@ interface SidebarCardFoldersProps {
 }
 
 function CardFolderGroup({ group }: { group: ExpenseGroup }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="border-b border-qb-border-light last:border-b-0">
@@ -32,7 +32,9 @@ function CardFolderGroup({ group }: { group: ExpenseGroup }) {
           }`}
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-bold text-qb-text">{group.label}</p>
+          <p className="truncate text-base font-bold tabular-nums text-qb-text">
+            {group.label}
+          </p>
           <p className="text-[11px] text-qb-text-muted">
             {group.expenses.length} receipt
             {group.expenses.length === 1 ? "" : "s"}

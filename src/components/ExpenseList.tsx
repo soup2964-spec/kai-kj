@@ -22,6 +22,7 @@ import { BillableBadge } from "./BillableBadge";
 import { CardBadge } from "./CardBadge";
 import { WorkOrderBadge } from "./WorkOrderBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
+import { ReceiptImageViewer } from "./ReceiptImageViewer";
 import {
   IconChevronDown,
   IconCheck,
@@ -136,12 +137,7 @@ function ExpenseRow({
           className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left active:opacity-80"
         >
           {expense.receiptImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={expense.receiptImage}
-              alt=""
-              className="h-11 w-11 shrink-0 rounded border border-qb-border object-cover lg:h-10 lg:w-10"
-            />
+            <ReceiptImageViewer src={expense.receiptImage} alt={expense.merchant} />
           ) : (
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg lg:h-10 lg:w-10">
               <IconReceipt className="h-4 w-4 text-qb-text-muted" />
@@ -208,6 +204,21 @@ function ExpenseRow({
           id={`expense-items-${expense.id}`}
           className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 lg:px-5 qb-animate-in space-y-3"
         >
+          {expense.receiptImage ? (
+            <div className="rounded-lg border border-qb-border bg-qb-surface p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
+                Receipt image
+              </p>
+              <div className="mt-2">
+                <ReceiptImageViewer
+                  src={expense.receiptImage}
+                  alt={`${expense.merchant} receipt`}
+                  variant="panel"
+                />
+              </div>
+            </div>
+          ) : null}
+
           <div className="rounded-lg border border-qb-border bg-qb-surface p-3">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>

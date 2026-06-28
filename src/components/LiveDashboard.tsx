@@ -2,6 +2,7 @@
 
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { SidebarCardFolders } from "@/components/SidebarCardFolders";
+import { ReceiptImageViewer } from "@/components/ReceiptImageViewer";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
@@ -192,11 +193,10 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
               >
                 <div className="flex items-start gap-3">
                   {expense.receiptImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <ReceiptImageViewer
                       src={expense.receiptImage}
-                      alt=""
-                      className="h-10 w-10 shrink-0 rounded border border-qb-border object-cover"
+                      alt={expense.merchant}
+                      className="h-10 w-10 rounded object-cover"
                     />
                   ) : (
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg">
