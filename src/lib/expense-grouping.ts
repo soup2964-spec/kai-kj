@@ -1,7 +1,9 @@
 import { formatCardLabel } from "@/lib/card-last-four";
 import type { BillableStatus, Expense } from "@/lib/types";
 
-export type ExpenseGroupMode = "month" | "card" | "billable";
+export type ExpenseGroupMode = "month" | "card" | "billable" | "date";
+
+export type ExpenseDateSort = "newest" | "oldest";
 
 export interface ExpenseGroup {
   key: string;
@@ -42,13 +44,27 @@ function sumAmount(expenses: Expense[]): number {
   return expenses.reduce((sum, expense) => sum + expense.amount, 0);
 }
 
-function sortByDateDesc(expenses: Expense[]): Expense[] {
-  return [...expenses].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+function sortByDate(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): Expense[] {
+  return [...expenses].sort((a, b) => {
+    const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+    return sort === "newest" ? diff : -diff;
+  });
 }
 
-export function groupExpensesByMonth(expenses: Expense[]): ExpenseGroup[] {
+export function sortExpensesByDate(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): Expense[] {
+  return sortByDate(expenses, sort);
+}
+
+export function groupExpensesByMonth(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): ExpenseGroup[] {
   const buckets = new Map<string, Expense[]>();
 
   for (const expense of expenses) {
@@ -59,9 +75,9 @@ export function groupExpensesByMonth(expenses: Expense[]): ExpenseGroup[] {
   }
 
   return [...buckets.entries()]
-    .sort(([a], [b]) => b.localeCompare(a))
+    .sort(([a], [b]) => (sort === "newest" ? b.localeCompare(a) : a.localeCompare(b)))
     .map(([key, items]) => {
-      const sorted = sortByDateDesc(items);
+      const sorted = sortByDate(items, sort);
       return {
         key,
         label: formatMonthLabel(key),
@@ -71,7 +87,10 @@ export function groupExpensesByMonth(expenses: Expense[]): ExpenseGroup[] {
     });
 }
 
-export function groupExpensesByCard(expenses: Expense[]): ExpenseGroup[] {
+export function groupExpensesByCard(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): ExpenseGroup[] {
   const buckets = new Map<string, Expense[]>();
 
   for (const expense of expenses) {
@@ -82,7 +101,7 @@ export function groupExpensesByCard(expenses: Expense[]): ExpenseGroup[] {
   }
 
   const groups = [...buckets.entries()].map(([key, items]) => {
-    const sorted = sortByDateDesc(items);
+    const sorted = sortByDate(items, sort);
     return {
       key,
       label: formatCardLabel(key === "unknown" ? null : key),
@@ -98,7 +117,10 @@ export function groupExpensesByCard(expenses: Expense[]): ExpenseGroup[] {
   });
 }
 
-export function groupExpensesByBillable(expenses: Expense[]): ExpenseGroup[] {
+export function groupExpensesByBillable(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): ExpenseGroup[] {
   const buckets = new Map<BillableStatus, Expense[]>();
 
   for (const expense of expenses) {
@@ -109,7 +131,7 @@ export function groupExpensesByBillable(expenses: Expense[]): ExpenseGroup[] {
 
   return BILLABLE_ORDER.filter((status) => buckets.has(status)).map(
     (status) => {
-      const sorted = sortByDateDesc(buckets.get(status)!);
+      const sorted = sortByDate(buckets.get(status)!, sort);
       return {
         key: status,
         label: BILLABLE_LABELS[status],
@@ -120,17 +142,37 @@ export function groupExpensesByBillable(expenses: Expense[]): ExpenseGroup[] {
   );
 }
 
+export function groupExpensesByDate(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): ExpenseGroup[] {
+  const sorted = sortByDate(expenses, sort);
+  if (sorted.length === 0) return [];
+
+  return [
+    {
+      key: "all",
+      label: "All receipts",
+      expenses: sorted,
+      total: sumAmount(sorted),
+    },
+  ];
+}
+
 export function groupExpenses(
   expenses: Expense[],
   mode: ExpenseGroupMode,
+  sort: ExpenseDateSort = "newest",
 ): ExpenseGroup[] {
   switch (mode) {
     case "month":
-      return groupExpensesByMonth(expenses);
+      return groupExpensesByMonth(expenses, sort);
     case "card":
-      return groupExpensesByCard(expenses);
+      return groupExpensesByCard(expenses, sort);
     case "billable":
-      return groupExpensesByBillable(expenses);
+      return groupExpensesByBillable(expenses, sort);
+    case "date":
+      return groupExpensesByDate(expenses, sort);
   }
 }
 
@@ -138,4 +180,10 @@ export const GROUP_MODE_LABELS: Record<ExpenseGroupMode, string> = {
   month: "Month",
   card: "Card",
   billable: "Billable",
+  date: "Date",
+};
+
+export const DATE_SORT_LABELS: Record<ExpenseDateSort, string> = {
+  newest: "Newest first",
+  oldest: "Oldest first",
 };

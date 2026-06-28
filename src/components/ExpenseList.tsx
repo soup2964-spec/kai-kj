@@ -7,12 +7,17 @@ import {
 } from "@/components/AccountingSyncBadge";
 import type { BillableStatus, Expense } from "@/lib/types";
 import {
+  DATE_SORT_LABELS,
   GROUP_MODE_LABELS,
   groupExpenses,
+  sortExpensesByDate,
+  type ExpenseDateSort,
   type ExpenseGroup,
   type ExpenseGroupMode,
 } from "@/lib/expense-grouping";
 import { formatCardLabel } from "@/lib/card-last-four";
+import { downloadExpensesCsv } from "@/lib/expense-spreadsheet";
+import { exportToGoogleSheetsRemote } from "@/lib/expense-sync";
 import { useExpenseContext } from "@/lib/expense-context";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
@@ -367,14 +372,22 @@ function FolderSection({
 
 export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) {
   const [groupMode, setGroupMode] = useState<ExpenseGroupMode>("month");
+  const [dateSort, setDateSort] = useState<ExpenseDateSort>("newest");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
   const pendingCount = expenses.filter(
     (expense) => expense.accountingStatus === "pending",
   ).length;
 
+  const sortedExpenses = useMemo(
+    () => sortExpensesByDate(expenses, dateSort),
+    [expenses, dateSort],
+  );
+
   const groups = useMemo(
-    () => groupExpenses(expenses, groupMode),
-    [expenses, groupMode],
+    () => groupExpenses(expenses, groupMode, dateSort),
+    [expenses, groupMode, dateSort],
   );
 
   const handleToggleExpense = (id: string) => {
@@ -384,6 +397,35 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
   const handleRemove = (id: string) => {
     if (expandedId === id) setExpandedId(null);
     onRemove(id);
+  };
+
+  const handleExportToGoogleSheets = async () => {
+    setExporting(true);
+    setExportMessage(null);
+
+    try {
+      const result = await exportToGoogleSheetsRemote(dateSort);
+
+      if (result.fallback === "csv") {
+        downloadExpensesCsv(sortedExpenses);
+        setExportMessage(
+          "Downloaded CSV. In Google Sheets, use File → Import → Upload to open it.",
+        );
+        return;
+      }
+
+      window.open(result.spreadsheetUrl, "_blank", "noopener,noreferrer");
+      setExportMessage("Google Sheet created and opened in a new tab.");
+    } catch (error) {
+      downloadExpensesCsv(sortedExpenses);
+      setExportMessage(
+        error instanceof Error
+          ? `${error.message} Downloaded CSV instead — import it into Google Sheets.`
+          : "Could not create a Google Sheet. Downloaded CSV instead.",
+      );
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (expenses.length === 0) {
@@ -413,7 +455,7 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
               Receipt folders
             </h2>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {pendingCount > 0 ? (
               <span className="rounded bg-qb-blue-light px-2 py-0.5 text-xs font-semibold text-qb-blue-dark">
                 {pendingCount} pending
@@ -422,8 +464,24 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
             <span className="rounded bg-qb-bg px-2 py-0.5 text-xs font-semibold tabular-nums text-qb-text-secondary">
               {expenses.length}
             </span>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={() => {
+                void handleExportToGoogleSheets();
+              }}
+              className="qb-btn-secondary qb-btn-compact"
+            >
+              {exporting ? "Exporting..." : "Export to Google Sheets"}
+            </button>
           </div>
         </div>
+
+        {exportMessage ? (
+          <p className="rounded-lg border border-qb-blue/20 bg-qb-blue-light px-3 py-2 text-xs text-qb-blue-dark">
+            {exportMessage}
+          </p>
+        ) : null}
 
         <div
           className="flex flex-wrap gap-2"
@@ -449,6 +507,27 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
             ),
           )}
         </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-qb-text-secondary">
+            Sort by date
+          </span>
+          {(Object.keys(DATE_SORT_LABELS) as ExpenseDateSort[]).map((sort) => (
+            <button
+              key={sort}
+              type="button"
+              aria-pressed={dateSort === sort}
+              onClick={() => setDateSort(sort)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                dateSort === sort
+                  ? "bg-qb-blue-dark text-white"
+                  : "border border-qb-border bg-qb-surface text-qb-text-secondary hover:bg-qb-bg"
+              }`}
+            >
+              {DATE_SORT_LABELS[sort]}
+            </button>
+          ))}
+        </div>
       </div>
 
       <p className="border-b border-qb-border-light px-4 py-2 text-xs text-qb-text-muted lg:px-5">
@@ -458,19 +537,36 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
           "Grouped by card last 4 digits. New cards create folders when detected."}
         {groupMode === "billable" &&
           "Grouped by billable status. Approve receipts before sending to accounting."}
+        {groupMode === "date" &&
+          "Flat list sorted by receipt date. Switch newest or oldest first above."}
       </p>
 
       <div>
-        {groups.map((group) => (
-          <FolderSection
-            key={group.key}
-            group={group}
-            expandedId={expandedId}
-            onToggleExpense={handleToggleExpense}
-            onRemove={handleRemove}
-            onUpdate={onUpdate}
-          />
-        ))}
+        {groupMode === "date" ? (
+          <ul className="divide-y divide-qb-border-light">
+            {groups[0]?.expenses.map((expense) => (
+              <ExpenseRow
+                key={expense.id}
+                expense={expense}
+                expanded={expandedId === expense.id}
+                onToggle={() => handleToggleExpense(expense.id)}
+                onRemove={() => handleRemove(expense.id)}
+                onUpdate={onUpdate}
+              />
+            ))}
+          </ul>
+        ) : (
+          groups.map((group) => (
+            <FolderSection
+              key={group.key}
+              group={group}
+              expandedId={expandedId}
+              onToggleExpense={handleToggleExpense}
+              onRemove={handleRemove}
+              onUpdate={onUpdate}
+            />
+          ))
+        )}
       </div>
     </section>
   );
