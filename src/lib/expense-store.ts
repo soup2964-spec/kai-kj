@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getAccountEmail } from "./account-id";
 import { normalizeAccountingFields } from "./accounting-fields";
 import { normalizeBillableFields } from "./billable-engine";
 import { normalizeCardLastFour } from "./card-last-four";
@@ -43,19 +44,47 @@ function writeExpenses(expenses: Expense[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
 }
 
-function mergeLocalOnlyFields(
+function mergeRemoteAndLocal(
   remoteExpenses: Expense[],
   localExpenses: Expense[],
 ): Expense[] {
-  const localById = new Map(localExpenses.map((expense) => [expense.id, expense]));
+  const byId = new Map<string, Expense>();
 
-  return remoteExpenses.map((expense) => {
-    const local = localById.get(expense.id);
-    return normalizeExpense({
-      ...expense,
-      receiptImage: local?.receiptImage ?? expense.receiptImage,
-    });
-  });
+  for (const expense of localExpenses) {
+    byId.set(expense.id, normalizeExpense(expense));
+  }
+
+  for (const expense of remoteExpenses) {
+    const local = byId.get(expense.id);
+    byId.set(
+      expense.id,
+      normalizeExpense({
+        ...expense,
+        receiptImage: local?.receiptImage ?? expense.receiptImage,
+      }),
+    );
+  }
+
+  return [...byId.values()];
+}
+
+async function uploadMissingExpenses(
+  remoteExpenses: Expense[],
+  localExpenses: Expense[],
+): Promise<Expense[]> {
+  const remoteIds = new Set(remoteExpenses.map((expense) => expense.id));
+  const missing = localExpenses.filter((expense) => !remoteIds.has(expense.id));
+  const uploaded: Expense[] = [];
+
+  for (const expense of missing) {
+    try {
+      uploaded.push(await saveExpenseRemote(expense));
+    } catch {
+      uploaded.push(expense);
+    }
+  }
+
+  return uploaded;
 }
 
 function replaceExpense(expenses: Expense[], updated: Expense) {
@@ -69,39 +98,45 @@ export function useExpenses() {
   const [loaded, setLoaded] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [accountingBusyId, setAccountingBusyId] = useState<string | null>(null);
+  const [accountEmail, setAccountEmailState] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : getAccountEmail(),
+  );
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadExpenses = useCallback(async () => {
+    const localExpenses = readExpenses();
 
-    async function loadExpenses() {
-      const localExpenses = readExpenses();
+    try {
+      const remoteExpenses = await fetchExpensesRemote();
+      const uploaded = await uploadMissingExpenses(remoteExpenses, localExpenses);
+      const combinedRemote = [...remoteExpenses];
 
-      try {
-        const remoteExpenses = await fetchExpensesRemote();
-        const merged = mergeLocalOnlyFields(remoteExpenses, localExpenses);
-        if (!cancelled) {
-          setExpenses(merged);
-          writeExpenses(merged);
-          setSyncError(null);
-        }
-      } catch {
-        if (!cancelled) {
-          setExpenses(localExpenses);
-          setSyncError(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoaded(true);
+      for (const expense of uploaded) {
+        if (!combinedRemote.some((remote) => remote.id === expense.id)) {
+          combinedRemote.push(expense);
         }
       }
+
+      const merged = mergeRemoteAndLocal(combinedRemote, localExpenses);
+      setExpenses(merged);
+      writeExpenses(merged);
+      setSyncError(null);
+    } catch {
+      setExpenses(localExpenses);
+      setSyncError(null);
+    } finally {
+      setLoaded(true);
     }
-
-    void loadExpenses();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    void loadExpenses();
+  }, [loadExpenses]);
+
+  const refreshAccount = useCallback(async () => {
+    setAccountEmailState(getAccountEmail());
+    setLoaded(false);
+    await loadExpenses();
+  }, [loadExpenses]);
 
   const persist = useCallback((next: Expense[]) => {
     setExpenses(next);
@@ -231,6 +266,8 @@ export function useExpenses() {
     loaded,
     syncError,
     accountingBusyId,
+    accountEmail,
+    refreshAccount,
     addExpense,
     removeExpense,
     updateExpense,

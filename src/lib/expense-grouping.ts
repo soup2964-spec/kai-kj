@@ -5,6 +5,33 @@ export type ExpenseGroupMode = "month" | "card" | "billable" | "date";
 
 export type ExpenseDateSort = "newest" | "oldest";
 
+export type ExpensePeriodFilter = {
+  month: "all" | number;
+  year: "all" | number;
+};
+
+export const DEFAULT_EXPENSE_PERIOD_FILTER: ExpensePeriodFilter = {
+  month: "all",
+  year: "all",
+};
+
+export const MONTH_FILTER_OPTIONS: { value: ExpensePeriodFilter["month"]; label: string }[] =
+  [
+    { value: "all", label: "All months" },
+    { value: 1, label: "January" },
+    { value: 2, label: "February" },
+    { value: 3, label: "March" },
+    { value: 4, label: "April" },
+    { value: 5, label: "May" },
+    { value: 6, label: "June" },
+    { value: 7, label: "July" },
+    { value: 8, label: "August" },
+    { value: 9, label: "September" },
+    { value: 10, label: "October" },
+    { value: 11, label: "November" },
+    { value: 12, label: "December" },
+  ];
+
 export interface ExpenseGroup {
   key: string;
   label: string;
@@ -59,6 +86,61 @@ export function sortExpensesByDate(
   sort: ExpenseDateSort = "newest",
 ): Expense[] {
   return sortByDate(expenses, sort);
+}
+
+export function getExpenseYears(expenses: Expense[]): number[] {
+  const years = new Set<number>([new Date().getFullYear()]);
+
+  for (const expense of expenses) {
+    const parsed = new Date(expense.date);
+    if (!Number.isNaN(parsed.getTime())) {
+      years.add(parsed.getFullYear());
+    }
+  }
+
+  return [...years].sort((a, b) => b - a);
+}
+
+export function formatPeriodLabel(filter: ExpensePeriodFilter): string {
+  if (filter.month === "all" && filter.year === "all") {
+    return "All dates";
+  }
+
+  if (filter.month === "all" && filter.year !== "all") {
+    return String(filter.year);
+  }
+
+  if (filter.month !== "all" && filter.year === "all") {
+    const monthLabel =
+      MONTH_FILTER_OPTIONS.find((option) => option.value === filter.month)
+        ?.label ?? "Month";
+    return monthLabel;
+  }
+
+  const monthKey = `${filter.year}-${String(filter.month).padStart(2, "0")}`;
+  return formatMonthLabel(monthKey);
+}
+
+export function filterExpensesByPeriod(
+  expenses: Expense[],
+  filter: ExpensePeriodFilter,
+): Expense[] {
+  return expenses.filter((expense) => {
+    const parsed = new Date(expense.date);
+    if (Number.isNaN(parsed.getTime())) {
+      return filter.month === "all" && filter.year === "all";
+    }
+
+    if (filter.year !== "all" && parsed.getFullYear() !== filter.year) {
+      return false;
+    }
+
+    if (filter.month !== "all" && parsed.getMonth() + 1 !== filter.month) {
+      return false;
+    }
+
+    return true;
+  });
 }
 
 export function groupExpensesByMonth(
