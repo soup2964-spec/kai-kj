@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeBillableFields } from "@/lib/billable-engine";
+import { normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 import type { Expense } from "@/lib/types";
 import type { Database } from "./database.types";
@@ -19,6 +20,7 @@ function rowToExpense(row: ExpenseRow): Expense {
       (row.line_items as unknown as Expense["lineItems"]) ?? [],
     ),
     confidence: Number(row.confidence),
+    cardLastFour: normalizeCardLastFour(row.card_last_four),
     receiptImage: row.receipt_image ?? undefined,
     createdAt: row.created_at,
     ...normalizeBillableFields({
@@ -45,6 +47,7 @@ function expenseToInsert(expense: Expense, clerkUserId: string): ExpenseInsert {
     billable_reason: expense.billableReason,
     billable_source: expense.billableSource,
     matched_rule_id: expense.matchedRuleId ?? null,
+    card_last_four: expense.cardLastFour ?? null,
     receipt_image: expense.receiptImage ?? null,
     created_at: expense.createdAt,
   };

@@ -17,7 +17,7 @@ export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 export type BillableStatus = "billable" | "non_billable" | "review";
 
-export type BillableSource = "rule" | "default";
+export type BillableSource = "rule" | "default" | "manual";
 
 export interface ReceiptLineItem {
   name: string;
@@ -33,6 +33,8 @@ export interface ExtractedReceipt {
   categoryReason: string;
   lineItems: ReceiptLineItem[];
   confidence: number;
+  /** Last 4 digits of the payment card, when visible on the receipt */
+  cardLastFour?: string | null;
 }
 
 /** Full scan result after billable rules are applied */

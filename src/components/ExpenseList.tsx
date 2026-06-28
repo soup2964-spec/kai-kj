@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import type { Expense } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import type { BillableStatus, Expense } from "@/lib/types";
+import {
+  GROUP_MODE_LABELS,
+  groupExpenses,
+  type ExpenseGroup,
+  type ExpenseGroupMode,
+} from "@/lib/expense-grouping";
+import { formatCardLabel } from "@/lib/card-last-four";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
+import { CardBadge } from "./CardBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import {
   IconChevronDown,
@@ -16,6 +24,13 @@ import { formatCurrency, formatDate } from "@/lib/categories";
 interface ExpenseListProps {
   expenses: Expense[];
   onRemove: (id: string) => void;
+  onUpdate: (
+    id: string,
+    patch: {
+      billableStatus?: BillableStatus;
+      cardLastFour?: string | null;
+    },
+  ) => void;
 }
 
 function ExpenseRow({
@@ -23,13 +38,20 @@ function ExpenseRow({
   expanded,
   onToggle,
   onRemove,
+  onUpdate,
 }: {
   expense: Expense;
   expanded: boolean;
   onToggle: () => void;
   onRemove: () => void;
+  onUpdate: ExpenseListProps["onUpdate"];
 }) {
   const hasLineItems = expense.lineItems.length > 0;
+  const [cardInput, setCardInput] = useState(expense.cardLastFour ?? "");
+
+  useEffect(() => {
+    if (expanded) setCardInput(expense.cardLastFour ?? "");
+  }, [expanded, expense.cardLastFour]);
 
   return (
     <li className="group">
@@ -86,6 +108,7 @@ function ExpenseRow({
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={expense.category} />
               <BillableBadge status={expense.billableStatus} />
+              <CardBadge lastFour={expense.cardLastFour} />
             </div>
           </div>
 
@@ -109,15 +132,72 @@ function ExpenseRow({
           id={`expense-items-${expense.id}`}
           className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 lg:px-5 qb-animate-in space-y-3"
         >
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
-              Billable
-            </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-2">
-              <BillableBadge status={expense.billableStatus} size="md" />
-              <span className="text-xs text-qb-text-secondary">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor={`billable-${expense.id}`}
+                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+              >
+                Billable status
+              </label>
+              <select
+                id={`billable-${expense.id}`}
+                value={expense.billableStatus}
+                onChange={(event) =>
+                  onUpdate(expense.id, {
+                    billableStatus: event.target.value as BillableStatus,
+                  })
+                }
+                className="mt-1.5 w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
+              >
+                <option value="billable">Billable</option>
+                <option value="non_billable">Non-billable</option>
+                <option value="review">Needs review</option>
+              </select>
+              <p className="mt-1 text-xs text-qb-text-secondary">
                 {expense.billableReason}
-              </span>
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor={`card-${expense.id}`}
+                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+              >
+                Card last 4
+              </label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id={`card-${expense.id}`}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="1234"
+                  value={cardInput}
+                  onChange={(event) =>
+                    setCardInput(
+                      event.target.value.replace(/\D/g, "").slice(0, 4),
+                    )
+                  }
+                  className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm tabular-nums text-qb-text"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    onUpdate(expense.id, {
+                      cardLastFour: cardInput.length === 4 ? cardInput : null,
+                    })
+                  }
+                  className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
+                >
+                  Save
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-qb-text-secondary">
+                {expense.cardLastFour
+                  ? formatCardLabel(expense.cardLastFour)
+                  : "Not detected — enter digits to file under a card folder"}
+              </p>
             </div>
           </div>
 
@@ -134,8 +214,80 @@ function ExpenseRow({
   );
 }
 
-export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
+function FolderSection({
+  group,
+  expandedId,
+  onToggleExpense,
+  onRemove,
+  onUpdate,
+}: {
+  group: ExpenseGroup;
+  expandedId: string | null;
+  onToggleExpense: (id: string) => void;
+  onRemove: (id: string) => void;
+  onUpdate: ExpenseListProps["onUpdate"];
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <div className="border-b border-qb-border-light last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setCollapsed((value) => !value)}
+        className="flex w-full items-center gap-3 bg-qb-bg/40 px-4 py-3 text-left transition hover:bg-qb-bg/70 lg:px-5"
+      >
+        <IconChevronDown
+          className={`h-4 w-4 shrink-0 text-qb-text-muted transition-transform ${
+            collapsed ? "-rotate-90" : ""
+          }`}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-bold text-qb-text">{group.label}</p>
+          <p className="text-xs text-qb-text-muted">
+            {group.expenses.length} receipt
+            {group.expenses.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        <p className="shrink-0 text-sm font-bold tabular-nums text-qb-text">
+          {formatCurrency(group.total)}
+        </p>
+      </button>
+
+      {!collapsed && (
+        <ul className="divide-y divide-qb-border-light border-t border-qb-border-light">
+          {group.expenses.map((expense) => (
+            <ExpenseRow
+              key={expense.id}
+              expense={expense}
+              expanded={expandedId === expense.id}
+              onToggle={() => onToggleExpense(expense.id)}
+              onRemove={() => onRemove(expense.id)}
+              onUpdate={onUpdate}
+            />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) {
+  const [groupMode, setGroupMode] = useState<ExpenseGroupMode>("month");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const groups = useMemo(
+    () => groupExpenses(expenses, groupMode),
+    [expenses, groupMode],
+  );
+
+  const handleToggleExpense = (id: string) => {
+    setExpandedId((current) => (current === id ? null : id));
+  };
+
+  const handleRemove = (id: string) => {
+    if (expandedId === id) setExpandedId(null);
+    onRemove(id);
+  };
 
   if (expenses.length === 0) {
     return (
@@ -146,8 +298,8 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
           </div>
           <p className="font-semibold text-qb-text">No expenses recorded</p>
           <p className="mt-1 max-w-xs text-sm text-qb-text-secondary">
-            Scan your first receipt above — tap a transaction to view line
-            items.
+            Scan your first receipt above — receipts are filed by month, card,
+            and billable status.
           </p>
         </div>
       </section>
@@ -156,40 +308,66 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
 
   return (
     <section className="qb-card overflow-hidden">
-      <div className="qb-card-header flex items-center justify-between py-3 lg:py-4">
-        <div className="flex items-center gap-2.5">
-          <IconExpenses className="h-4 w-4 text-qb-blue" />
-          <h2 className="text-base font-bold text-qb-text lg:text-lg">
-            Transactions
-          </h2>
+      <div className="qb-card-header flex flex-col gap-3 py-3 lg:py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <IconExpenses className="h-4 w-4 text-qb-blue" />
+            <h2 className="text-base font-bold text-qb-text lg:text-lg">
+              Receipt folders
+            </h2>
+          </div>
+          <span className="rounded bg-qb-bg px-2 py-0.5 text-xs font-semibold tabular-nums text-qb-text-secondary">
+            {expenses.length}
+          </span>
         </div>
-        <span className="rounded bg-qb-bg px-2 py-0.5 text-xs font-semibold tabular-nums text-qb-text-secondary">
-          {expenses.length}
-        </span>
+
+        <div
+          className="flex flex-wrap gap-2"
+          role="tablist"
+          aria-label="Group receipts by"
+        >
+          {(Object.keys(GROUP_MODE_LABELS) as ExpenseGroupMode[]).map(
+            (mode) => (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={groupMode === mode}
+                onClick={() => setGroupMode(mode)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  groupMode === mode
+                    ? "bg-qb-blue text-white"
+                    : "border border-qb-border bg-qb-surface text-qb-text-secondary hover:bg-qb-bg"
+                }`}
+              >
+                {GROUP_MODE_LABELS[mode]}
+              </button>
+            ),
+          )}
+        </div>
       </div>
 
       <p className="border-b border-qb-border-light px-4 py-2 text-xs text-qb-text-muted lg:px-5">
-        Tap a transaction to view receipt line items
+        {groupMode === "month" &&
+          "Grouped by receipt date. New months appear automatically."}
+        {groupMode === "card" &&
+          "Grouped by card last 4 digits. New cards create folders when detected."}
+        {groupMode === "billable" &&
+          "Grouped by billable status. Change status in receipt details."}
       </p>
 
-      <ul className="divide-y divide-qb-border-light">
-        {expenses.map((expense) => (
-          <ExpenseRow
-            key={expense.id}
-            expense={expense}
-            expanded={expandedId === expense.id}
-            onToggle={() =>
-              setExpandedId((current) =>
-                current === expense.id ? null : expense.id,
-              )
-            }
-            onRemove={() => {
-              if (expandedId === expense.id) setExpandedId(null);
-              onRemove(expense.id);
-            }}
+      <div>
+        {groups.map((group) => (
+          <FolderSection
+            key={group.key}
+            group={group}
+            expandedId={expandedId}
+            onToggleExpense={handleToggleExpense}
+            onRemove={handleRemove}
+            onUpdate={onUpdate}
           />
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

@@ -22,8 +22,9 @@ export interface Database {
           confidence: number;
           billable_status: "billable" | "non_billable" | "review";
           billable_reason: string;
-          billable_source: "rule" | "default";
+          billable_source: "rule" | "default" | "manual";
           matched_rule_id: string | null;
+          card_last_four: string | null;
           receipt_image: string | null;
           created_at: string;
         };
@@ -39,8 +40,9 @@ export interface Database {
           confidence?: number;
           billable_status: "billable" | "non_billable" | "review";
           billable_reason?: string;
-          billable_source?: "rule" | "default";
+          billable_source?: "rule" | "default" | "manual";
           matched_rule_id?: string | null;
+          card_last_four?: string | null;
           receipt_image?: string | null;
           created_at?: string;
         };
@@ -56,8 +58,9 @@ export interface Database {
           confidence?: number;
           billable_status?: "billable" | "non_billable" | "review";
           billable_reason?: string;
-          billable_source?: "rule" | "default";
+          billable_source?: "rule" | "default" | "manual";
           matched_rule_id?: string | null;
+          card_last_four?: string | null;
           receipt_image?: string | null;
           created_at?: string;
         };

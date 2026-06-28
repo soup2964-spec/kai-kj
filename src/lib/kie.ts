@@ -1,4 +1,5 @@
 import { EXPENSE_CATEGORIES, type ExtractedReceipt } from "@/lib/types";
+import { normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 
 const KIE_CHAT_URL =
@@ -17,7 +18,8 @@ Return ONLY valid JSON with this shape:
     { "name": "Coffee", "amount": 4.50 },
     { "name": "Sandwich", "amount": 8.99 }
   ],
-  "confidence": 0.95
+  "confidence": 0.95,
+  "cardLastFour": "1234"
 }
 
 Rules:
@@ -27,6 +29,7 @@ Rules:
 - confidence is 0-1 based on image clarity and extraction certainty
 - lineItems must list purchased items visible on the receipt with name and price when shown
 - each lineItems[].amount must be a number (use null only if price is not visible on the receipt)
+- cardLastFour: the last 4 digits of the credit or debit card used for payment, if shown on the receipt (e.g. ****1234, x1234, ending in 1234). Use null if no card digits are visible
 - use category "months" for recurring monthly charges (rent, lease payments, subscriptions, membership fees, monthly insurance premiums)
 - use category "credit_cards" for credit card payments, card statements, finance charges, or purchases where the merchant is a bank/card issuer (Visa, Mastercard, Amex, Chase, Capital One, etc.)
 - respond with JSON only, no markdown fences or extra text`;
@@ -79,6 +82,7 @@ function validateReceipt(parsed: ExtractedReceipt): ExtractedReceipt {
   return {
     ...parsed,
     lineItems: normalizeLineItems(parsed.lineItems),
+    cardLastFour: normalizeCardLastFour(parsed.cardLastFour),
   };
 }
 

@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { normalizeBillableFields } from "./billable-engine";
+import { normalizeCardLastFour } from "./card-last-four";
 import { normalizeLineItems } from "./receipt-line-items";
-import type { Expense, ScannedReceipt } from "./types";
+import type { BillableStatus, Expense, ScannedReceipt } from "./types";
 
 const STORAGE_KEY = "kai-kj-expenses";
 
@@ -16,6 +17,7 @@ function readExpenses(): Expense[] {
     return parsed.map((expense) => ({
       ...expense,
       lineItems: normalizeLineItems(expense.lineItems),
+      cardLastFour: normalizeCardLastFour(expense.cardLastFour),
       ...normalizeBillableFields(expense),
     }));
   } catch {
@@ -62,9 +64,51 @@ export function useExpenses() {
     [persist],
   );
 
+  const updateExpense = useCallback(
+    (
+      id: string,
+      patch: {
+        billableStatus?: BillableStatus;
+        cardLastFour?: string | null;
+      },
+    ) => {
+      const next = readExpenses().map((expense) => {
+        if (expense.id !== id) return expense;
+
+        const updated = { ...expense };
+
+        if (patch.cardLastFour !== undefined) {
+          updated.cardLastFour = normalizeCardLastFour(patch.cardLastFour);
+        }
+
+        if (
+          patch.billableStatus &&
+          patch.billableStatus !== expense.billableStatus
+        ) {
+          updated.billableStatus = patch.billableStatus;
+          updated.billableReason = "Updated manually";
+          updated.billableSource = "manual";
+          updated.matchedRuleId = undefined;
+        }
+
+        return updated;
+      });
+
+      persist(next);
+    },
+    [persist],
+  );
+
   const clearExpenses = useCallback(() => {
     persist([]);
   }, [persist]);
 
-  return { expenses, loaded, addExpense, removeExpense, clearExpenses };
+  return {
+    expenses,
+    loaded,
+    addExpense,
+    removeExpense,
+    updateExpense,
+    clearExpenses,
+  };
 }

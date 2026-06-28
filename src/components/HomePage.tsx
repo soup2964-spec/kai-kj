@@ -12,7 +12,8 @@ import { useExpenses } from "@/lib/expense-store";
 const DESKTOP_CONTENT_CLASS = "mx-auto w-full max-w-3xl px-4 lg:px-8";
 
 export function HomePage() {
-  const { expenses, loaded, addExpense, removeExpense } = useExpenses();
+  const { expenses, loaded, addExpense, removeExpense, updateExpense } =
+    useExpenses();
 
   if (!loaded) {
     return (
@@ -67,7 +68,11 @@ export function HomePage() {
           />
           <InstallPrompt />
           <SummaryBar expenses={expenses} />
-          <ExpenseList expenses={expenses} onRemove={removeExpense} />
+          <ExpenseList
+            expenses={expenses}
+            onRemove={removeExpense}
+            onUpdate={updateExpense}
+          />
         </main>
       </div>
     </div>
