@@ -79,22 +79,10 @@ export function LandingHeader() {
               ))}
             </NavDropdown>
             <Link
-              href="/#features"
-              className="px-3 py-2 text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
-            >
-              Features
-            </Link>
-            <Link
-              href="/#pricing"
+              href="/dashboard"
               className="px-3 py-2 text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
             >
               Pricing
-            </Link>
-            <Link
-              href="/#faq"
-              className="px-3 py-2 text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
-            >
-              FAQ
             </Link>
           </div>
         </div>
@@ -149,30 +137,6 @@ export function LandingHeader() {
               {item.title}
             </Link>
           ))}
-          <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-[var(--cb-muted)]">
-            Explore
-          </p>
-          <Link
-            href="/#features"
-            className="block rounded-lg py-2.5 text-sm font-medium text-[var(--cb-dark)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            Features
-          </Link>
-          <Link
-            href="/#pricing"
-            className="block rounded-lg py-2.5 text-sm font-medium text-[var(--cb-dark)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            Pricing
-          </Link>
-          <Link
-            href="/#faq"
-            className="block rounded-lg py-2.5 text-sm font-medium text-[var(--cb-dark)]"
-            onClick={() => setMobileOpen(false)}
-          >
-            FAQ
-          </Link>
           <button
             type="button"
             className="mt-4 block py-2.5 text-left text-sm font-medium text-[var(--cb-muted)]"
