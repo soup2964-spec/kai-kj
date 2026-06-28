@@ -9,13 +9,8 @@ export function LandingHero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
         <div className="flex max-w-xl flex-col items-start text-left">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--cb-primary)] shadow-sm backdrop-blur">
-            Built for receipt-heavy teams
-          </div>
-
-          <h1 className="mt-6 text-5xl font-bold leading-[0.98] tracking-[-0.05em] text-[var(--cb-dark)] sm:text-6xl lg:text-[4.75rem]">
-            Receipts in.
-            <span className="block text-[var(--cb-primary)]">Reports out.</span>
+          <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.05em] text-[var(--cb-dark)] sm:text-6xl lg:text-[4.75rem]">
+            Your Expense Tracking Agent
           </h1>
 
           <p className="mt-6 text-lg leading-8 text-[var(--cb-muted)] sm:text-xl">

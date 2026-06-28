@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getAccountEmail } from "./account-id";
 import { normalizeAccountingFields } from "./accounting-fields";
+import { normalizeCreditCardReconcileFields } from "./credit-card-reconcile-fields";
 import { normalizeBillableFields } from "./billable-engine";
 import { normalizeCardBrand, normalizeCardLastFour } from "./card-last-four";
 import { normalizeWorkOrderNumber } from "./work-order";
@@ -19,6 +20,7 @@ import {
   updateExpenseRemote,
   type AccountingDecision,
 } from "./expense-sync";
+import { reconcileStatementsRemote } from "./statement-sync";
 import { normalizeLineItems } from "./receipt-line-items";
 import type {
   BillableStatus,
@@ -45,6 +47,7 @@ function normalizeExpense(expense: Expense): Expense {
     duplicateOfId: normalizeBookkeepingText(expense.duplicateOfId),
     ...normalizeBillableFields(expense),
     ...normalizeAccountingFields(expense),
+    ...normalizeCreditCardReconcileFields(expense),
   };
 }
 
@@ -113,6 +116,31 @@ async function uploadMissingExpenses(
   return uploaded;
 }
 
+async function tryAutoReconcileExpenses(expenses: Expense[]) {
+  try {
+    const result = await reconcileStatementsRemote({ expenses });
+    if (result.updatedExpenses.length === 0) return expenses;
+
+    const byId = new Map(result.updatedExpenses.map((expense) => [expense.id, expense]));
+    return expenses.map((expense) => byId.get(expense.id) ?? expense);
+  } catch {
+    return expenses;
+  }
+}
+
+async function tryAutoReconcileExpense(expense: Expense): Promise<Expense> {
+  try {
+    const result = await reconcileStatementsRemote({
+      expenseId: expense.id,
+      expenses: readExpenses(),
+      transactions: undefined,
+    });
+    return result.updatedExpenses.find((item) => item.id === expense.id) ?? expense;
+  } catch {
+    return expense;
+  }
+}
+
 function replaceExpense(expenses: Expense[], updated: Expense) {
   return expenses.map((expense) =>
     expense.id === updated.id ? normalizeExpense(updated) : expense,
@@ -143,8 +171,9 @@ export function useExpenses() {
       }
 
       const merged = mergeRemoteAndLocal(combinedRemote, localExpenses);
-      setExpenses(merged);
-      writeExpenses(merged);
+      const reconciled = await tryAutoReconcileExpenses(merged);
+      setExpenses(reconciled);
+      writeExpenses(reconciled);
       setSyncError(null);
     } catch {
       setExpenses(localExpenses);
@@ -184,7 +213,16 @@ export function useExpenses() {
       const next = [expense, ...readExpenses()];
       persist(next);
 
-      void saveExpenseRemote(expense).catch((error) => {
+      void tryAutoReconcileExpense(expense).then((reconciled) => {
+        persist(replaceExpense(readExpenses(), reconciled));
+      });
+
+      void saveExpenseRemote(expense)
+        .then((saved) => tryAutoReconcileExpense(saved))
+        .then((reconciled) => {
+          persist(replaceExpense(readExpenses(), reconciled));
+        })
+        .catch((error) => {
         setSyncError(
           error instanceof Error
             ? error.message
@@ -320,6 +358,20 @@ export function useExpenses() {
     persist([]);
   }, [persist]);
 
+  const mergeReconciledExpenses = useCallback(
+    (updated: Expense[]) => {
+      const byId = new Map(updated.map((expense) => [expense.id, expense]));
+      persist(readExpenses().map((expense) => byId.get(expense.id) ?? expense));
+    },
+    [persist],
+  );
+
+  const reconcileAllReceipts = useCallback(async () => {
+    const result = await reconcileStatementsRemote({ expenses: readExpenses() });
+    mergeReconciledExpenses(result.updatedExpenses);
+    return result.summary;
+  }, [mergeReconciledExpenses]);
+
   return {
     expenses,
     loaded,
@@ -332,5 +384,7 @@ export function useExpenses() {
     updateExpense,
     submitAccountingDecision,
     clearExpenses,
+    mergeReconciledExpenses,
+    reconcileAllReceipts,
   };
 }

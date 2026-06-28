@@ -2,6 +2,8 @@ import {
   IconCamera,
   IconDashboard,
   IconExpenses,
+  IconSpark,
+  IconStatement,
 } from "@/components/icons";
 
 export type DashboardNavItem = {
@@ -23,6 +25,18 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     label: "Scan receipts",
     description: "Camera, upload, and bulk scan",
     icon: IconCamera,
+  },
+  {
+    href: "/dashboard/agent",
+    label: "Agent",
+    description: "Sheets export, alerts, and full pipeline",
+    icon: IconSpark,
+  },
+  {
+    href: "/dashboard/statements",
+    label: "Upload statements",
+    description: "Import credit card PDF or CSV statements",
+    icon: IconStatement,
   },
   {
     href: "/dashboard/expenses",

@@ -30,6 +30,7 @@ import { CardBadge } from "./CardBadge";
 import { WorkOrderBadge } from "./WorkOrderBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import { ReceiptImageViewer } from "./ReceiptImageViewer";
+import { ReconcileBadge } from "./ReconcileBadge";
 import {
   IconChevronDown,
   IconCheck,
@@ -246,6 +247,7 @@ function ExpenseRow({
               <InboxStatusBadge status={expense.inboxStatus} />
               <CardBadge lastFour={expense.cardLastFour} brand={expense.cardBrand} />
               <WorkOrderBadge expense={expense} />
+              <ReconcileBadge expense={expense} />
               <AccountingSyncBadge status={expense.accountingStatus} />
               <MissingInfoBadges expense={expense} />
             </div>

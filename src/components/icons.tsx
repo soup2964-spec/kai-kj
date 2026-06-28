@@ -45,6 +45,15 @@ export function IconExpenses({ className = "h-5 w-5" }: { className?: string }) 
   );
 }
 
+export function IconStatement({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+      <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" strokeLinejoin="round" />
+      <path d="M14 3v5h5M8 12h8M8 16h8M8 20h5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function IconSpark({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">

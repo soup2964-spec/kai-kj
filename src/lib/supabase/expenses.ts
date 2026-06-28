@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeAccountingFields } from "@/lib/accounting-fields";
+import { normalizeCreditCardReconcileFields } from "@/lib/credit-card-reconcile-fields";
 import { normalizeBillableFields } from "@/lib/billable-engine";
 import { normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
@@ -55,6 +56,10 @@ function rowToExpense(row: ExpenseRow): Expense {
       accountingReference: row.accounting_reference ?? undefined,
       accountingError: row.accounting_error ?? undefined,
     }),
+    ...normalizeCreditCardReconcileFields({
+      creditCardReconciled: row.credit_card_reconciled,
+      statementTransactionId: row.statement_transaction_id,
+    }),
   };
 }
 
@@ -85,6 +90,8 @@ function expenseToInsert(expense: Expense, ownerId: string): ExpenseInsert {
     accounting_synced_at: expense.accountingSyncedAt ?? null,
     accounting_reference: expense.accountingReference ?? null,
     accounting_error: expense.accountingError ?? null,
+    credit_card_reconciled: expense.creditCardReconciled ?? false,
+    statement_transaction_id: expense.statementTransactionId ?? null,
     created_at: expense.createdAt,
   };
 }
@@ -102,6 +109,8 @@ function expenseToUpdate(expense: Expense): ExpenseUpdate {
     property_name: expense.propertyName ?? null,
     vendor_name: expense.vendorName ?? null,
     duplicate_of_id: expense.duplicateOfId ?? null,
+    credit_card_reconciled: expense.creditCardReconciled ?? false,
+    statement_transaction_id: expense.statementTransactionId ?? null,
   };
 }
 
@@ -183,6 +192,32 @@ export async function updateExpenseAccountingForOwner(
     accounting_synced_at: update.accountingSyncedAt ?? null,
     accounting_reference: update.accountingReference ?? null,
     accounting_error: update.accountingError ?? null,
+  };
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .update(payload)
+    .eq("id", expenseId)
+    .eq("owner_id", ownerId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return rowToExpense(data);
+}
+
+export async function updateExpenseReconcileForOwner(
+  supabase: SupabaseClient<Database>,
+  expenseId: string,
+  ownerId: string,
+  update: {
+    creditCardReconciled: boolean;
+    statementTransactionId: string;
+  },
+): Promise<Expense> {
+  const payload: ExpenseUpdate = {
+    credit_card_reconciled: update.creditCardReconciled,
+    statement_transaction_id: update.statementTransactionId,
   };
 
   const { data, error } = await supabase

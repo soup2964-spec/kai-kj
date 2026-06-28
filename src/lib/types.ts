@@ -47,6 +47,12 @@ export interface AccountingFields {
   accountingError?: string;
 }
 
+export interface CreditCardReconcileFields {
+  creditCardReconciled?: boolean;
+  statementTransactionId?: string | null;
+  reconciledAt?: string;
+}
+
 export interface ReceiptLineItem {
   name: string;
   amount: number | null;
@@ -81,7 +87,7 @@ export interface ScannedReceipt extends ExtractedReceipt {
   matchedRuleId?: string;
 }
 
-export interface Expense extends ScannedReceipt, AccountingFields {
+export interface Expense extends ScannedReceipt, AccountingFields, CreditCardReconcileFields {
   id: string;
   createdAt: string;
   receiptImage?: string;

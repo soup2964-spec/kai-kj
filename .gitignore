@@ -43,4 +43,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# python receipt agent
+/agent/.venv
+/agent/**/__pycache__
+/agent/**/*.egg-info
+
 .vercel
+.env*

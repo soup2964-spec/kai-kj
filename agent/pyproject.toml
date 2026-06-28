@@ -1,0 +1,26 @@
+[project]
+name = "kai-receipt-agent"
+version = "0.1.0"
+description = "LangGraph receipt processing agent for Kai KJ property management"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "langgraph>=0.4.0",
+  "langchain-core>=0.3.0",
+  "pydantic>=2.0",
+  "httpx>=0.27.0",
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "python-multipart>=0.0.12",
+]
+
+[project.scripts]
+kai-agent = "kai_agent.run:main"
+kai-agent-serve = "kai_agent.server:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
