@@ -2,8 +2,8 @@ import Link from "next/link";
 
 export function LandingHero() {
   return (
-    <section className="relative overflow-hidden bg-white pb-16 pt-12 sm:pb-24 sm:pt-16">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(3,101,172,0.14),transparent)]" />
+    <section className="relative overflow-hidden bg-[var(--cb-baby-blue)] pb-16 pt-12 sm:pb-24 sm:pt-16">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,255,255,0.55),transparent)]" />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
         <div className="flex max-w-xl flex-col items-start text-left">

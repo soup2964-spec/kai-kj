@@ -10,18 +10,11 @@ import {
   useState,
 } from "react";
 import { getAccountEmail, isValidAccountEmail } from "@/lib/account-id";
-import {
-  signInWithEmail,
-  signInWithOAuth,
-  signUpWithEmail,
-  type AuthMode,
-} from "@/lib/auth/client";
+import { signInWithEmail, signInWithOAuth } from "@/lib/auth/client";
 
 type AuthModalContextValue = {
   isOpen: boolean;
-  mode: AuthMode;
   openSignIn: () => void;
-  openSignUp: () => void;
   close: () => void;
 };
 
@@ -29,15 +22,8 @@ const AuthModalContext = createContext<AuthModalContextValue | null>(null);
 
 export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState<AuthMode>("sign-in");
 
   const openSignIn = useCallback(() => {
-    setMode("sign-in");
-    setIsOpen(true);
-  }, []);
-
-  const openSignUp = useCallback(() => {
-    setMode("sign-up");
     setIsOpen(true);
   }, []);
 
@@ -46,14 +32,14 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ isOpen, mode, openSignIn, openSignUp, close }),
-    [isOpen, mode, openSignIn, openSignUp, close],
+    () => ({ isOpen, openSignIn, close }),
+    [isOpen, openSignIn, close],
   );
 
   return (
     <AuthModalContext.Provider value={value}>
       {children}
-      {isOpen ? <AuthModal mode={mode} onClose={close} onModeChange={setMode} /> : null}
+      {isOpen ? <AuthModal onClose={close} /> : null}
     </AuthModalContext.Provider>
   );
 }
@@ -66,15 +52,7 @@ export function useAuthModal() {
   return context;
 }
 
-function AuthModal({
-  mode,
-  onClose,
-  onModeChange,
-}: {
-  mode: AuthMode;
-  onClose: () => void;
-  onModeChange: (mode: AuthMode) => void;
-}) {
+function AuthModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [email, setEmail] = useState(() => getAccountEmail() ?? "");
   const [password, setPassword] = useState("");
@@ -109,10 +87,7 @@ function AuthModal({
 
     setSubmitting(true);
     try {
-      const result =
-        mode === "sign-in"
-          ? await signInWithEmail(email, password)
-          : await signUpWithEmail(email, password);
+      const result = await signInWithEmail(email, password);
 
       if (!result.ok) {
         setError(result.error);
@@ -137,6 +112,11 @@ function AuthModal({
     } finally {
       setOauthBusy(null);
     }
+  }
+
+  function goToSignUp() {
+    onClose();
+    router.push("/dashboard/scan");
   }
 
   return (
@@ -172,7 +152,7 @@ function AuthModal({
               Kai KJ
             </p>
             <h2 id="auth-modal-title" className="text-lg font-bold text-[var(--cb-dark)]">
-              {mode === "sign-in" ? "Sign in to your account" : "Create your account"}
+              Sign in to your account
             </h2>
           </div>
         </div>
@@ -198,10 +178,10 @@ function AuthModal({
             </span>
             <input
               type="password"
-              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder={mode === "sign-in" ? "Enter your password" : "At least 8 characters"}
+              placeholder="Enter your password"
               className="auth-modal-input"
             />
           </label>
@@ -209,11 +189,7 @@ function AuthModal({
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <button type="submit" disabled={submitting} className="cb-btn-primary h-11 w-full text-sm">
-            {submitting
-              ? "Please wait..."
-              : mode === "sign-in"
-                ? "Sign in"
-                : "Create account"}
+            {submitting ? "Please wait..." : "Sign in"}
           </button>
         </form>
 
@@ -243,35 +219,14 @@ function AuthModal({
         </div>
 
         <p className="mt-5 text-center text-sm text-[var(--cb-muted)]">
-          {mode === "sign-in" ? (
-            <>
-              Don&apos;t have an account?{" "}
-              <button
-                type="button"
-                className="font-semibold text-[var(--cb-primary)] hover:underline"
-                onClick={() => {
-                  setError(null);
-                  onModeChange("sign-up");
-                }}
-              >
-                Sign up
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <button
-                type="button"
-                className="font-semibold text-[var(--cb-primary)] hover:underline"
-                onClick={() => {
-                  setError(null);
-                  onModeChange("sign-in");
-                }}
-              >
-                Sign in
-              </button>
-            </>
-          )}
+          Don&apos;t have an account?{" "}
+          <button
+            type="button"
+            className="font-semibold text-[var(--cb-primary)] hover:underline"
+            onClick={goToSignUp}
+          >
+            Sign up
+          </button>
         </p>
       </div>
     </div>

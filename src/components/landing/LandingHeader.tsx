@@ -45,7 +45,7 @@ function NavDropdown({
 
 export function LandingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { openSignIn, openSignUp } = useAuthModal();
+  const { openSignIn } = useAuthModal();
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--cb-border)] bg-white/90 backdrop-blur-md">
@@ -95,9 +95,9 @@ export function LandingHeader() {
           >
             Sign in
           </button>
-          <button type="button" onClick={openSignUp} className="cb-btn-primary">
+          <Link href="/dashboard/scan" className="cb-btn-primary">
             Sign up
-          </button>
+          </Link>
           <button
             type="button"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -147,16 +147,13 @@ export function LandingHeader() {
           >
             Sign in
           </button>
-          <button
-            type="button"
+          <Link
+            href="/dashboard/scan"
             className="cb-btn-primary mt-3 w-full"
-            onClick={() => {
-              setMobileOpen(false);
-              openSignUp();
-            }}
+            onClick={() => setMobileOpen(false)}
           >
             Sign up
-          </button>
+          </Link>
         </div>
       ) : null}
     </header>
