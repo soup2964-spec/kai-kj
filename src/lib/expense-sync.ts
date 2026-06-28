@@ -1,4 +1,5 @@
 import type { Expense } from "@/lib/types";
+import type { ExpenseDateSort } from "@/lib/expense-grouping";
 import { getOwnerId } from "@/lib/owner-id";
 
 export type AccountingDecision = "approve" | "disapprove";
@@ -77,4 +78,30 @@ export async function submitAccountingDecisionRemote(
 
   await parseJsonResponse(response);
   throw new Error("Accounting response was missing expense data.");
+}
+
+export async function exportToGoogleSheetsRemote(
+  sort: ExpenseDateSort,
+): Promise<{ spreadsheetUrl: string; fallback?: "csv" }> {
+  const ownerId = getOwnerId();
+  const response = await fetch("/api/export/google-sheets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerId, sort }),
+  });
+  const data = await response.json();
+
+  if (response.ok && typeof data.spreadsheetUrl === "string") {
+    return { spreadsheetUrl: data.spreadsheetUrl };
+  }
+
+  if (response.status === 503 && data.fallback === "csv") {
+    return { spreadsheetUrl: "", fallback: "csv" };
+  }
+
+  throw new Error(
+    typeof data.error === "string"
+      ? data.error
+      : "Could not export expenses to Google Sheets.",
+  );
 }

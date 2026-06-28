@@ -9,10 +9,12 @@ import type { BillableStatus, Expense } from "@/lib/types";
 import {
   GROUP_MODE_LABELS,
   groupExpenses,
+  type ExpenseDateSort,
   type ExpenseGroup,
   type ExpenseGroupMode,
 } from "@/lib/expense-grouping";
 import { formatCardLabel } from "@/lib/card-last-four";
+import { ExpenseExportButton } from "@/components/ExpenseExportButton";
 import { useExpenseContext } from "@/lib/expense-context";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
@@ -30,6 +32,8 @@ import { formatCurrency, formatDate } from "@/lib/categories";
 
 interface ExpenseListProps {
   expenses: Expense[];
+  dateSort?: ExpenseDateSort;
+  onDateSortChange?: (sort: ExpenseDateSort) => void;
   onRemove: (id: string) => void;
   onUpdate: (
     id: string,
@@ -365,16 +369,26 @@ function FolderSection({
   );
 }
 
-export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) {
+export function ExpenseList({
+  expenses,
+  dateSort: dateSortProp,
+  onDateSortChange,
+  onRemove,
+  onUpdate,
+}: ExpenseListProps) {
   const [groupMode, setGroupMode] = useState<ExpenseGroupMode>("month");
+  const [internalDateSort, setInternalDateSort] =
+    useState<ExpenseDateSort>("newest");
+  const dateSort = dateSortProp ?? internalDateSort;
+  const setDateSort = onDateSortChange ?? setInternalDateSort;
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pendingCount = expenses.filter(
     (expense) => expense.accountingStatus === "pending",
   ).length;
 
   const groups = useMemo(
-    () => groupExpenses(expenses, groupMode),
-    [expenses, groupMode],
+    () => groupExpenses(expenses, groupMode, dateSort),
+    [expenses, groupMode, dateSort],
   );
 
   const handleToggleExpense = (id: string) => {
@@ -388,15 +402,21 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
 
   if (expenses.length === 0) {
     return (
-      <section className="qb-card">
+      <section className="qb-card overflow-hidden">
+        <div className="qb-card-header flex items-center gap-2.5 py-3 lg:py-4">
+          <IconExpenses className="h-4 w-4 text-qb-blue" />
+          <h2 className="text-base font-bold text-qb-text lg:text-lg">
+            Receipt folders
+          </h2>
+        </div>
         <div className="flex flex-col items-center px-5 py-10 text-center lg:px-6 lg:py-12">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-qb-bg">
             <IconExpenses className="h-7 w-7 text-qb-text-muted" />
           </div>
           <p className="font-semibold text-qb-text">No expenses recorded</p>
           <p className="mt-1 max-w-xs text-sm text-qb-text-secondary">
-            Scan your first receipt — receipts are filed by month, card, and
-            billable status.
+            Scan your first receipt — sorting above applies once receipts are
+            saved.
           </p>
         </div>
       </section>
@@ -449,6 +469,12 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
             ),
           )}
         </div>
+
+        <ExpenseExportButton
+          expenses={expenses}
+          dateSort={dateSort}
+          className="rounded-lg border border-qb-border bg-qb-bg/60 p-3"
+        />
       </div>
 
       <p className="border-b border-qb-border-light px-4 py-2 text-xs text-qb-text-muted lg:px-5">
@@ -458,19 +484,36 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
           "Grouped by card last 4 digits. New cards create folders when detected."}
         {groupMode === "billable" &&
           "Grouped by billable status. Approve receipts before sending to accounting."}
+        {groupMode === "date" &&
+          "Flat list sorted by receipt date using the sort control above."}
       </p>
 
       <div>
-        {groups.map((group) => (
-          <FolderSection
-            key={group.key}
-            group={group}
-            expandedId={expandedId}
-            onToggleExpense={handleToggleExpense}
-            onRemove={handleRemove}
-            onUpdate={onUpdate}
-          />
-        ))}
+        {groupMode === "date" ? (
+          <ul className="divide-y divide-qb-border-light">
+            {groups[0]?.expenses.map((expense) => (
+              <ExpenseRow
+                key={expense.id}
+                expense={expense}
+                expanded={expandedId === expense.id}
+                onToggle={() => handleToggleExpense(expense.id)}
+                onRemove={() => handleRemove(expense.id)}
+                onUpdate={onUpdate}
+              />
+            ))}
+          </ul>
+        ) : (
+          groups.map((group) => (
+            <FolderSection
+              key={group.key}
+              group={group}
+              expandedId={expandedId}
+              onToggleExpense={handleToggleExpense}
+              onRemove={handleRemove}
+              onUpdate={onUpdate}
+            />
+          ))
+        )}
       </div>
     </section>
   );
