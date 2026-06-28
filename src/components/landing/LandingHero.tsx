@@ -15,8 +15,8 @@ export function LandingHero() {
           </h1>
 
           <p className="mt-6 text-lg leading-8 text-[var(--cb-muted)] sm:text-xl">
-            Kai KJ turns receipt photos into organized expenses with purchase dates,
-            card folders, AppFolio work orders, saved images, and export-ready data.
+            Scans receipts, reconciles transactions with bank statements, and exports
+            expense data into AppFolio and QuickBooks.
           </p>
 
           <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
