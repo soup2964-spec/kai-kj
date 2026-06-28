@@ -5,6 +5,7 @@ import {
   resolveCardLastFour,
 } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
+import { normalizeBookkeepingText } from "@/lib/receipt-workflow";
 import { resolveWorkOrderNumber } from "@/lib/work-order";
 
 const KIE_CHAT_URL =
@@ -27,7 +28,9 @@ Return ONLY valid JSON with this shape:
   "cardLastFour": "1234",
   "cardBrand": "visa",
   "paymentDetails": "VISA CREDIT ************1234",
-  "workOrderNumber": "76-2234"
+  "workOrderNumber": "76-2234",
+  "vendorName": "Home Depot",
+  "propertyName": "Property A"
 }
 
 Rules:
@@ -44,6 +47,8 @@ Rules:
 - when card payment is shown, always add that payment line as a lineItems entry with amount null
 - WORK ORDER (AppFolio): property maintenance receipts often have a handwritten or printed work order number in format xx-xxxx (e.g. 76-2234). Look anywhere on the receipt — margins, top, bottom, near totals. Labels include WO, W/O, Work Order
 - workOrderNumber: the AppFolio work order exactly as xx-xxxx (e.g. 76-2234). Use null if no work order number is visible on the receipt
+- vendorName: the bookkeeping vendor/payee name. Usually this matches merchant; use the clearest vendor name printed on the receipt
+- propertyName: property, building, unit, tenant, or job location written on the receipt. Use null if no property is visible
 - when a work order is visible, add it as a lineItems entry with amount null (e.g. name: "WO 76-2234")
 - use category "months" for recurring monthly charges (rent, lease payments, subscriptions, membership fees, monthly insurance premiums)
 - use category "credit_cards" for credit card payments, card statements, finance charges, or purchases where the merchant is a bank/card issuer (Visa, Mastercard, Amex, Chase, Capital One, etc.)
@@ -125,6 +130,8 @@ function validateReceipt(parsed: KieReceiptPayload): ExtractedReceipt {
       parsed.workOrderNumber,
       receiptText,
     ),
+    vendorName: normalizeBookkeepingText(parsed.vendorName),
+    propertyName: normalizeBookkeepingText(parsed.propertyName),
   };
 }
 

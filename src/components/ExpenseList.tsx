@@ -5,7 +5,7 @@ import {
   AccountingSyncBadge,
   canSubmitAccountingReview,
 } from "@/components/AccountingSyncBadge";
-import type { BillableStatus, Expense } from "@/lib/types";
+import type { BillableStatus, Expense, ReceiptInboxStatus } from "@/lib/types";
 import {
   GROUP_MODE_LABELS,
   groupExpenses,
@@ -17,6 +17,13 @@ import { formatCardLabel } from "@/lib/card-last-four";
 import { countMissingWorkOrders, formatWorkOrderLabel } from "@/lib/work-order";
 import { ExpenseExportButton } from "@/components/ExpenseExportButton";
 import { useExpenseContext } from "@/lib/expense-context";
+import {
+  getMissingInfoReasons,
+  getVendorName,
+  INBOX_STATUS_LABELS,
+  INBOX_STATUS_ORDER,
+  MISSING_INFO_LABELS,
+} from "@/lib/receipt-workflow";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
 import { CardBadge } from "./CardBadge";
@@ -44,8 +51,59 @@ interface ExpenseListProps {
       billableStatus?: BillableStatus;
       cardLastFour?: string | null;
       workOrderNumber?: string | null;
+      inboxStatus?: ReceiptInboxStatus;
+      propertyName?: string | null;
+      vendorName?: string | null;
+      duplicateOfId?: string | null;
     },
   ) => void;
+}
+
+function MissingInfoBadges({ expense }: { expense: Expense }) {
+  const reasons = getMissingInfoReasons(expense);
+
+  if (reasons.length === 0) {
+    return (
+      <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        Complete
+      </span>
+    );
+  }
+
+  return (
+    <>
+      {reasons.slice(0, 3).map((reason) => (
+        <span
+          key={reason}
+          className="rounded bg-[#fef9c3] px-2 py-0.5 text-[11px] font-semibold text-[#a16207]"
+        >
+          {MISSING_INFO_LABELS[reason]}
+        </span>
+      ))}
+      {reasons.length > 3 ? (
+        <span className="rounded bg-qb-bg px-2 py-0.5 text-[11px] font-semibold text-qb-text-secondary">
+          +{reasons.length - 3} more
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+function InboxStatusBadge({ status }: { status: ReceiptInboxStatus }) {
+  const tone =
+    status === "needs_review"
+      ? "bg-[#fef9c3] text-[#a16207]"
+      : status === "reconciled"
+        ? "bg-emerald-50 text-emerald-700"
+        : status === "exported"
+          ? "bg-qb-blue-light text-qb-blue-dark"
+          : "bg-qb-bg text-qb-text-secondary";
+
+  return (
+    <span className={`rounded px-2 py-0.5 text-[11px] font-semibold ${tone}`}>
+      {INBOX_STATUS_LABELS[status]}
+    </span>
+  );
 }
 
 function AccountingActions({
@@ -111,6 +169,10 @@ function ExpenseRow({
   const [workOrderInput, setWorkOrderInput] = useState(
     expense.workOrderNumber ?? "",
   );
+  const [vendorInput, setVendorInput] = useState(getVendorName(expense));
+  const [propertyInput, setPropertyInput] = useState(
+    expense.propertyName ?? "",
+  );
   const showWorkOrderField =
     expense.billableStatus === "billable" ||
     expense.billableStatus === "review";
@@ -119,8 +181,17 @@ function ExpenseRow({
     if (expanded) {
       setCardInput(expense.cardLastFour ?? "");
       setWorkOrderInput(expense.workOrderNumber ?? "");
+      setVendorInput(getVendorName(expense));
+      setPropertyInput(expense.propertyName ?? "");
     }
-  }, [expanded, expense.cardLastFour, expense.workOrderNumber]);
+  }, [
+    expanded,
+    expense.cardLastFour,
+    expense.merchant,
+    expense.propertyName,
+    expense.vendorName,
+    expense.workOrderNumber,
+  ]);
 
   return (
     <li className="group">
@@ -172,9 +243,11 @@ function ExpenseRow({
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={expense.category} />
               <BillableBadge status={expense.billableStatus} />
+              <InboxStatusBadge status={expense.inboxStatus} />
               <CardBadge lastFour={expense.cardLastFour} brand={expense.cardBrand} />
               <WorkOrderBadge expense={expense} />
               <AccountingSyncBadge status={expense.accountingStatus} />
+              <MissingInfoBadges expense={expense} />
             </div>
           </div>
 
@@ -257,6 +330,34 @@ function ExpenseRow({
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label
+                htmlFor={`inbox-${expense.id}`}
+                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+              >
+                Inbox status
+              </label>
+              <select
+                id={`inbox-${expense.id}`}
+                value={expense.inboxStatus}
+                onChange={(event) =>
+                  onUpdate(expense.id, {
+                    inboxStatus: event.target.value as ReceiptInboxStatus,
+                  })
+                }
+                className="mt-1.5 w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
+              >
+                {INBOX_STATUS_ORDER.map((status) => (
+                  <option key={status} value={status}>
+                    {INBOX_STATUS_LABELS[status]}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-qb-text-secondary">
+                Move receipts from new to review, approved, exported, and reconciled.
+              </p>
+            </div>
+
+            <div>
+              <label
                 htmlFor={`billable-${expense.id}`}
                 className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
               >
@@ -326,6 +427,74 @@ function ExpenseRow({
                 </p>
               </div>
             ) : null}
+
+            <div>
+              <label
+                htmlFor={`vendor-${expense.id}`}
+                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+              >
+                Vendor
+              </label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id={`vendor-${expense.id}`}
+                  type="text"
+                  placeholder="Vendor name"
+                  value={vendorInput}
+                  onChange={(event) => setVendorInput(event.target.value)}
+                  className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    onUpdate(expense.id, {
+                      vendorName:
+                        vendorInput.trim() === "" ? null : vendorInput,
+                    })
+                  }
+                  className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
+                >
+                  Save
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-qb-text-secondary">
+                Defaults to merchant when no vendor is entered.
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor={`property-${expense.id}`}
+                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+              >
+                Property
+              </label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id={`property-${expense.id}`}
+                  type="text"
+                  placeholder="Property A"
+                  value={propertyInput}
+                  onChange={(event) => setPropertyInput(event.target.value)}
+                  className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    onUpdate(expense.id, {
+                      propertyName:
+                        propertyInput.trim() === "" ? null : propertyInput,
+                    })
+                  }
+                  className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
+                >
+                  Save
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-qb-text-secondary">
+                Required before export for property-management workflows.
+              </p>
+            </div>
 
             <div>
               <label

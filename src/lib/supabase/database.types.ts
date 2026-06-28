@@ -27,6 +27,15 @@ export interface Database {
           card_last_four: string | null;
           work_order_number: string | null;
           receipt_image: string | null;
+          inbox_status: "new" | "needs_review" | "approved" | "exported" | "reconciled";
+          reconciliation_status:
+            | "unmatched"
+            | "matched"
+            | "missing_receipt"
+            | "missing_transaction";
+          property_name: string | null;
+          vendor_name: string | null;
+          duplicate_of_id: string | null;
           accounting_status: "pending" | "rejected" | "synced" | "failed";
           accounting_synced_at: string | null;
           accounting_reference: string | null;
@@ -50,6 +59,15 @@ export interface Database {
           card_last_four?: string | null;
           work_order_number?: string | null;
           receipt_image?: string | null;
+          inbox_status?: "new" | "needs_review" | "approved" | "exported" | "reconciled";
+          reconciliation_status?:
+            | "unmatched"
+            | "matched"
+            | "missing_receipt"
+            | "missing_transaction";
+          property_name?: string | null;
+          vendor_name?: string | null;
+          duplicate_of_id?: string | null;
           accounting_status?: "pending" | "rejected" | "synced" | "failed";
           accounting_synced_at?: string | null;
           accounting_reference?: string | null;
@@ -73,6 +91,15 @@ export interface Database {
           card_last_four?: string | null;
           work_order_number?: string | null;
           receipt_image?: string | null;
+          inbox_status?: "new" | "needs_review" | "approved" | "exported" | "reconciled";
+          reconciliation_status?:
+            | "unmatched"
+            | "matched"
+            | "missing_receipt"
+            | "missing_transaction";
+          property_name?: string | null;
+          vendor_name?: string | null;
+          duplicate_of_id?: string | null;
           accounting_status?: "pending" | "rejected" | "synced" | "failed";
           accounting_synced_at?: string | null;
           accounting_reference?: string | null;

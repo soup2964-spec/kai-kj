@@ -2,19 +2,32 @@ import { CATEGORY_META } from "@/lib/categories";
 import { formatCardLabel } from "@/lib/card-last-four";
 import { formatWorkOrderLabel } from "@/lib/work-order";
 import { ACCOUNTING_STATUS_META } from "@/lib/accounting-fields";
+import {
+  getMissingInfoReasons,
+  getVendorName,
+  INBOX_STATUS_LABELS,
+  MISSING_INFO_LABELS,
+  RECONCILIATION_STATUS_LABELS,
+} from "@/lib/receipt-workflow";
 import type { Expense } from "@/lib/types";
 
 export const EXPENSE_SHEET_HEADERS = [
   "Date",
   "Merchant",
+  "Vendor",
   "Amount",
   "Category",
   "Category Reason",
   "Billable Status",
   "Billable Reason",
   "Work Order",
+  "Property",
   "Card",
+  "Inbox Status",
   "Accounting Status",
+  "Reconciliation Status",
+  "Missing Info",
+  "Duplicate Of",
   "Line Items",
   "Confidence",
   "Scanned At",
@@ -46,14 +59,22 @@ export function expenseToSheetRow(expense: Expense): string[] {
   return [
     expense.date,
     expense.merchant,
+    getVendorName(expense),
     expense.amount.toFixed(2),
     CATEGORY_META[expense.category]?.label ?? expense.category,
     expense.categoryReason,
     formatBillableStatus(expense.billableStatus),
     expense.billableReason,
     formatWorkOrderLabel(expense.workOrderNumber),
+    expense.propertyName ?? "",
     formatCardLabel(expense.cardLastFour),
+    INBOX_STATUS_LABELS[expense.inboxStatus],
     ACCOUNTING_STATUS_META[expense.accountingStatus].label,
+    RECONCILIATION_STATUS_LABELS[expense.reconciliationStatus],
+    getMissingInfoReasons(expense)
+      .map((reason) => MISSING_INFO_LABELS[reason])
+      .join("; "),
+    expense.duplicateOfId ?? "",
     formatLineItems(expense),
     expense.confidence.toFixed(2),
     expense.createdAt,

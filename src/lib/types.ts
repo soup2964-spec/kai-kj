@@ -27,6 +27,19 @@ export type AccountingSyncStatus =
   | "synced"
   | "failed";
 
+export type ReceiptInboxStatus =
+  | "new"
+  | "needs_review"
+  | "approved"
+  | "exported"
+  | "reconciled";
+
+export type ReconciliationStatus =
+  | "unmatched"
+  | "matched"
+  | "missing_receipt"
+  | "missing_transaction";
+
 export interface AccountingFields {
   accountingStatus: AccountingSyncStatus;
   accountingSyncedAt?: string;
@@ -54,6 +67,10 @@ export interface ExtractedReceipt {
   cardBrand?: CardBrand | null;
   /** AppFolio work order number (e.g. 76-2234) written on billable receipts */
   workOrderNumber?: string | null;
+  /** Vendor/payee name used for bookkeeping; defaults to merchant */
+  vendorName?: string | null;
+  /** Property or unit associated with the receipt, when visible */
+  propertyName?: string | null;
 }
 
 /** Full scan result after billable rules are applied */
@@ -68,4 +85,9 @@ export interface Expense extends ScannedReceipt, AccountingFields {
   id: string;
   createdAt: string;
   receiptImage?: string;
+  inboxStatus: ReceiptInboxStatus;
+  reconciliationStatus: ReconciliationStatus;
+  propertyName?: string | null;
+  vendorName?: string | null;
+  duplicateOfId?: string | null;
 }

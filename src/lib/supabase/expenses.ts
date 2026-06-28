@@ -4,6 +4,11 @@ import { normalizeBillableFields } from "@/lib/billable-engine";
 import { normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 import { normalizeWorkOrderNumber } from "@/lib/work-order";
+import {
+  normalizeBookkeepingText,
+  normalizeInboxStatus,
+  normalizeReconciliationStatus,
+} from "@/lib/receipt-workflow";
 import type { AccountingSyncStatus, Expense } from "@/lib/types";
 import type { Database } from "./database.types";
 
@@ -26,6 +31,17 @@ function rowToExpense(row: ExpenseRow): Expense {
     cardLastFour: normalizeCardLastFour(row.card_last_four),
     workOrderNumber: normalizeWorkOrderNumber(row.work_order_number),
     receiptImage: row.receipt_image ?? undefined,
+    inboxStatus: normalizeInboxStatus(row.inbox_status, {
+      accountingStatus: row.accounting_status,
+      billableStatus: row.billable_status,
+      workOrderNumber: row.work_order_number,
+    }),
+    reconciliationStatus: normalizeReconciliationStatus(
+      row.reconciliation_status,
+    ),
+    propertyName: normalizeBookkeepingText(row.property_name),
+    vendorName: normalizeBookkeepingText(row.vendor_name),
+    duplicateOfId: normalizeBookkeepingText(row.duplicate_of_id),
     createdAt: row.created_at,
     ...normalizeBillableFields({
       billableStatus: row.billable_status,
@@ -60,6 +76,11 @@ function expenseToInsert(expense: Expense, ownerId: string): ExpenseInsert {
     card_last_four: expense.cardLastFour ?? null,
     work_order_number: expense.workOrderNumber ?? null,
     receipt_image: null,
+    inbox_status: expense.inboxStatus,
+    reconciliation_status: expense.reconciliationStatus,
+    property_name: expense.propertyName ?? null,
+    vendor_name: expense.vendorName ?? null,
+    duplicate_of_id: expense.duplicateOfId ?? null,
     accounting_status: expense.accountingStatus,
     accounting_synced_at: expense.accountingSyncedAt ?? null,
     accounting_reference: expense.accountingReference ?? null,
@@ -76,6 +97,11 @@ function expenseToUpdate(expense: Expense): ExpenseUpdate {
     matched_rule_id: expense.matchedRuleId ?? null,
     card_last_four: expense.cardLastFour ?? null,
     work_order_number: expense.workOrderNumber ?? null,
+    inbox_status: expense.inboxStatus,
+    reconciliation_status: expense.reconciliationStatus,
+    property_name: expense.propertyName ?? null,
+    vendor_name: expense.vendorName ?? null,
+    duplicate_of_id: expense.duplicateOfId ?? null,
   };
 }
 

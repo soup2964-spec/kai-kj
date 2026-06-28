@@ -4,6 +4,11 @@ import { normalizeCardBrand, normalizeCardLastFour } from "@/lib/card-last-four"
 import { normalizeWorkOrderNumber } from "@/lib/work-order";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 import {
+  normalizeBookkeepingText,
+  normalizeInboxStatus,
+  normalizeReconciliationStatus,
+} from "@/lib/receipt-workflow";
+import {
   EXPENSE_CATEGORIES,
   type AccountingSyncStatus,
   type BillableSource,
@@ -70,6 +75,13 @@ export function parseExpensePayload(value: unknown): Expense {
     cardBrand: normalizeCardBrand(input.cardBrand),
     workOrderNumber: normalizeWorkOrderNumber(input.workOrderNumber),
     createdAt: input.createdAt,
+    inboxStatus: normalizeInboxStatus(input.inboxStatus),
+    reconciliationStatus: normalizeReconciliationStatus(
+      input.reconciliationStatus,
+    ),
+    propertyName: normalizeBookkeepingText(input.propertyName),
+    vendorName: normalizeBookkeepingText(input.vendorName),
+    duplicateOfId: normalizeBookkeepingText(input.duplicateOfId),
     ...normalizeBillableFields({
       billableStatus,
       billableReason: input.billableReason,

@@ -7,6 +7,11 @@ import { normalizeBillableFields } from "./billable-engine";
 import { normalizeCardBrand, normalizeCardLastFour } from "./card-last-four";
 import { normalizeWorkOrderNumber } from "./work-order";
 import {
+  normalizeBookkeepingText,
+  normalizeInboxStatus,
+  normalizeReconciliationStatus,
+} from "./receipt-workflow";
+import {
   deleteExpenseRemote,
   fetchExpensesRemote,
   saveExpenseRemote,
@@ -15,7 +20,12 @@ import {
   type AccountingDecision,
 } from "./expense-sync";
 import { normalizeLineItems } from "./receipt-line-items";
-import type { BillableStatus, Expense, ScannedReceipt } from "./types";
+import type {
+  BillableStatus,
+  Expense,
+  ReceiptInboxStatus,
+  ScannedReceipt,
+} from "./types";
 
 const STORAGE_KEY = "kai-kj-expenses";
 
@@ -26,6 +36,13 @@ function normalizeExpense(expense: Expense): Expense {
     cardLastFour: normalizeCardLastFour(expense.cardLastFour),
     cardBrand: normalizeCardBrand(expense.cardBrand),
     workOrderNumber: normalizeWorkOrderNumber(expense.workOrderNumber),
+    inboxStatus: normalizeInboxStatus(expense.inboxStatus, expense),
+    reconciliationStatus: normalizeReconciliationStatus(
+      expense.reconciliationStatus,
+    ),
+    propertyName: normalizeBookkeepingText(expense.propertyName),
+    vendorName: normalizeBookkeepingText(expense.vendorName),
+    duplicateOfId: normalizeBookkeepingText(expense.duplicateOfId),
     ...normalizeBillableFields(expense),
     ...normalizeAccountingFields(expense),
   };
@@ -64,6 +81,12 @@ function mergeRemoteAndLocal(
       normalizeExpense({
         ...expense,
         receiptImage: local?.receiptImage ?? expense.receiptImage,
+        inboxStatus: local?.inboxStatus ?? expense.inboxStatus,
+        reconciliationStatus:
+          local?.reconciliationStatus ?? expense.reconciliationStatus,
+        propertyName: local?.propertyName ?? expense.propertyName,
+        vendorName: local?.vendorName ?? expense.vendorName,
+        duplicateOfId: local?.duplicateOfId ?? expense.duplicateOfId,
       }),
     );
   }
@@ -154,6 +177,8 @@ export function useExpenses() {
         createdAt: new Date().toISOString(),
         receiptImage,
         accountingStatus: "pending",
+        inboxStatus: "new",
+        reconciliationStatus: "unmatched",
       });
 
       const next = [expense, ...readExpenses()];
@@ -219,6 +244,10 @@ export function useExpenses() {
         billableStatus?: BillableStatus;
         cardLastFour?: string | null;
         workOrderNumber?: string | null;
+        inboxStatus?: ReceiptInboxStatus;
+        propertyName?: string | null;
+        vendorName?: string | null;
+        duplicateOfId?: string | null;
       },
     ) => {
       let updated: Expense | null = null;
@@ -235,6 +264,26 @@ export function useExpenses() {
         if (patch.workOrderNumber !== undefined) {
           nextExpense.workOrderNumber = normalizeWorkOrderNumber(
             patch.workOrderNumber,
+          );
+        }
+
+        if (patch.inboxStatus !== undefined) {
+          nextExpense.inboxStatus = normalizeInboxStatus(patch.inboxStatus);
+        }
+
+        if (patch.propertyName !== undefined) {
+          nextExpense.propertyName = normalizeBookkeepingText(
+            patch.propertyName,
+          );
+        }
+
+        if (patch.vendorName !== undefined) {
+          nextExpense.vendorName = normalizeBookkeepingText(patch.vendorName);
+        }
+
+        if (patch.duplicateOfId !== undefined) {
+          nextExpense.duplicateOfId = normalizeBookkeepingText(
+            patch.duplicateOfId,
           );
         }
 
