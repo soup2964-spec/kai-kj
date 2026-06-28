@@ -4,7 +4,10 @@ import {
   parseExpensePayload,
   parseOwnerId,
 } from "@/lib/expense-api";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  createAdminClient,
+  isSupabaseAdminConfigured,
+} from "@/lib/supabase/admin";
 import {
   fetchExpensesForOwner,
   insertExpenseForOwner,
@@ -13,6 +16,17 @@ import {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    parseOwnerId(searchParams.get("ownerId"));
+
+    if (!isSupabaseAdminConfigured()) {
+      return NextResponse.json({
+        expenses: [],
+        storage: "local",
+        warning:
+          "Remote expense storage is not configured. Receipts will stay in this browser.",
+      });
+    }
+
     const ownerId = parseOwnerId(searchParams.get("ownerId"));
     const supabase = createAdminClient();
     const expenses = await fetchExpensesForOwner(supabase, ownerId);
@@ -30,6 +44,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const ownerId = parseOwnerId(body.ownerId);
     const expense = parseExpensePayload(body.expense);
+
+    if (!isSupabaseAdminConfigured()) {
+      return NextResponse.json({
+        expense,
+        storage: "local",
+        warning:
+          "Remote expense storage is not configured. Receipt saved in this browser.",
+      });
+    }
+
     const supabase = createAdminClient();
     const saved = await insertExpenseForOwner(supabase, expense, ownerId);
     return NextResponse.json({ expense: saved });

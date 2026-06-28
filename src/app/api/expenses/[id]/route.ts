@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { apiErrorMessage, parseExpensePayload, parseOwnerId } from "@/lib/expense-api";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  createAdminClient,
+  isSupabaseAdminConfigured,
+} from "@/lib/supabase/admin";
 import {
   deleteExpenseForOwner,
   updateExpenseForOwner,
@@ -23,6 +26,15 @@ export async function PATCH(
       );
     }
 
+    if (!isSupabaseAdminConfigured()) {
+      return NextResponse.json({
+        expense,
+        storage: "local",
+        warning:
+          "Remote expense storage is not configured. Receipt update saved in this browser.",
+      });
+    }
+
     const supabase = createAdminClient();
     const saved = await updateExpenseForOwner(supabase, expense, ownerId);
     return NextResponse.json({ expense: saved });
@@ -41,6 +53,17 @@ export async function DELETE(
   try {
     const { id } = await context.params;
     const { searchParams } = new URL(request.url);
+    parseOwnerId(searchParams.get("ownerId"));
+
+    if (!isSupabaseAdminConfigured()) {
+      return NextResponse.json({
+        ok: true,
+        storage: "local",
+        warning:
+          "Remote expense storage is not configured. Receipt deleted from this browser.",
+      });
+    }
+
     const ownerId = parseOwnerId(searchParams.get("ownerId"));
     const supabase = createAdminClient();
     await deleteExpenseForOwner(supabase, id, ownerId);

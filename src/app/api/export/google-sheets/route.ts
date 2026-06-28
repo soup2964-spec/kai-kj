@@ -5,7 +5,10 @@ import {
   exportExpensesToGoogleSheet,
   isGoogleSheetsExportConfigured,
 } from "@/lib/google-sheets-export";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  createAdminClient,
+  isSupabaseAdminConfigured,
+} from "@/lib/supabase/admin";
 import { fetchExpensesForOwner } from "@/lib/supabase/expenses";
 
 function parseDateSort(value: unknown): ExpenseDateSort {
@@ -29,6 +32,18 @@ export async function POST(request: Request) {
     const body = await request.json();
     const ownerId = parseOwnerId(body.ownerId);
     const sort = parseDateSort(body.sort);
+
+    if (!isSupabaseAdminConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "Remote expense storage is not configured. Export the receipts saved in this browser as CSV.",
+          fallback: "csv",
+        },
+        { status: 503 },
+      );
+    }
+
     const supabase = createAdminClient();
     const expenses = await fetchExpensesForOwner(supabase, ownerId);
 
