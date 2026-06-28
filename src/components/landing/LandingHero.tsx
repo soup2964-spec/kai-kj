@@ -9,7 +9,7 @@ export function LandingHero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
         <div className="flex max-w-xl flex-col items-start text-left">
-          <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.05em] text-[var(--cb-dark)] sm:text-6xl lg:text-[4.75rem]">
+          <h1 className="text-4xl font-bold leading-[1.02] tracking-[-0.04em] text-[var(--cb-dark)] sm:text-5xl lg:text-[3.5rem]">
             Your Expense
             <span className="block text-[var(--cb-primary)]">Tracking Agent</span>
           </h1>
