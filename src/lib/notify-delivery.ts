@@ -55,7 +55,7 @@ export async function sendEmailViaOwnerSmtp(
 
   const message = buildWorkOrderAlertMessage(payload);
   const vendor = payload.vendor ?? "Receipt";
-  const subject = `[Kai KJ] Work order needed — ${vendor}`;
+  const subject = `[Moodna] Work order needed — ${vendor}`;
 
   const transporter = nodemailer.createTransport({
     host: smtp.host,

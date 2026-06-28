@@ -47,7 +47,7 @@ export async function exportExpensesToGoogleSheet(
 
   const sheets = google.sheets({ version: "v4", auth });
   const drive = google.drive({ version: "v3", auth });
-  const title = `Kai KJ Expenses ${new Date().toISOString().slice(0, 10)}`;
+  const title = `Moodna Expenses ${new Date().toISOString().slice(0, 10)}`;
 
   const created = await sheets.spreadsheets.create({
     requestBody: {

@@ -41,7 +41,7 @@ export function LandingFooter() {
           <div className="mx-auto w-64 shrink-0 text-center md:mx-0 md:text-left">
             <LandingLogo linkToHome={false} />
             <p className="mt-3 text-sm text-[var(--sf-muted)]">
-              Kai KJ turns receipt photos into organized expenses with card folders,
+              Moodna turns receipt photos into organized expenses with card folders,
               saved images, and export-ready data.
             </p>
             <p className="mt-3 text-sm text-[var(--sf-neutral-400)]">

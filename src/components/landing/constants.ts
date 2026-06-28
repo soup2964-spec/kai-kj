@@ -1,11 +1,11 @@
-export const SITE_NAME = "Kai KJ";
+export const SITE_NAME = "Moodna";
 export const SITE_LOGO_SVG: string = "";
-export const SITE_LOGO_ALT = "Kai KJ";
+export const SITE_LOGO_ALT = "Moodna";
 
 export const ANNOUNCEMENT = {
   text: "New: receipt image viewer, card folders, month folders, and purchase-date sorting.",
   href: "/dashboard/scan",
-  linkLabel: "Scan a receipt",
+  linkLabel: "Try Moodna",
 };
 
 export const NAV_PRODUCT_LINKS = [
@@ -41,11 +41,11 @@ export const FEATURE_ROWS = [
   {
     id: "scan",
     label: "RECEIPT SCANNING",
-    title: "Scan receipts",
-    highlight: "instantly",
+    title: "Upload expenses",
+    highlight: "seamlessly",
     description:
-      "Snap a photo or upload a file. Kai KJ reads merchant, amount, purchase date, card last four, line items, and work orders — then saves the original image for review.",
-    primaryCta: { label: "Scan a receipt", href: "/dashboard/scan" },
+      "Snap a photo or upload a file. Moodna reads merchant, amount, purchase date, card last four, line items, and work orders — then saves the original image for review.",
+    primaryCta: { label: "Try Moodna", href: "/dashboard/scan" },
     secondaryCta: { label: "View dashboard", href: "/dashboard" },
     videoLabel: "Receipt scanning demo",
     reverse: false,
@@ -54,8 +54,8 @@ export const FEATURE_ROWS = [
   {
     id: "folders",
     label: "CARD FOLDERS",
-    title: "Organize by card",
-    highlight: "automatically",
+    title: "Verify billable client expenses",
+    highlight: "on autopilot",
     description:
       "Every receipt lands in card folders with nested month dropdowns. Browse by purchase date, billable status, or AppFolio work order without digging through spreadsheets.",
     primaryCta: { label: "Open folders", href: "/dashboard/expenses" },
@@ -129,9 +129,9 @@ export const PRICING_PLANS = [
 
 export const FAQ_ITEMS = [
   {
-    question: "What does Kai KJ do?",
+    question: "What does Moodna do?",
     answer:
-      "Kai KJ turns receipt photos into organized expenses. Scan a receipt, review the extracted data with the original image attached, file everything into card and date folders, then export to Sheets or CSV when you're ready.",
+      "Moodna turns receipt photos into organized expenses. Scan a receipt, review the extracted data with the original image attached, file everything into card and date folders, then export to Sheets or CSV when you're ready.",
   },
   {
     question: "Do I need to create an account?",
@@ -146,7 +146,7 @@ export const FAQ_ITEMS = [
   {
     question: "Can I export to Google Sheets?",
     answer:
-      "Yes. Configure Google service account credentials on the server to export directly to a spreadsheet. Without that setup, Kai KJ falls back to CSV download.",
+      "Yes. Configure Google service account credentials on the server to export directly to a spreadsheet. Without that setup, Moodna falls back to CSV download.",
   },
   {
     question: "Will my receipt images be saved?",

@@ -4,13 +4,13 @@ import { landingFont } from "@/lib/landing-fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Kai KJ — Expense Tracker",
+  title: "Moodna — Expense Tracker",
   description:
     "Scan receipts with your phone and automatically categorize expenses.",
-  applicationName: "Kai KJ",
+  applicationName: "Moodna",
   appleWebApp: {
     capable: true,
-    title: "Kai KJ",
+    title: "Moodna",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {
@@ -30,8 +30,8 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0365ac" },
-    { media: "(prefers-color-scheme: dark)", color: "#023e6b" },
+    { media: "(prefers-color-scheme: light)", color: "#225aea" },
+    { media: "(prefers-color-scheme: dark)", color: "#225aea" },
   ],
 };
 

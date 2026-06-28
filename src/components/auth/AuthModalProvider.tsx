@@ -131,11 +131,11 @@ function AuthModal({ onClose }: { onClose: () => void }) {
 
         <div className="mb-6 flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--cb-primary)] text-xs font-bold text-white">
-            KJ
+            M
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--cb-muted)]">
-              Kai KJ
+              Moodna
             </p>
             <h2 id="auth-modal-title" className="text-lg font-bold text-[var(--cb-dark)]">
               Sign in to your account

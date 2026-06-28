@@ -141,7 +141,7 @@ export function NotifyConnectCard() {
       <div className="qb-card-header">
         <h2 className="qb-section-title">Work order alerts</h2>
         <p className="qb-section-desc">
-          When a billable receipt has no work order, Kai KJ notifies your team
+          When a billable receipt has no work order, Moodna notifies your team
           immediately (ORANGE in Google Sheets).
         </p>
       </div>

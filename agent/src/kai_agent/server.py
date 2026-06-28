@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from kai_agent.graph import receipt_graph
 from kai_agent.state import ReceiptState
 
-app = FastAPI(title="Kai KJ Receipt Agent", version="0.1.0")
+app = FastAPI(title="Moodna Receipt Agent", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

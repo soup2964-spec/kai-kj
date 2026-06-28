@@ -48,7 +48,7 @@ export function LandingHeader() {
   const { openSignIn } = useAuthModal();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-blue-100 bg-white/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
           <LandingLogo />
@@ -108,7 +108,7 @@ export function LandingHeader() {
             Sign in
           </button>
           <Link href="/dashboard/scan" className="cb-btn-primary">
-            Scan receipt
+            Try Moodna
           </Link>
           <button
             type="button"
@@ -188,7 +188,7 @@ export function LandingHeader() {
             className="cb-btn-primary mt-3 w-full"
             onClick={() => setMobileOpen(false)}
           >
-            Scan receipt
+            Try Moodna
           </Link>
         </div>
       ) : null}

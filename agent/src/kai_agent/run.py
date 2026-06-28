@@ -15,7 +15,7 @@ from kai_agent.state import ReceiptState
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run Kai KJ receipt LangGraph agent")
+    parser = argparse.ArgumentParser(description="Run Moodna receipt LangGraph agent")
     parser.add_argument("image", type=Path, help="Path to receipt image")
     parser.add_argument("--owner-id", default=None)
     parser.add_argument("--max-research", type=int, default=5)

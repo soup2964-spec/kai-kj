@@ -1,4 +1,4 @@
-"""Kai KJ LangGraph receipt agent."""
+"""Moodna LangGraph receipt agent."""
 
 from kai_agent.graph import build_receipt_graph, receipt_graph
 from kai_agent.state import ReceiptState

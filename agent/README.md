@@ -1,4 +1,4 @@
-# Kai KJ LangGraph Receipt Agent
+# Moodna LangGraph Receipt Agent
 
 Implements the **agent framework flowchart** (`Downloads/agent framework.png`) for property-management receipt processing.
 

@@ -12,7 +12,7 @@ import {
 export type { CcLedgerRowInput, CcLedgerSheetStatus } from "@/lib/cc-ledger-types";
 export { DEFAULT_SHEETS_LAYOUT } from "@/lib/sheets-layout";
 
-/** Default Kai KJ column headers when creating a new tab. */
+/** Default Moodna column headers when creating a new tab. */
 export const CC_LEDGER_HEADERS = [
   "Date",
   "Merchant",

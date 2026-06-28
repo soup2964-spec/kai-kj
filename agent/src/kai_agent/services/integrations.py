@@ -39,7 +39,7 @@ def append_google_sheet_row(
     action: str = "append",
 ) -> dict[str, Any] | None:
     """
-    Write CC transaction to Google Sheets via Kai KJ API (service account).
+    Write CC transaction to Google Sheets via Moodna API (service account).
     Falls back to GOOGLE_SHEET_APPEND_URL webhook if KAI_KJ_API_URL is unset.
     """
     api_url = os.environ.get("KAI_KJ_API_URL", "").strip().rstrip("/")
@@ -290,7 +290,7 @@ def _send_email_work_order_alert(state: dict[str, Any], message: str) -> str | N
 
     vendor = state.get("vendor") or "Receipt"
     msg = EmailMessage()
-    msg["Subject"] = f"[Kai KJ] Work order needed — {vendor}"
+    msg["Subject"] = f"[Moodna] Work order needed — {vendor}"
     msg["From"] = smtp_from
     msg["To"] = ", ".join(recipients)
     msg.set_content(message)
@@ -306,7 +306,7 @@ def _send_email_work_order_alert(state: dict[str, Any], message: str) -> str | N
 
 def notify_maintenance_or_renee(state: dict[str, Any], attempt: int) -> str:
     """
-    Notify via the user's connected Slack/email settings in Kai KJ (Next.js API).
+    Notify via the user's connected Slack/email settings in Moodna (Next.js API).
     Falls back to legacy platform env vars when KAI_KJ_API_URL is unset.
     """
     owner_id = state.get("owner_id")
@@ -392,14 +392,14 @@ def notify_maintenance_or_renee(state: dict[str, Any], attempt: int) -> str:
         return "; ".join(deliveries)
 
     return (
-        "[not configured] Connect Slack or add notification emails in Kai KJ "
+        "[not configured] Connect Slack or add notification emails in Moodna "
         "(Upload statements → Work order alerts)."
     )
 
 
 def reconcile_credit_card(state: dict[str, Any]) -> bool:
     """
-    Reconcile receipt against uploaded statement transactions via Kai KJ API,
+    Reconcile receipt against uploaded statement transactions via Moodna API,
     then optional AGENT_RECONCILE_WEBHOOK_URL.
     """
     api_url = os.environ.get("KAI_KJ_API_URL", "").strip().rstrip("/")
@@ -461,7 +461,7 @@ def reconcile_credit_card(state: dict[str, Any]) -> bool:
 def store_receipt_in_monthly_folder(state: dict[str, Any]) -> str:
     """
     Store Receipt Monthly Folder — webhook to storage or return computed path.
-    Kai KJ keeps receipt images in Supabase/localStorage via Next.js.
+    Moodna keeps receipt images in Supabase/localStorage via Next.js.
     """
     folder = state.get("monthly_folder_path") or monthly_folder_path(state.get("date"))
     webhook = os.environ.get("AGENT_STORAGE_WEBHOOK_URL", "").strip()

@@ -1,7 +1,7 @@
 [project]
 name = "kai-receipt-agent"
 version = "0.1.0"
-description = "LangGraph receipt processing agent for Kai KJ property management"
+description = "LangGraph receipt processing agent for Moodna property management"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

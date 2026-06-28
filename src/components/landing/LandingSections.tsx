@@ -48,7 +48,7 @@ function CheckIcon() {
 
 export function LandingAnnouncement() {
   return (
-    <div className="border-b border-blue-100 bg-[linear-gradient(90deg,#eef8ff,#ffffff,#eef8ff)] py-2.5 text-center text-sm text-[var(--cb-muted)]">
+    <div className="bg-[linear-gradient(90deg,color-mix(in_srgb,var(--sf-primary)_12%,white),#ffffff,color-mix(in_srgb,var(--sf-primary)_12%,white))] py-2.5 text-center text-sm text-[var(--cb-muted)]">
       <span className="font-medium text-[var(--cb-dark)]">{ANNOUNCEMENT.text}</span>{" "}
       <Link href={ANNOUNCEMENT.href} className="font-bold text-[var(--cb-primary)] hover:underline">
         {ANNOUNCEMENT.linkLabel} →
@@ -147,7 +147,7 @@ export function LandingFounderStory() {
         <div className="rounded-3xl border-2 border-[var(--sf-primary)]/50 bg-gradient-to-br from-[var(--sf-neutral-100)]/20 via-[var(--sf-neutral-100)]/30 to-[var(--sf-neutral-100)]/40 p-8 md:p-12">
           <div className="flex flex-col items-center text-center">
             <div className="mb-4 flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-4 border-[var(--sf-primary)]/20 bg-[var(--sf-primary-light)] text-2xl font-bold text-[var(--sf-primary)] md:h-32 md:w-32">
-              KJ
+              M
             </div>
             <div className="max-w-2xl">
               <h2 className="mb-2 text-2xl font-bold text-[var(--sf-dark)] md:text-3xl">
@@ -155,7 +155,7 @@ export function LandingFounderStory() {
               </h2>
               <div className="space-y-4 text-left text-lg leading-relaxed text-[var(--sf-muted)] md:text-xl">
                 <p>
-                  Kai KJ started as a faster way to stop retyping receipts into
+                  Moodna started as a faster way to stop retyping receipts into
                   spreadsheets at month-end.
                 </p>
                 <p>
@@ -164,7 +164,7 @@ export function LandingFounderStory() {
                   camera rolls, and manual logs.
                 </p>
                 <p>
-                  Today Kai KJ helps you scan, organize, review, and export
+                  Today Moodna helps you scan, organize, review, and export
                   expenses with the receipt image still attached when accounting
                   asks for proof.
                 </p>

@@ -7,7 +7,7 @@ export const CATEGORY_META: Record<
 > = {
   groceries: { label: "Groceries", color: "#007023", bg: "#e8f5e6", dot: "#2ca01c" },
   dining: { label: "Dining", color: "#b54708", bg: "#fef3e2", dot: "#f79009" },
-  transportation: { label: "Transportation", color: "#0365ac", bg: "#e8f4fd", dot: "#0077c5" },
+  transportation: { label: "Transportation", color: "#225aea", bg: "#f2f6ff", dot: "#225aea" },
   shopping: { label: "Shopping", color: "#6941c6", bg: "#f3eefb", dot: "#7f56d9" },
   entertainment: { label: "Entertainment", color: "#c11574", bg: "#fce8f3", dot: "#ee46bc" },
   health: { label: "Health", color: "#027a48", bg: "#ecfdf3", dot: "#12b76a" },

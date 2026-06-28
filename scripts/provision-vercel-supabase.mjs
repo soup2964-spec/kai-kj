@@ -33,7 +33,7 @@ async function createSupabaseSecretKey(accessToken) {
       body: JSON.stringify({
         type: "secret",
         name: "kai-kj-vercel",
-        description: "Server-side key for Kai KJ on Vercel",
+        description: "Server-side key for Moodna on Vercel",
       }),
     },
   );

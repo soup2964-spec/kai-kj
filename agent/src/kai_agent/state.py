@@ -1,4 +1,4 @@
-"""Receipt workflow state — matches agent framework flowchart + Kai KJ domain."""
+"""Receipt workflow state — matches agent framework flowchart + Moodna domain."""
 
 from __future__ import annotations
 

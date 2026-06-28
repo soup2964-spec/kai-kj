@@ -22,7 +22,7 @@ export function LandingLogo({ className = "", linkToHome = true }: LandingLogoPr
       className={`inline-flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--cb-dark)] ${className}`}
     >
       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--cb-primary)] text-xs font-bold text-white">
-        KJ
+        M
       </span>
       {SITE_NAME}
     </span>

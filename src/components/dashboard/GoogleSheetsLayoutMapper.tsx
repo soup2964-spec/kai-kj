@@ -108,7 +108,7 @@ export function GoogleSheetsLayoutMapper() {
       <div className="qb-card-header">
         <h2 className="qb-section-title">Map your existing sheet</h2>
         <p className="qb-section-desc">
-          Tell Kai KJ which columns in your spreadsheet match each receipt field.
+          Tell Moodna which columns in your spreadsheet match each receipt field.
           Required: Expense ID and Sheet status (ORANGE/GREEN).
         </p>
       </div>
@@ -229,7 +229,7 @@ export function GoogleSheetsLayoutMapper() {
           <table className="w-full text-left text-sm">
             <thead className="bg-qb-bg text-xs font-semibold uppercase tracking-wide text-qb-text-muted">
               <tr>
-                <th className="px-3 py-2">Kai KJ field</th>
+                <th className="px-3 py-2">Moodna field</th>
                 <th className="px-3 py-2">Your column</th>
               </tr>
             </thead>

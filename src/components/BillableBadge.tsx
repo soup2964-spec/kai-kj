@@ -6,9 +6,9 @@ const BADGE_META: Record<
 > = {
   billable: {
     label: "Billable",
-    color: "#0365ac",
-    bg: "#e8f4fd",
-    dot: "#0365ac",
+    color: "#225aea",
+    bg: "#f2f6ff",
+    dot: "#225aea",
   },
   non_billable: {
     label: "Non-billable",

@@ -10,7 +10,7 @@ function isExpenseCategory(value: string | null | undefined): value is ExpenseCa
 }
 
 /**
- * Map LangGraph ReceiptState → Kai KJ Expense for Supabase / localStorage.
+ * Map LangGraph ReceiptState → Moodna Expense for Supabase / localStorage.
  */
 export function mapAgentStateToExpense(
   state: ReceiptAgentState,

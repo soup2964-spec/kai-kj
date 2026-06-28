@@ -3,7 +3,7 @@ import { formatCardLabel } from "@/lib/card-last-four";
 import { formatWorkOrderLabel } from "@/lib/work-order";
 import { CATEGORY_META } from "@/lib/categories";
 
-/** Kai KJ fields that can be mapped to user spreadsheet columns. */
+/** Moodna fields that can be mapped to user spreadsheet columns. */
 export type CcLedgerFieldKey =
   | "date"
   | "merchant"
