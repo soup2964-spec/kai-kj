@@ -1,6 +1,11 @@
+import {
+  accountEmailToOwnerId,
+  getAccountEmail,
+} from "@/lib/account-id";
+
 const OWNER_ID_KEY = "kai-kj-owner-id";
 
-export function getOwnerId(): string {
+function getAnonymousOwnerId(): string {
   if (typeof window === "undefined") {
     return "";
   }
@@ -12,4 +17,17 @@ export function getOwnerId(): string {
   }
 
   return ownerId;
+}
+
+/** Stable owner id: account email when set, otherwise anonymous device id. */
+export function getOwnerId(): string {
+  const accountEmail = getAccountEmail();
+  if (accountEmail) {
+    return accountEmailToOwnerId(accountEmail);
+  }
+  return getAnonymousOwnerId();
+}
+
+export function getAnonymousOwnerIdForMigration(): string {
+  return getAnonymousOwnerId();
 }

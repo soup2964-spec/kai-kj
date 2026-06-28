@@ -544,7 +544,7 @@ export function ExpenseList({
 
       <p className="border-b border-qb-border-light px-4 py-2 text-xs text-qb-text-muted lg:px-5">
         {groupMode === "month" &&
-          "Grouped by receipt date. New months appear automatically."}
+          "Grouped by receipt month and year. Use the month/year filter above."}
         {groupMode === "card" &&
           "Grouped by card last 4 digits. New cards create folders when detected."}
         {groupMode === "billable" &&
