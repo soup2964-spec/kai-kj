@@ -42,6 +42,8 @@ export interface BillableEvaluation {
 }
 
 const config = billableRulesConfig as BillableRulesConfig;
+const WORK_ORDER_BILLABLE_REASON =
+  "Work order attached — receipts with work orders are always billable.";
 
 function normalizeText(value: string): string {
   return value.toLowerCase().trim();
@@ -118,6 +120,15 @@ export function evaluateBillable(
   receipt: ExtractedReceipt,
   rules: BillableRulesConfig = config,
 ): BillableEvaluation {
+  if (receipt.workOrderNumber) {
+    return {
+      billableStatus: "billable",
+      billableReason: WORK_ORDER_BILLABLE_REASON,
+      billableSource: "rule",
+      matchedRuleId: "work-order-attached",
+    };
+  }
+
   for (const phase of EVALUATION_PHASES) {
     const matchingRule = findMatchingRule(rules.rules, receipt, phase);
 
@@ -160,6 +171,15 @@ export function normalizeBillableFields(
   ScannedReceipt,
   "billableStatus" | "billableReason" | "billableSource" | "matchedRuleId"
 > {
+  if (expense.workOrderNumber) {
+    return {
+      billableStatus: "billable",
+      billableReason: WORK_ORDER_BILLABLE_REASON,
+      billableSource: "rule",
+      matchedRuleId: "work-order-attached",
+    };
+  }
+
   if (
     expense.billableStatus &&
     expense.billableReason &&
