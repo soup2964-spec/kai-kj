@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import { getAccountEmail, isValidAccountEmail } from "@/lib/account-id";
-import { signInWithEmail, signInWithOAuth } from "@/lib/auth/client";
+import { signInWithEmail } from "@/lib/auth/client";
 
 type AuthModalContextValue = {
   isOpen: boolean;
@@ -58,7 +58,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState<string | null>(null);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -98,19 +97,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
       router.push("/dashboard");
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  async function handleOAuth(provider: "google" | "apple") {
-    setError(null);
-    setOauthBusy(provider);
-    try {
-      const result = await signInWithOAuth(provider);
-      if (!result.ok) {
-        setError(result.error);
-      }
-    } finally {
-      setOauthBusy(null);
     }
   }
 
@@ -192,31 +178,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
             {submitting ? "Please wait..." : "Sign in"}
           </button>
         </form>
-
-        <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-[var(--cb-border)]" />
-          <span className="text-xs font-medium text-[var(--cb-muted)]">or continue with</span>
-          <div className="h-px flex-1 bg-[var(--cb-border)]" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            disabled={oauthBusy !== null}
-            onClick={() => void handleOAuth("google")}
-            className="auth-modal-oauth-btn"
-          >
-            {oauthBusy === "google" ? "..." : "Google"}
-          </button>
-          <button
-            type="button"
-            disabled={oauthBusy !== null}
-            onClick={() => void handleOAuth("apple")}
-            className="auth-modal-oauth-btn"
-          >
-            {oauthBusy === "apple" ? "..." : "Apple"}
-          </button>
-        </div>
 
         <p className="mt-5 text-center text-sm text-[var(--cb-muted)]">
           Don&apos;t have an account?{" "}

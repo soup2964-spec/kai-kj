@@ -585,30 +585,6 @@ body {
   box-shadow: 0 0 0 3px rgba(3, 101, 172, 0.15);
 }
 
-.auth-modal-oauth-btn {
-  display: inline-flex;
-  height: 2.5rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.625rem;
-  border: 1px solid var(--cb-border, #e2e8f0);
-  background: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--cb-dark, #0a0a12);
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.auth-modal-oauth-btn:hover:not(:disabled) {
-  background: var(--cb-surface, #f8fafc);
-  border-color: #cbd5e1;
-}
-
-.auth-modal-oauth-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .cb-mock-frame {
   overflow: hidden;
   border-radius: 1rem;
