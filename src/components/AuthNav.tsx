@@ -1,11 +1,4 @@
-"use client";
-
-import {
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import Link from "next/link";
 
 type AuthNavProps = {
   variant?: "landing" | "dashboard";
@@ -14,41 +7,20 @@ type AuthNavProps = {
 export function AuthNav({ variant = "landing" }: AuthNavProps) {
   if (variant === "dashboard") {
     return (
-      <Show when="signed-in">
-        <UserButton
-          appearance={{
-            elements: {
-              avatarBox: "h-9 w-9",
-            },
-          }}
-        />
-      </Show>
+      <Link href="/" className="qb-btn-ghost text-sm">
+        Home
+      </Link>
     );
   }
 
   return (
     <>
-      <Show when="signed-out">
-        <SignInButton mode="redirect" forceRedirectUrl="/dashboard">
-          <button type="button" className="qb-btn-ghost text-sm">
-            Sign in
-          </button>
-        </SignInButton>
-        <SignUpButton mode="redirect" forceRedirectUrl="/dashboard">
-          <button type="button" className="qb-btn-primary text-sm">
-            Get started
-          </button>
-        </SignUpButton>
-      </Show>
-      <Show when="signed-in">
-        <UserButton
-          appearance={{
-            elements: {
-              avatarBox: "h-9 w-9",
-            },
-          }}
-        />
-      </Show>
+      <Link href="/dashboard" className="qb-btn-ghost text-sm">
+        Sign in
+      </Link>
+      <Link href="/dashboard" className="qb-btn-primary text-sm">
+        Get started
+      </Link>
     </>
   );
 }

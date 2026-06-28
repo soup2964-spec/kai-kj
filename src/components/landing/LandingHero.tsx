@@ -46,7 +46,7 @@ export function LandingHero() {
           </p>
           <div className="mt-7 w-full sm:w-auto">
             <Link
-              href="/sign-up"
+              href="/dashboard"
               className="cta-button flex h-[50px] w-full max-w-[316px] items-center justify-center whitespace-nowrap px-6 font-medium text-white sm:w-auto"
             >
               Start for free
@@ -58,7 +58,7 @@ export function LandingHero() {
                 Migration assistance and bespoke onboarding included.{" "}
                 <a
                   href="https://calendly.com/betterstack/consultation-migrating-from-datadog"
-                  className="text-[#C9D3EE] underline decoration-[#C9D3EE]/20 underline-offset-4 transition hover:decoration-[#C9D3EE]"
+                  className="text-[#5EB8E8] underline decoration-[#5EB8E8]/20 underline-offset-4 transition hover:decoration-[#5EB8E8]"
                   rel="nofollow noopener"
                   target="_blank"
                 >
@@ -102,7 +102,7 @@ export function LandingHero() {
           </div>
 
           <div className="relative z-10 max-sm:-mt-8">
-            <div className="relative h-8 text-center text-[13px] text-neutral-300 sm:h-10">
+            <div className="relative h-8 text-center text-[13px] text-[#646E87] sm:h-10">
               {HERO_SLIDES.map((slide, index) => (
                 <a
                   key={slide.id}

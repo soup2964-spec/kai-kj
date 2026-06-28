@@ -13,7 +13,7 @@ import { useExpenses } from "@/lib/expense-store";
 const DESKTOP_CONTENT_CLASS = "mx-auto w-full max-w-3xl px-4 lg:px-8";
 
 export function HomePage() {
-  const { expenses, loaded, addExpense, removeExpense } = useExpenses();
+  const { expenses, loaded, syncError, addExpense, removeExpense } = useExpenses();
 
   if (!loaded) {
     return (
@@ -59,6 +59,11 @@ export function HomePage() {
         <main
           className={`ios-main ${DESKTOP_CONTENT_CLASS} flex flex-col gap-4 py-4 lg:gap-5 lg:py-6`}
         >
+          {syncError ? (
+            <div className="rounded-lg border border-qb-danger/30 bg-qb-danger-bg px-4 py-3 text-sm text-qb-danger">
+              {syncError}
+            </div>
+          ) : null}
           <ReceiptScanner
             onScanComplete={(result, thumbnailUrl) => {
               addExpense(result, thumbnailUrl);

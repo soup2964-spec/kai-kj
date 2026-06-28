@@ -7,6 +7,10 @@ import { BillableBadge } from "./BillableBadge";
 import { IconPhoto } from "./icons";
 import { formatCurrency } from "@/lib/categories";
 import {
+  BULK_UPLOAD_ACCEPT,
+  expandFilesForBulkUpload,
+} from "@/lib/bulk-upload-files";
+import {
   MAX_BULK_UPLOAD,
   scanReceiptFile,
 } from "@/lib/scan-receipt-client";
@@ -15,8 +19,9 @@ type QueueStatus = "pending" | "processing" | "done" | "error";
 
 interface QueueItem {
   id: string;
-  file: File;
-  previewUrl: string;
+  file: File | null;
+  previewUrl: string | null;
+  label: string;
   status: QueueStatus;
   result?: ScannedReceipt;
   error?: string;
@@ -26,32 +31,86 @@ interface BulkUploadProps {
   onScanComplete: (result: ScannedReceipt, thumbnailUrl: string) => void;
 }
 
+function revokeQueuePreviews(items: QueueItem[]) {
+  for (const item of items) {
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+  }
+}
+
 export function BulkUpload({ onScanComplete }: BulkUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [processing, setProcessing] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const [active, setActive] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   async function handleFilesSelected(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
 
-    queue.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    revokeQueuePreviews(queue);
+    setActive(true);
+    setPreparing(true);
+    setProcessing(false);
+    setCurrentIndex(0);
+    setQueue([]);
 
-    const files = Array.from(fileList).slice(0, MAX_BULK_UPLOAD);
-    const items: QueueItem[] = files.map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: "pending",
-    }));
+    let entries;
+    try {
+      entries = await expandFilesForBulkUpload(fileList);
+    } catch (err) {
+      setPreparing(false);
+      setQueue([
+        {
+          id: crypto.randomUUID(),
+          file: null,
+          previewUrl: null,
+          label: "Upload",
+          status: "error",
+          error:
+            err instanceof Error ? err.message : "Could not prepare files",
+        },
+      ]);
+      return;
+    }
+
+    const items: QueueItem[] = entries.map((entry) => {
+      if (entry.status === "error") {
+        return {
+          id: crypto.randomUUID(),
+          file: null,
+          previewUrl: null,
+          label: entry.label,
+          status: "error",
+          error: entry.error,
+        };
+      }
+
+      return {
+        id: crypto.randomUUID(),
+        file: entry.file,
+        previewUrl: URL.createObjectURL(entry.file),
+        label: entry.label,
+        status: "pending",
+      };
+    });
 
     setQueue(items);
-    setActive(true);
+    setPreparing(false);
+
+    const scannable = items.filter((item) => item.status === "pending");
+    if (scannable.length === 0) {
+      setProcessing(false);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
     setProcessing(true);
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+    for (let i = 0; i < scannable.length; i++) {
+      const item = scannable[i];
+      if (!item.file) continue;
+
       setCurrentIndex(i + 1);
 
       setQueue((current) =>
@@ -91,17 +150,22 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
   }
 
   function reset() {
-    queue.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    revokeQueuePreviews(queue);
     setQueue([]);
     setActive(false);
     setProcessing(false);
+    setPreparing(false);
     setCurrentIndex(0);
     if (inputRef.current) inputRef.current.value = "";
   }
 
   const doneCount = queue.filter((item) => item.status === "done").length;
   const errorCount = queue.filter((item) => item.status === "error").length;
-  const total = queue.length;
+  const progressTotal = queue.filter((item) => item.file).length;
+  const progressDone = queue.filter(
+    (item) =>
+      item.file && (item.status === "done" || item.status === "error"),
+  ).length;
 
   return (
     <section className="qb-card overflow-hidden">
@@ -112,7 +176,8 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
         <div>
           <h2 className="qb-section-title">Bulk Upload</h2>
           <p className="qb-section-desc">
-            Select multiple receipt photos to scan and save automatically
+            Upload many receipt photos at once, or one PDF/ZIP with multiple
+            receipts inside
           </p>
         </div>
       </div>
@@ -124,7 +189,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
             className="qb-btn-secondary w-full cursor-pointer"
           >
             <IconPhoto className="h-4 w-4 text-qb-text-secondary" />
-            Choose Multiple Receipts
+            Choose Files
           </label>
         )}
 
@@ -132,21 +197,29 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
           <>
             <div className="rounded-lg border border-qb-border bg-qb-bg px-4 py-3">
               <p className="text-sm font-semibold text-qb-text">
-                {processing
-                  ? `Processing ${currentIndex} of ${total}…`
-                  : `Finished — ${doneCount} saved${errorCount ? `, ${errorCount} failed` : ""}`}
+                {preparing
+                  ? "Preparing files…"
+                  : processing
+                    ? `Processing ${currentIndex} of ${progressTotal}…`
+                    : `Finished — ${doneCount} saved${errorCount ? `, ${errorCount} failed` : ""}`}
               </p>
-              {!processing && (
+              {!processing && !preparing && (
                 <p className="mt-1 text-xs text-qb-text-muted">
                   Scanned receipts were added to your transactions.
                 </p>
               )}
-              {processing && total > 0 && (
+              {(processing || preparing) && progressTotal > 0 && (
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-qb-border">
                   <div
                     className="h-full bg-qb-blue transition-all duration-300"
                     style={{
-                      width: `${((doneCount + errorCount) / total) * 100}%`,
+                      width: `${
+                        preparing
+                          ? 8
+                          : progressTotal > 0
+                            ? (progressDone / progressTotal) * 100
+                            : 100
+                      }%`,
                     }}
                   />
                 </div>
@@ -159,13 +232,22 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
                   key={item.id}
                   className="flex items-center gap-3 rounded-lg border border-qb-border bg-white p-2.5"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.previewUrl}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded border border-qb-border object-cover"
-                  />
+                  {item.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.previewUrl}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded border border-qb-border object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg">
+                      <IconPhoto className="h-5 w-5 text-qb-text-muted" />
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs text-qb-text-muted">
+                      {item.label}
+                    </p>
                     {item.status === "pending" && (
                       <p className="text-sm text-qb-text-muted">
                         Waiting… #{index + 1}
@@ -218,7 +300,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
               ))}
             </ul>
 
-            {!processing && (
+            {!processing && !preparing && (
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -242,16 +324,19 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
           id="bulk-upload-input"
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept={BULK_UPLOAD_ACCEPT}
           multiple
           className="sr-only-ios-input"
           onChange={(e) => {
-            if (!processing) void handleFilesSelected(e.target.files);
+            if (!processing && !preparing) {
+              void handleFilesSelected(e.target.files);
+            }
           }}
         />
 
         <p className="text-center text-xs text-qb-text-muted">
-          Up to {MAX_BULK_UPLOAD} receipts at once
+          Images, PDFs (one receipt per page), or ZIP files · up to{" "}
+          {MAX_BULK_UPLOAD} receipts per batch
         </p>
       </div>
     </section>

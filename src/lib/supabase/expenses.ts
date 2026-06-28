@@ -19,7 +19,6 @@ function rowToExpense(row: ExpenseRow): Expense {
       (row.line_items as unknown as Expense["lineItems"]) ?? [],
     ),
     confidence: Number(row.confidence),
-    receiptImage: row.receipt_image ?? undefined,
     createdAt: row.created_at,
     ...normalizeBillableFields({
       billableStatus: row.billable_status,
@@ -30,10 +29,10 @@ function rowToExpense(row: ExpenseRow): Expense {
   };
 }
 
-function expenseToInsert(expense: Expense, clerkUserId: string): ExpenseInsert {
+function expenseToInsert(expense: Expense, ownerId: string): ExpenseInsert {
   return {
     id: expense.id,
-    clerk_user_id: clerkUserId,
+    owner_id: ownerId,
     merchant: expense.merchant,
     amount: expense.amount,
     date: expense.date,
@@ -45,33 +44,33 @@ function expenseToInsert(expense: Expense, clerkUserId: string): ExpenseInsert {
     billable_reason: expense.billableReason,
     billable_source: expense.billableSource,
     matched_rule_id: expense.matchedRuleId ?? null,
-    receipt_image: expense.receiptImage ?? null,
+    receipt_image: null,
     created_at: expense.createdAt,
   };
 }
 
-export async function fetchExpensesForUser(
+export async function fetchExpensesForOwner(
   supabase: SupabaseClient<Database>,
-  clerkUserId: string,
+  ownerId: string,
 ): Promise<Expense[]> {
   const { data, error } = await supabase
     .from("expenses")
     .select("*")
-    .eq("clerk_user_id", clerkUserId)
+    .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return (data ?? []).map(rowToExpense);
 }
 
-export async function insertExpenseForUser(
+export async function insertExpenseForOwner(
   supabase: SupabaseClient<Database>,
   expense: Expense,
-  clerkUserId: string,
+  ownerId: string,
 ): Promise<Expense> {
   const { data, error } = await supabase
     .from("expenses")
-    .insert(expenseToInsert(expense, clerkUserId))
+    .insert(expenseToInsert(expense, ownerId))
     .select("*")
     .single();
 
@@ -79,16 +78,16 @@ export async function insertExpenseForUser(
   return rowToExpense(data);
 }
 
-export async function deleteExpenseForUser(
+export async function deleteExpenseForOwner(
   supabase: SupabaseClient<Database>,
   expenseId: string,
-  clerkUserId: string,
+  ownerId: string,
 ): Promise<void> {
   const { error } = await supabase
     .from("expenses")
     .delete()
     .eq("id", expenseId)
-    .eq("clerk_user_id", clerkUserId);
+    .eq("owner_id", ownerId);
 
   if (error) throw error;
 }

@@ -52,7 +52,7 @@ export function LandingCarousel({ section }: { section: CarouselSection }) {
     <section className={sectionClass}>
       <div className="relative">
         <div className="relative z-30 mx-auto flex max-w-[1126px] flex-col gap-4 px-5 md:flex-row md:justify-between">
-          <h2 className="font-helveticaDisplay ml-1 text-[28px] font-bold text-white md:ml-0 md:text-[40px]">
+          <h2 className="font-helveticaDisplay ml-1 text-[28px] font-bold text-[#363D4E] md:ml-0 md:text-[40px]">
             {section.title}
           </h2>
           <div className="flex items-center">
@@ -62,7 +62,7 @@ export function LandingCarousel({ section }: { section: CarouselSection }) {
                 aria-label="Previous slide"
                 disabled={!canScrollPrev}
                 onClick={() => scrollByCard(-1)}
-                className="mr-2 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-[#939DB8]/20 bg-[#171926] text-[#C9D3EE] transition hover:bg-[#222330] disabled:opacity-40"
+                className="mr-2 flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-[#939DB8]/20 bg-[#171926] text-[#89CFF0] transition hover:bg-[#222330] disabled:opacity-40"
               >
                 <ChevronLeftIcon />
               </button>
@@ -71,7 +71,7 @@ export function LandingCarousel({ section }: { section: CarouselSection }) {
                 aria-label="Next slide"
                 disabled={!canScrollNext}
                 onClick={() => scrollByCard(1)}
-                className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-[#939DB8]/20 bg-[#171926] text-[#C9D3EE] transition hover:bg-[#222330] disabled:opacity-40"
+                className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-[#939DB8]/20 bg-[#171926] text-[#89CFF0] transition hover:bg-[#222330] disabled:opacity-40"
               >
                 <ChevronRightIcon />
               </button>
@@ -79,7 +79,7 @@ export function LandingCarousel({ section }: { section: CarouselSection }) {
             </div>
             <a
               href={cardHref(section.exploreHref)}
-              className="block shrink-0 rounded-full border border-[#939DB8]/20 bg-[#171926] px-3 py-1 text-[13px] text-[#C9D3EE] transition hover:bg-[#222330] md:px-4 md:py-2"
+              className="block shrink-0 rounded-full border border-[#939DB8]/20 bg-[#171926] px-3 py-1 text-[13px] text-[#89CFF0] transition hover:bg-[#222330] md:px-4 md:py-2"
             >
               {section.exploreLabel}
               <span className="ml-1 inline-block">→</span>
@@ -130,7 +130,7 @@ export function LandingCarousel({ section }: { section: CarouselSection }) {
             aria-label="Scroll carousel left"
             disabled={!canScrollPrev}
             onClick={() => scrollByCard(-1)}
-            className="pointer-events-auto h-full grow bg-linear-to-r from-[#0B0C14] from-20% via-[#0B0C14]/70 via-80% disabled:cursor-default"
+            className="pointer-events-auto h-full grow bg-linear-to-r from-[#eceef1] from-20% via-[#eceef1]/70 via-80% disabled:cursor-default"
           />
           <div className="w-[1086px] shrink-0" />
           <button
@@ -138,7 +138,7 @@ export function LandingCarousel({ section }: { section: CarouselSection }) {
             aria-label="Scroll carousel right"
             disabled={!canScrollNext}
             onClick={() => scrollByCard(1)}
-            className="pointer-events-auto h-full grow bg-linear-to-l from-[#0B0C14] from-20% via-[#0B0C14]/70 via-80% disabled:cursor-default"
+            className="pointer-events-auto h-full grow bg-linear-to-l from-[#eceef1] from-20% via-[#eceef1]/70 via-80% disabled:cursor-default"
           />
         </div>
       </div>

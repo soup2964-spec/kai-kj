@@ -401,30 +401,37 @@ body {
 
 /* Better Stack–inspired marketing landing */
 .landing-page {
+  --landing-accent-light: #b8e6ff;
+  --landing-accent: #89cff0;
+  --landing-accent-dark: #5eb8e8;
+  --landing-bg: var(--qb-bg);
+  --landing-surface: var(--qb-surface);
+  --landing-bg-muted: #f4f4ef;
   font-family: var(--font-landing), "Helvetica Now Text", Inter, system-ui, sans-serif;
-  color: #c9d3ee;
+  color: var(--qb-text);
+  background-color: var(--landing-bg);
 }
 
 .landing-hero-heading {
-  background: linear-gradient(180deg, #ffffff 0%, #c9d3ee 100%);
+  background: linear-gradient(180deg, #1a1f36 0%, #5eb8e8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .landing-section-heading {
-  background: linear-gradient(180deg, #ffffff 35%, #98a4f7 100%);
+  background: linear-gradient(180deg, #363d4e 35%, #5eb8e8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .landing-cta-btn {
-  background: linear-gradient(180deg, #98a4f7 0%, #5b63d3 100%);
+  background: linear-gradient(180deg, #b8e6ff 0%, #5eb8e8 100%);
   box-shadow:
-    0px -1px 2px 0px rgba(20, 72, 203, 0.48) inset,
-    0px 0px 0px 1px rgba(34, 90, 234, 0.16),
-    0px 8px 16px -8px rgba(34, 90, 234, 0.64),
+    0px -1px 2px 0px rgba(94, 184, 232, 0.48) inset,
+    0px 0px 0px 1px rgba(94, 184, 232, 0.16),
+    0px 8px 16px -8px rgba(94, 184, 232, 0.64),
     0px 4px 4px 0px rgba(0, 0, 0, 0.06);
 }
 
@@ -465,7 +472,7 @@ body {
 
 .landing-mock-ui {
   background:
-    radial-gradient(circle at 20% 20%, rgba(152, 164, 247, 0.18), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(137, 207, 240, 0.18), transparent 45%),
     linear-gradient(180deg, rgba(15, 16, 26, 0.2) 0%, rgba(15, 16, 26, 0.95) 100%),
     repeating-linear-gradient(
       0deg,
@@ -478,13 +485,13 @@ body {
 
 .landing-hero-mock {
   background:
-    radial-gradient(circle at top right, rgba(152, 164, 247, 0.2), transparent 50%),
+    radial-gradient(circle at top right, rgba(137, 207, 240, 0.2), transparent 50%),
     #0f101a;
 }
 
 .homepage-heading-gradient,
 .landing-hero-heading {
-  background: linear-gradient(180deg, #ffffff 0%, #c9d3ee 100%);
+  background: linear-gradient(180deg, #1a1f36 0%, #5eb8e8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -492,7 +499,7 @@ body {
 
 .logs-text,
 .landing-section-heading {
-  background: linear-gradient(180deg, #ffffff 35%, #98a4f7 100%);
+  background: linear-gradient(180deg, #363d4e 35%, #5eb8e8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -500,16 +507,16 @@ body {
 
 .cta-button,
 .landing-cta-btn {
-  background: linear-gradient(180deg, #98a4f7 0%, #5b63d3 100%);
+  background: linear-gradient(180deg, #b8e6ff 0%, #5eb8e8 100%);
   box-shadow:
-    0px -1px 2px 0px rgba(20, 72, 203, 0.48) inset,
-    0px 0px 0px 1px rgba(34, 90, 234, 0.16),
-    0px 8px 16px -8px rgba(34, 90, 234, 0.64),
+    0px -1px 2px 0px rgba(94, 184, 232, 0.48) inset,
+    0px 0px 0px 1px rgba(94, 184, 232, 0.16),
+    0px 8px 16px -8px rgba(94, 184, 232, 0.64),
     0px 4px 4px 0px rgba(0, 0, 0, 0.06);
 }
 
 .bg-button-gradient {
-  background: linear-gradient(180deg, #98a4f7 0%, #5b63d3 100%);
+  background: linear-gradient(180deg, #b8e6ff 0%, #5eb8e8 100%);
 }
 
 .border-separator-gradient,
@@ -552,21 +559,21 @@ body {
 }
 
 .text-brand-primary-90 {
-  color: #98a4f7;
+  color: #89cff0;
 }
 
 .bg-flare-hero {
-  background: radial-gradient(ellipse at top, rgba(152, 164, 247, 0.12), transparent 60%);
+  background: radial-gradient(ellipse at top, rgba(137, 207, 240, 0.12), transparent 60%);
 }
 
 .bg-market-presence {
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(152, 164, 247, 0.08), transparent 50%),
-    #0b0c14;
+    radial-gradient(ellipse at 20% 50%, rgba(137, 207, 240, 0.08), transparent 50%),
+    var(--landing-bg, #eceef1);
 }
 
 .bg-market-presence-sm {
-  background: radial-gradient(circle at center, rgba(152, 164, 247, 0.15), transparent 70%);
+  background: radial-gradient(circle at center, rgba(137, 207, 240, 0.15), transparent 70%);
 }
 
 .mask-gradient-to-l {

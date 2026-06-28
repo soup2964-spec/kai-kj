@@ -46,7 +46,7 @@ export function LandingTestimonials() {
         {TESTIMONIALS.map((item) => (
           <article
             key={item.handle}
-            className={`mx-auto mb-4 max-w-[320px] break-inside-avoid rounded-xl border border-[#727DA1]/20 bg-[#171824]/80 p-5 backdrop-blur-xl ${
+            className={`mx-auto mb-4 max-w-[320px] break-inside-avoid rounded-xl border border-qb-border bg-qb-surface p-5 shadow-sm ${
               "hiddenSm" in item && item.hiddenSm && !showAll ? "hidden sm:block" : ""
             }`}
           >
@@ -65,7 +65,7 @@ export function LandingTestimonials() {
                 className="mt-1 shrink-0 rounded-full"
               />
               <div className="mx-2 grow">
-                <div className="font-bold text-white">{item.name}</div>
+                <div className="font-bold text-[#363D4E]">{item.name}</div>
                 <div className="text-base">{item.handle}</div>
               </div>
               <Image src={TWITTER_ICON} alt="" width={22} height={16} className="mt-4 shrink-0" />
@@ -73,11 +73,11 @@ export function LandingTestimonials() {
           </article>
         ))}
         {!showAll ? (
-          <div className="relative z-10 -mt-16 mx-auto max-w-[320px] bg-[#0B0C14] text-center text-white sm:hidden">
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 top-[-400px] bg-linear-to-t from-[#0B0C14]" />
+          <div className="relative z-10 -mt-16 mx-auto max-w-[320px] bg-qb-bg text-center text-qb-text sm:hidden">
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 top-[-400px] bg-linear-to-t from-[#eceef1]" />
             <button
               type="button"
-              className="relative w-full border-t border-neutral-700 p-4 text-base"
+              className="relative w-full border-t border-qb-border p-4 text-base"
               onClick={() => setShowAll(true)}
             >
               Show more ↓
@@ -122,14 +122,14 @@ const COMMUNITY_ARTICLES = [
 
 export function LandingFooter() {
   return (
-    <div className="dark">
-      <nav className="border-t border-neutral-300/10 bg-white text-base text-[#363D4E] dark:bg-[#0B0C14] dark:text-neutral-200">
+    <>
+      <nav className="border-t border-qb-border bg-qb-surface text-base text-qb-text">
         <div className="mx-auto flex max-w-[1110px] px-5 pt-8 max-lg:pb-8 md:flex md:px-10 lg:pt-14">
           <div className="flex flex-2 grow gap-5">
             <div className="flex flex-1 flex-col lg:flex-2 lg:flex-row">
               <div className="lg:mr-12 lg:min-w-[200px] flex-1">
                 <div className="mb-12">
-                  <div className="font-medium text-black dark:text-white">Solutions</div>
+                  <div className="font-medium text-[#363D4E]">Solutions</div>
                   {SOLUTIONS.map(([label, href]) => (
                     <a key={label} href={href} className="-mx-1 mt-3 inline-block px-1">
                       {label}
@@ -139,7 +139,7 @@ export function LandingFooter() {
               </div>
               <div className="flex-1">
                 <div className="mb-12 lg:hidden">
-                  <div className="font-medium text-black dark:text-white">Company</div>
+                  <div className="font-medium text-[#363D4E]">Company</div>
                   <a href="https://betterstack.com/careers" className="-mx-1 mt-3 inline-block px-1">
                     Work at Better Stack
                   </a>
@@ -153,7 +153,7 @@ export function LandingFooter() {
                   </a>
                 </div>
                 <div className="mb-12 hidden lg:block">
-                  <div className="font-medium text-black dark:text-white">Resources</div>
+                  <div className="font-medium text-[#363D4E]">Resources</div>
                   {RESOURCES.map(([label, href]) => (
                     <span key={label}>
                       <a href={href} className="-mx-1 mt-3 inline-block whitespace-nowrap px-1">
@@ -167,7 +167,7 @@ export function LandingFooter() {
             </div>
             <div className="flex flex-1 flex-col lg:ml-12">
               <div className="mb-12 hidden lg:flex lg:min-w-[200px] flex-col items-start">
-                <div className="font-medium text-black dark:text-white">Company</div>
+                <div className="font-medium text-[#363D4E]">Company</div>
                 <a href="https://betterstack.com/careers" className="-mx-1 mt-3 inline-block px-1">
                   Work at Better Stack
                 </a>
@@ -181,7 +181,7 @@ export function LandingFooter() {
                 </a>
               </div>
               <div className="mb-12 lg:hidden">
-                <div className="font-medium text-black dark:text-white">Resources</div>
+                <div className="font-medium text-[#363D4E]">Resources</div>
                 {RESOURCES.map(([label, href]) => (
                   <span key={label}>
                     <a href={href} className="-mx-1 mt-3 inline-block whitespace-nowrap px-1">
@@ -195,7 +195,7 @@ export function LandingFooter() {
           </div>
           <div className="flex max-w-[450px] flex-1 grow flex-col items-start md:ml-12">
             <div className="md:mb-12">
-              <div className="font-medium text-black dark:text-white">Community</div>
+              <div className="font-medium text-[#363D4E]">Community</div>
               {COMMUNITY_ARTICLES.map(([label, href]) => (
                 <a key={label} href={href} className="-mx-1 mt-4 block px-1">
                   {label}
@@ -205,12 +205,12 @@ export function LandingFooter() {
           </div>
         </div>
       </nav>
-      <footer className="bg-[#F3F4F7] dark:bg-[#0B0C14]">
-        <div className="mx-auto max-w-[1110px] text-base text-[#363D4E] dark:text-neutral-200 lg:px-5">
+      <footer className="bg-[#f4f4ef]">
+        <div className="mx-auto max-w-[1110px] text-base text-qb-text lg:px-5">
           <div className="flex flex-col items-center justify-between border-t border-neutral-300/10 px-5 pt-7 lg:flex-row lg:items-end lg:px-2 lg:mx-3">
             <div>
               <LandingLogo
-                className="scale-75 text-black dark:text-white lg:scale-100"
+                className="scale-75 text-[#363D4E] lg:scale-100"
                 linkToHome={false}
               />
               <p className="mt-3 hidden max-w-[342px] lg:block">
@@ -227,7 +227,7 @@ export function LandingFooter() {
             </div>
           </div>
           <div className="mt-5 flex flex-col items-center justify-between border-t border-neutral-300/10 px-5 py-3 text-[12px] leading-[18px] lg:flex-row lg:px-2 lg:mx-3">
-            <div className="flex items-center gap-6 whitespace-nowrap dark:text-neutral-300">
+            <div className="flex items-center gap-6 whitespace-nowrap text-[#646E87]">
               <a className="-mx-1 px-1" href="https://betterstack.com/terms">
                 Terms of Use
               </a>
@@ -241,12 +241,12 @@ export function LandingFooter() {
                 System status
               </a>
             </div>
-            <div className="mt-8 mb-2 flex items-center text-neutral-300 lg:mt-0 lg:mb-0">
+            <div className="mt-8 mb-2 flex items-center text-[#646E87] lg:mt-0 lg:mb-0">
               © 2026 Better Stack, Inc.
             </div>
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }

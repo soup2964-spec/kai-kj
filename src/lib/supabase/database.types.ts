@@ -12,7 +12,7 @@ export interface Database {
       expenses: {
         Row: {
           id: string;
-          clerk_user_id: string;
+          owner_id: string;
           merchant: string;
           amount: number;
           date: string;
@@ -29,7 +29,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          clerk_user_id: string;
+          owner_id: string;
           merchant: string;
           amount: number;
           date: string;
@@ -46,7 +46,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          clerk_user_id?: string;
+          owner_id?: string;
           merchant?: string;
           amount?: number;
           date?: string;

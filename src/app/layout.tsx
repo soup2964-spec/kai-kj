@@ -1,9 +1,7 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import { sourceSans } from "@/lib/fonts";
 import { landingFont } from "@/lib/landing-fonts";
 import "./globals.css";
-
 export const metadata: Metadata = {
   title: "Kai KJ — Expense Tracker",
   description:
@@ -44,16 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sourceSans.variable} ${landingFont.variable} ios-html h-full`}>
       <body className="ios-body min-h-dvh flex flex-col font-sans antialiased">
-        <ClerkProvider
-          appearance={{
-            variables: {
-              colorPrimary: "#2ca01c",
-            },
-          }}
-        >
-          {children}
-        </ClerkProvider>
-      </body>
-    </html>
+        {children}
+      </body>    </html>
   );
 }

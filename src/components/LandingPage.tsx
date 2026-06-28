@@ -16,7 +16,7 @@ import { landingFont } from "@/lib/landing-fonts";
 export function LandingPage() {
   return (
     <div
-      className={`landing-page helvetica min-h-dvh overflow-x-hidden bg-[#0B0C14] text-neutral-200 ${landingFont.variable}`}
+      className={`landing-page helvetica min-h-dvh overflow-x-hidden text-qb-text ${landingFont.variable}`}
     >
       <LandingHeader />
       <div className="main overflow-x-hidden">

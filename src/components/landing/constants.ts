@@ -4,9 +4,9 @@ const BS = "https://betterstack.com";
 export const CUSTOMER_NAMES: string[] = [];
 
 /** Set when you add your logo, e.g. "/logo.svg" or a remote URL. */
-export const SITE_LOGO_SVG = "";
+export const SITE_LOGO_SVG: string = "";
 /** Optional hero logo shown on mobile, e.g. "/logo-3d.png". */
-export const SITE_LOGO_3D = "";
+export const SITE_LOGO_3D: string = "";
 export const SITE_LOGO_ALT = "Kai KJ";
 export const CAROUSEL_CARD_BG = `${BS}/assets/v2/homepage-v3/carousel-card-bg-48b67fdb.png`;
 

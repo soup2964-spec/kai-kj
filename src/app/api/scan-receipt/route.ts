@@ -1,14 +1,8 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { evaluateAndApplyBillable } from "@/lib/billable-engine";
 import { scanReceiptWithKie } from "@/lib/kie";
 
 export async function POST(request: Request) {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
   const apiKey = process.env.KIE_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
