@@ -25,6 +25,7 @@ export interface Database {
           billable_source: "rule" | "default" | "manual";
           matched_rule_id: string | null;
           card_last_four: string | null;
+          work_order_number: string | null;
           receipt_image: string | null;
           accounting_status: "pending" | "rejected" | "synced" | "failed";
           accounting_synced_at: string | null;
@@ -47,6 +48,7 @@ export interface Database {
           billable_source?: "rule" | "default" | "manual";
           matched_rule_id?: string | null;
           card_last_four?: string | null;
+          work_order_number?: string | null;
           receipt_image?: string | null;
           accounting_status?: "pending" | "rejected" | "synced" | "failed";
           accounting_synced_at?: string | null;
@@ -69,6 +71,7 @@ export interface Database {
           billable_source?: "rule" | "default" | "manual";
           matched_rule_id?: string | null;
           card_last_four?: string | null;
+          work_order_number?: string | null;
           receipt_image?: string | null;
           accounting_status?: "pending" | "rejected" | "synced" | "failed";
           accounting_synced_at?: string | null;

@@ -14,11 +14,13 @@ import {
   type ExpenseGroupMode,
 } from "@/lib/expense-grouping";
 import { formatCardLabel } from "@/lib/card-last-four";
+import { countMissingWorkOrders, formatWorkOrderLabel } from "@/lib/work-order";
 import { ExpenseExportButton } from "@/components/ExpenseExportButton";
 import { useExpenseContext } from "@/lib/expense-context";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
 import { CardBadge } from "./CardBadge";
+import { WorkOrderBadge } from "./WorkOrderBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import {
   IconChevronDown,
@@ -40,6 +42,7 @@ interface ExpenseListProps {
     patch: {
       billableStatus?: BillableStatus;
       cardLastFour?: string | null;
+      workOrderNumber?: string | null;
     },
   ) => void;
 }
@@ -104,10 +107,19 @@ function ExpenseRow({
 }) {
   const hasLineItems = expense.lineItems.length > 0;
   const [cardInput, setCardInput] = useState(expense.cardLastFour ?? "");
+  const [workOrderInput, setWorkOrderInput] = useState(
+    expense.workOrderNumber ?? "",
+  );
+  const showWorkOrderField =
+    expense.billableStatus === "billable" ||
+    expense.billableStatus === "review";
 
   useEffect(() => {
-    if (expanded) setCardInput(expense.cardLastFour ?? "");
-  }, [expanded, expense.cardLastFour]);
+    if (expanded) {
+      setCardInput(expense.cardLastFour ?? "");
+      setWorkOrderInput(expense.workOrderNumber ?? "");
+    }
+  }, [expanded, expense.cardLastFour, expense.workOrderNumber]);
 
   return (
     <li className="group">
@@ -165,6 +177,7 @@ function ExpenseRow({
               <CategoryBadge category={expense.category} />
               <BillableBadge status={expense.billableStatus} />
               <CardBadge lastFour={expense.cardLastFour} brand={expense.cardBrand} />
+              <WorkOrderBadge expense={expense} />
               <AccountingSyncBadge status={expense.accountingStatus} />
             </div>
           </div>
@@ -256,6 +269,52 @@ function ExpenseRow({
                 {expense.billableReason}
               </p>
             </div>
+
+            {showWorkOrderField ? (
+              <div>
+                <label
+                  htmlFor={`wo-${expense.id}`}
+                  className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+                >
+                  AppFolio work order
+                </label>
+                <div className="mt-1.5 flex gap-2">
+                  <input
+                    id={`wo-${expense.id}`}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="76-2234"
+                    value={workOrderInput}
+                    onChange={(event) => {
+                      const raw = event.target.value
+                        .replace(/[^\d-]/g, "")
+                        .slice(0, 10);
+                      setWorkOrderInput(raw);
+                    }}
+                    className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm tabular-nums text-qb-text"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onUpdate(expense.id, {
+                        workOrderNumber:
+                          workOrderInput.trim() === ""
+                            ? null
+                            : workOrderInput,
+                      })
+                    }
+                    className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
+                  >
+                    Save
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-qb-text-secondary">
+                  {expense.workOrderNumber
+                    ? formatWorkOrderLabel(expense.workOrderNumber)
+                    : "Required for billable receipts — enter the WO from AppFolio (e.g. 76-2234)"}
+                </p>
+              </div>
+            ) : null}
 
             <div>
               <label
@@ -385,6 +444,7 @@ export function ExpenseList({
   const pendingCount = expenses.filter(
     (expense) => expense.accountingStatus === "pending",
   ).length;
+  const woMissingCount = countMissingWorkOrders(expenses);
 
   const groups = useMemo(
     () => groupExpenses(expenses, groupMode, dateSort),
@@ -434,6 +494,11 @@ export function ExpenseList({
             </h2>
           </div>
           <div className="flex items-center gap-2">
+            {woMissingCount > 0 ? (
+              <span className="rounded bg-[#fef9c3] px-2 py-0.5 text-xs font-semibold text-[#a16207]">
+                {woMissingCount} WO missing
+              </span>
+            ) : null}
             {pendingCount > 0 ? (
               <span className="rounded bg-qb-blue-light px-2 py-0.5 text-xs font-semibold text-qb-blue-dark">
                 {pendingCount} pending
@@ -486,6 +551,8 @@ export function ExpenseList({
           "Grouped by billable status. Approve receipts before sending to accounting."}
         {groupMode === "date" &&
           "Flat list sorted by receipt date using the sort control above."}
+        {groupMode === "workorder" &&
+          "Billable receipts grouped by AppFolio work order. Missing WOs appear in the WO missing folder."}
       </p>
 
       <div>

@@ -52,6 +52,8 @@ export interface ExtractedReceipt {
   cardLastFour?: string | null;
   /** Card network when detected (Visa, Mastercard, etc.) */
   cardBrand?: CardBrand | null;
+  /** AppFolio work order number (e.g. 76-2234) written on billable receipts */
+  workOrderNumber?: string | null;
 }
 
 /** Full scan result after billable rules are applied */

@@ -3,6 +3,7 @@ import { normalizeAccountingFields } from "@/lib/accounting-fields";
 import { normalizeBillableFields } from "@/lib/billable-engine";
 import { normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
+import { normalizeWorkOrderNumber } from "@/lib/work-order";
 import type { AccountingSyncStatus, Expense } from "@/lib/types";
 import type { Database } from "./database.types";
 
@@ -23,6 +24,7 @@ function rowToExpense(row: ExpenseRow): Expense {
     ),
     confidence: Number(row.confidence),
     cardLastFour: normalizeCardLastFour(row.card_last_four),
+    workOrderNumber: normalizeWorkOrderNumber(row.work_order_number),
     createdAt: row.created_at,
     ...normalizeBillableFields({
       billableStatus: row.billable_status,
@@ -55,6 +57,7 @@ function expenseToInsert(expense: Expense, ownerId: string): ExpenseInsert {
     billable_source: expense.billableSource,
     matched_rule_id: expense.matchedRuleId ?? null,
     card_last_four: expense.cardLastFour ?? null,
+    work_order_number: expense.workOrderNumber ?? null,
     receipt_image: null,
     accounting_status: expense.accountingStatus,
     accounting_synced_at: expense.accountingSyncedAt ?? null,
@@ -71,6 +74,7 @@ function expenseToUpdate(expense: Expense): ExpenseUpdate {
     billable_source: expense.billableSource,
     matched_rule_id: expense.matchedRuleId ?? null,
     card_last_four: expense.cardLastFour ?? null,
+    work_order_number: expense.workOrderNumber ?? null,
   };
 }
 

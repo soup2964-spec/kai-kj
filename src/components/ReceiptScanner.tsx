@@ -5,6 +5,7 @@ import type { ScannedReceipt } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
 import { CardBadge } from "./CardBadge";
+import { WorkOrderBadge } from "./WorkOrderBadge";
 import { IconCamera, IconCheck, IconPhoto, IconSpark } from "./icons";
 import { ScanToast } from "./ScanToast";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
@@ -249,6 +250,7 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
                         brand={result.cardBrand}
                         size="md"
                       />
+                      <WorkOrderBadge expense={result} size="md" />
                     </div>
 
                     <p className="text-sm leading-relaxed text-qb-text-secondary">

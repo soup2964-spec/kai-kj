@@ -5,6 +5,7 @@ import {
   resolveCardLastFour,
 } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
+import { resolveWorkOrderNumber } from "@/lib/work-order";
 
 const KIE_CHAT_URL =
   "https://api.kie.ai/gemini-3-flash/v1/chat/completions";
@@ -25,7 +26,8 @@ Return ONLY valid JSON with this shape:
   "confidence": 0.95,
   "cardLastFour": "1234",
   "cardBrand": "visa",
-  "paymentDetails": "VISA CREDIT ************1234"
+  "paymentDetails": "VISA CREDIT ************1234",
+  "workOrderNumber": "76-2234"
 }
 
 Rules:
@@ -40,6 +42,9 @@ Rules:
 - cardBrand: one of visa, mastercard, amex, discover, other — from the payment line (e.g. VISA, MC, AMEX). Use null if no card network is shown
 - paymentDetails: copy the full payment/tender line exactly as printed on the receipt (e.g. "VISA CREDIT ************1234", "MASTERCARD  ****5678", "CHIP READ"). Use null if no card payment line exists
 - when card payment is shown, always add that payment line as a lineItems entry with amount null
+- WORK ORDER (AppFolio): property maintenance receipts often have a handwritten or printed work order number in format xx-xxxx (e.g. 76-2234). Look anywhere on the receipt — margins, top, bottom, near totals. Labels include WO, W/O, Work Order
+- workOrderNumber: the AppFolio work order exactly as xx-xxxx (e.g. 76-2234). Use null if no work order number is visible on the receipt
+- when a work order is visible, add it as a lineItems entry with amount null (e.g. name: "WO 76-2234")
 - use category "months" for recurring monthly charges (rent, lease payments, subscriptions, membership fees, monthly insurance premiums)
 - use category "credit_cards" for credit card payments, card statements, finance charges, or purchases where the merchant is a bank/card issuer (Visa, Mastercard, Amex, Chase, Capital One, etc.)
 - respond with JSON only, no markdown fences or extra text`;
@@ -84,7 +89,7 @@ function parseJsonFromModel(text: string): KieReceiptPayload {
   return JSON.parse(jsonText) as KieReceiptPayload;
 }
 
-function collectPaymentText(parsed: KieReceiptPayload): string {
+function collectReceiptText(parsed: KieReceiptPayload): string {
   return [
     parsed.paymentDetails,
     parsed.lineItems.map((item) => item.name).join("\n"),
@@ -104,7 +109,7 @@ function validateReceipt(parsed: KieReceiptPayload): ExtractedReceipt {
     throw new Error("Invalid receipt data returned");
   }
 
-  const paymentText = collectPaymentText(parsed);
+  const receiptText = collectReceiptText(parsed);
 
   return {
     merchant: parsed.merchant,
@@ -114,8 +119,12 @@ function validateReceipt(parsed: KieReceiptPayload): ExtractedReceipt {
     categoryReason: parsed.categoryReason,
     lineItems: normalizeLineItems(parsed.lineItems),
     confidence: parsed.confidence,
-    cardLastFour: resolveCardLastFour(parsed.cardLastFour, paymentText),
-    cardBrand: resolveCardBrand(parsed.cardBrand, paymentText),
+    cardLastFour: resolveCardLastFour(parsed.cardLastFour, receiptText),
+    cardBrand: resolveCardBrand(parsed.cardBrand, receiptText),
+    workOrderNumber: resolveWorkOrderNumber(
+      parsed.workOrderNumber,
+      receiptText,
+    ),
   };
 }
 
@@ -138,7 +147,7 @@ export async function scanReceiptWithKie(
           content: [
             {
               type: "text",
-              text: "Extract and categorize this receipt. Carefully read the payment section at the bottom for the card network (Visa, Mastercard, etc.) and the last 4 digits of the card used.",
+              text: "Extract and categorize this receipt. Read the payment section for card details. For property maintenance purchases, look for an AppFolio work order number (format xx-xxxx, e.g. 76-2234) written as WO or Work Order on the receipt.",
             },
             {
               type: "image_url",

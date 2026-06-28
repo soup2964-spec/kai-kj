@@ -1,5 +1,6 @@
 import { CATEGORY_META } from "@/lib/categories";
 import { formatCardLabel } from "@/lib/card-last-four";
+import { formatWorkOrderLabel } from "@/lib/work-order";
 import { ACCOUNTING_STATUS_META } from "@/lib/accounting-fields";
 import type { Expense } from "@/lib/types";
 
@@ -11,6 +12,7 @@ export const EXPENSE_SHEET_HEADERS = [
   "Category Reason",
   "Billable Status",
   "Billable Reason",
+  "Work Order",
   "Card",
   "Accounting Status",
   "Line Items",
@@ -49,6 +51,7 @@ export function expenseToSheetRow(expense: Expense): string[] {
     expense.categoryReason,
     formatBillableStatus(expense.billableStatus),
     expense.billableReason,
+    formatWorkOrderLabel(expense.workOrderNumber),
     formatCardLabel(expense.cardLastFour),
     ACCOUNTING_STATUS_META[expense.accountingStatus].label,
     formatLineItems(expense),

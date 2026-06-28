@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { normalizeAccountingFields } from "./accounting-fields";
 import { normalizeBillableFields } from "./billable-engine";
 import { normalizeCardBrand, normalizeCardLastFour } from "./card-last-four";
+import { normalizeWorkOrderNumber } from "./work-order";
 import {
   deleteExpenseRemote,
   fetchExpensesRemote,
@@ -23,6 +24,7 @@ function normalizeExpense(expense: Expense): Expense {
     lineItems: normalizeLineItems(expense.lineItems),
     cardLastFour: normalizeCardLastFour(expense.cardLastFour),
     cardBrand: normalizeCardBrand(expense.cardBrand),
+    workOrderNumber: normalizeWorkOrderNumber(expense.workOrderNumber),
     ...normalizeBillableFields(expense),
     ...normalizeAccountingFields(expense),
   };
@@ -181,6 +183,7 @@ export function useExpenses() {
       patch: {
         billableStatus?: BillableStatus;
         cardLastFour?: string | null;
+        workOrderNumber?: string | null;
       },
     ) => {
       let updated: Expense | null = null;
@@ -192,6 +195,12 @@ export function useExpenses() {
 
         if (patch.cardLastFour !== undefined) {
           nextExpense.cardLastFour = normalizeCardLastFour(patch.cardLastFour);
+        }
+
+        if (patch.workOrderNumber !== undefined) {
+          nextExpense.workOrderNumber = normalizeWorkOrderNumber(
+            patch.workOrderNumber,
+          );
         }
 
         if (

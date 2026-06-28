@@ -1,7 +1,11 @@
 import { formatCardLabel } from "@/lib/card-last-four";
+import {
+  formatWorkOrderLabel,
+  isWorkOrderMissing,
+} from "@/lib/work-order";
 import type { BillableStatus, Expense } from "@/lib/types";
 
-export type ExpenseGroupMode = "month" | "card" | "billable" | "date";
+export type ExpenseGroupMode = "month" | "card" | "billable" | "date" | "workorder";
 
 export type ExpenseDateSort = "newest" | "oldest";
 
@@ -145,6 +149,71 @@ export function groupExpensesByBillable(
   );
 }
 
+export function groupExpensesByWorkOrder(
+  expenses: Expense[],
+  sort: ExpenseDateSort = "newest",
+): ExpenseGroup[] {
+  const missing: Expense[] = [];
+  const buckets = new Map<string, Expense[]>();
+  const nonBillable: Expense[] = [];
+
+  for (const expense of expenses) {
+    if (isWorkOrderMissing(expense)) {
+      missing.push(expense);
+      continue;
+    }
+
+    if (expense.workOrderNumber) {
+      const list = buckets.get(expense.workOrderNumber) ?? [];
+      list.push(expense);
+      buckets.set(expense.workOrderNumber, list);
+      continue;
+    }
+
+    if (expense.billableStatus !== "billable") {
+      nonBillable.push(expense);
+    }
+  }
+
+  const groups: ExpenseGroup[] = [];
+
+  if (missing.length > 0) {
+    const sorted = sortByDate(missing, sort);
+    groups.push({
+      key: "wo-missing",
+      label: "WO missing",
+      expenses: sorted,
+      total: sumAmount(sorted),
+    });
+  }
+
+  const woGroups = [...buckets.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, items]) => {
+      const sorted = sortByDate(items, sort);
+      return {
+        key,
+        label: formatWorkOrderLabel(key),
+        expenses: sorted,
+        total: sumAmount(sorted),
+      };
+    });
+
+  groups.push(...woGroups);
+
+  if (nonBillable.length > 0) {
+    const sorted = sortByDate(nonBillable, sort);
+    groups.push({
+      key: "not-billable",
+      label: "No WO required",
+      expenses: sorted,
+      total: sumAmount(sorted),
+    });
+  }
+
+  return groups;
+}
+
 export function groupExpensesByDate(
   expenses: Expense[],
   sort: ExpenseDateSort = "newest",
@@ -176,6 +245,8 @@ export function groupExpenses(
       return groupExpensesByBillable(expenses, sort);
     case "date":
       return groupExpensesByDate(expenses, sort);
+    case "workorder":
+      return groupExpensesByWorkOrder(expenses, sort);
   }
 }
 
@@ -184,6 +255,7 @@ export const GROUP_MODE_LABELS: Record<ExpenseGroupMode, string> = {
   card: "Card",
   billable: "Billable",
   date: "Date",
+  workorder: "Work order",
 };
 
 export const DATE_SORT_LABELS: Record<ExpenseDateSort, string> = {
