@@ -60,8 +60,8 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-qb-border bg-qb-surface">
-      {/* Sidebar brand header — QuickBooks-style green bar */}
-      <div className="bg-qb-green-dark px-5 py-4">
+      {/* Sidebar brand header */}
+      <div className="bg-qb-blue-dark px-5 py-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded bg-white/15">
             <IconReceipt className="h-4 w-4 text-white" />
@@ -76,13 +76,13 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
       {/* Live feed header */}
       <div className="border-b border-qb-border-light px-5 py-4">
         <div className="flex items-center gap-2">
-          <IconDashboard className="h-4 w-4 text-qb-green" />
+          <IconDashboard className="h-4 w-4 text-qb-blue" />
           <h2 className="text-xs font-bold uppercase tracking-widest text-qb-text-secondary">
             Live Feed
           </h2>
           <span className="relative ml-auto flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-qb-green opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-qb-green" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-qb-blue opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-qb-blue" />
           </span>
         </div>
         <div className="mt-3 flex items-baseline justify-between">
@@ -144,7 +144,7 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
                 key={expense.id}
                 className={`border-b border-qb-border-light px-5 py-3.5 transition-colors duration-500 ${
                   highlightId === expense.id
-                    ? "bg-qb-green-light qb-animate-in"
+                    ? "bg-qb-blue-light qb-animate-in"
                     : "hover:bg-qb-bg/60"
                 }`}
               >

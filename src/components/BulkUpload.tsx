@@ -144,7 +144,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
               {processing && total > 0 && (
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-qb-border">
                   <div
-                    className="h-full bg-qb-green transition-all duration-300"
+                    className="h-full bg-qb-blue transition-all duration-300"
                     style={{
                       width: `${((doneCount + errorCount) / total) * 100}%`,
                     }}
@@ -200,7 +200,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
                   <span
                     className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${
                       item.status === "done"
-                        ? "text-qb-green"
+                        ? "text-qb-blue"
                         : item.status === "error"
                           ? "text-qb-danger"
                           : "text-qb-text-muted"

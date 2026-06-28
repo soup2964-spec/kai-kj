@@ -158,7 +158,7 @@ export function ExpenseList({ expenses, onRemove }: ExpenseListProps) {
     <section className="qb-card overflow-hidden">
       <div className="qb-card-header flex items-center justify-between py-3 lg:py-4">
         <div className="flex items-center gap-2.5">
-          <IconExpenses className="h-4 w-4 text-qb-green" />
+          <IconExpenses className="h-4 w-4 text-qb-blue" />
           <h2 className="text-base font-bold text-qb-text lg:text-lg">
             Transactions
           </h2>

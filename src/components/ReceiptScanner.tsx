@@ -107,8 +107,8 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
 
       <section className="qb-card overflow-hidden">
       <div className="qb-card-header flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded bg-qb-green-light">
-          <IconCamera className="h-4 w-4 text-qb-green" />
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-qb-blue-light">
+          <IconCamera className="h-4 w-4 text-qb-blue" />
         </div>
         <div>
           <h2 className="qb-section-title">Scan Receipt</h2>
@@ -123,9 +123,9 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
           <div className="space-y-3">
             <label
               htmlFor="camera-input"
-              className="group flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-qb-green/40 bg-qb-green-light/50 px-6 py-10 transition hover:border-qb-green hover:bg-qb-green-light active:scale-[0.99]"
+              className="group flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-qb-blue/40 bg-qb-blue-light/50 px-6 py-10 transition hover:border-qb-blue hover:bg-qb-blue-light active:scale-[0.99]"
             >
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-qb-green text-white shadow-sm transition group-hover:bg-qb-green-hover">
+              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-qb-blue text-white shadow-sm transition group-hover:bg-qb-blue-hover">
                 <IconCamera className="h-6 w-6" />
               </div>
               <span className="text-base font-bold text-qb-text">
@@ -218,10 +218,10 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
               )}
 
               {step === "result" && result && (
-                <div className="qb-animate-in overflow-hidden rounded-lg border border-qb-green/30 bg-qb-green-light">
-                  <div className="flex items-center gap-2 border-b border-qb-green/20 bg-white/60 px-4 py-2.5">
-                    <IconSpark className="h-4 w-4 text-qb-green" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-qb-green-dark">
+                <div className="qb-animate-in overflow-hidden rounded-lg border border-qb-blue/30 bg-qb-blue-light">
+                  <div className="flex items-center gap-2 border-b border-qb-blue/20 bg-white/60 px-4 py-2.5">
+                    <IconSpark className="h-4 w-4 text-qb-blue" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-qb-blue-dark">
                       Categorized
                     </span>
                   </div>
@@ -258,7 +258,7 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
                     )}
 
                     <div className="flex items-center gap-2 text-xs text-qb-text-muted">
-                      <IconCheck className="h-3.5 w-3.5 text-qb-green" />
+                      <IconCheck className="h-3.5 w-3.5 text-qb-blue" />
                       {Math.round(result.confidence * 100)}% confidence
                     </div>
                   </div>

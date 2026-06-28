@@ -31,8 +31,8 @@ export function MobileLiveFeed({ expenses }: MobileLiveFeedProps) {
       <div className="flex items-center justify-between px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-qb-green opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-qb-green" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-qb-blue opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-qb-blue" />
           </span>
           <span className="text-xs font-bold uppercase tracking-wider text-qb-text-secondary">
             Live
