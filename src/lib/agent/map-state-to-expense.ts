@@ -1,4 +1,8 @@
 import type { ReceiptAgentState } from "@/lib/agent/receipt-state";
+import {
+  normalizeInboxStatus,
+  normalizeReconciliationStatus,
+} from "@/lib/receipt-workflow";
 import { EXPENSE_CATEGORIES, type Expense, type ExpenseCategory } from "@/lib/types";
 
 function isExpenseCategory(value: string | null | undefined): value is ExpenseCategory {
@@ -33,6 +37,24 @@ export function mapAgentStateToExpense(
         ? "pending"
         : "pending";
 
+  const creditCardReconciled = Boolean(
+    state.credit_card_reconciled || state.statement_transaction_id,
+  );
+  const workOrderNumber = state.work_order_number ?? undefined;
+  const inboxStatus = normalizeInboxStatus(
+    creditCardReconciled
+      ? "reconciled"
+      : state.status === "ORANGE"
+        ? "needs_review"
+        : accountingStatus === "synced"
+          ? "exported"
+          : undefined,
+    { accountingStatus, billableStatus, workOrderNumber },
+  );
+  const reconciliationStatus = normalizeReconciliationStatus(
+    creditCardReconciled ? "matched" : undefined,
+  );
+
   return {
     id,
     merchant: state.vendor ?? "Unknown",
@@ -46,7 +68,7 @@ export function mapAgentStateToExpense(
     })),
     confidence: state.confidence ?? 0.5,
     cardLastFour: state.card_last_four ?? undefined,
-    workOrderNumber: state.work_order_number ?? undefined,
+    workOrderNumber,
     billableStatus,
     billableReason: state.billable_reason ?? "",
     billableSource: state.matched_rule_id ? "rule" : "default",
@@ -55,12 +77,11 @@ export function mapAgentStateToExpense(
     accountingSyncedAt:
       accountingStatus === "synced" ? new Date().toISOString() : undefined,
     accountingReference: state.quickbooks_transaction_id ?? undefined,
-    creditCardReconciled: Boolean(state.credit_card_reconciled || state.statement_transaction_id),
+    creditCardReconciled,
     statementTransactionId: state.statement_transaction_id ?? undefined,
-    reconciledAt:
-      state.credit_card_reconciled || state.statement_transaction_id
-        ? new Date().toISOString()
-        : undefined,
+    reconciledAt: creditCardReconciled ? new Date().toISOString() : undefined,
+    inboxStatus,
+    reconciliationStatus,
     receiptImage: options?.receiptImage,
     createdAt: state.created_at ?? new Date().toISOString(),
   };
