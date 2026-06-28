@@ -1,64 +1,61 @@
-import Link from "next/link";
-import { FOOTER_COLUMNS } from "./constants";
-import { LandingLogo } from "./LandingLogo";
-
-function FooterColumn({
-  title,
-  links,
-}: {
-  title: string;
-  links: readonly (readonly [string, string])[];
-}) {
-  return (
-    <div>
-      <p className="text-sm font-semibold text-[var(--cb-dark)]">{title}</p>
-      <ul className="mt-4 space-y-3">
-        {links.map(([label, href]) => (
-          <li key={label}>
-            <Link
-              href={href}
-              className="text-sm text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
-            >
-              {label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export function LandingFooter() {
-  return (
-    <footer className="border-t border-white/10 bg-[#06111f] text-white">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <LandingLogo linkToHome={false} className="text-white [&_span]:text-white" />
-            <p className="mt-4 max-w-xs text-sm text-white/60">
-              Receipt scanning, purchase-date folders, card organization, work orders, and exports in one workspace.
-            </p>
-          </div>
-          <FooterColumn title="Solutions" links={FOOTER_COLUMNS.solutions} />
-          <FooterColumn title="Resources" links={FOOTER_COLUMNS.resources} />
-          <FooterColumn title="Company" links={FOOTER_COLUMNS.company} />
-        </div>
-
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
-          <p className="text-sm text-white/50">© {new Date().getFullYear()} Kai KJ. All rights reserved.</p>
-          <div className="flex gap-6 text-sm text-white/50">
-            <Link href="/" className="hover:text-white">
-              Terms
-            </Link>
-            <Link href="/" className="hover:text-white">
-              Privacy
-            </Link>
-            <Link href="/dashboard" className="hover:text-white">
-              Status
-            </Link>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
+import Link from "next/link";
+import { FOOTER_COLUMNS } from "./constants";
+import { LandingLogo } from "./LandingLogo";
+
+function FooterColumn({
+  title,
+  links,
+}: {
+  title: string;
+  links: readonly (readonly [string, string])[];
+}) {
+  return (
+    <div className="lg:w-1/4 md:w-1/2 w-full px-4">
+      <p className="footer-title mb-3 text-sm font-semibold uppercase tracking-widest text-[var(--sf-dark)] md:text-left">
+        {title}
+      </p>
+      <div className="mb-10 flex flex-col items-center justify-center gap-2 text-sm md:items-start">
+        {links.map(([label, href]) => (
+          <Link
+            key={label}
+            href={href}
+            className="text-[var(--sf-muted)] transition hover:text-[var(--sf-primary)]"
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function LandingFooter() {
+  return (
+    <footer className="landing-body relative border-t border-[var(--sf-neutral-100)] bg-gradient-to-b from-[var(--sf-neutral-100)]/90 to-[var(--sf-neutral-100)]">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--sf-neutral-200)] to-transparent"
+        aria-hidden
+      />
+      <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-24">
+        <div className="flex flex-col flex-wrap md:flex-row md:flex-nowrap lg:items-start">
+          <div className="mx-auto w-64 shrink-0 text-center md:mx-0 md:text-left">
+            <LandingLogo linkToHome={false} />
+            <p className="mt-3 text-sm text-[var(--sf-muted)]">
+              Kai KJ turns receipt photos into organized expenses with card folders,
+              saved images, and export-ready data.
+            </p>
+            <p className="mt-3 text-sm text-[var(--sf-neutral-400)]">
+              Copyright © {new Date().getFullYear()} — All rights reserved
+            </p>
+          </div>
+
+          <div className="-mb-10 mt-10 flex flex-grow flex-wrap justify-center text-center md:mt-0">
+            <FooterColumn title="Links" links={FOOTER_COLUMNS.links} />
+            <FooterColumn title="Product" links={FOOTER_COLUMNS.product} />
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+

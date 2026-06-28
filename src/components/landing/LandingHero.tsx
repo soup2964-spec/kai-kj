@@ -9,13 +9,13 @@ export function LandingHero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
         <div className="flex max-w-xl flex-col items-start text-left">
-          <h1 className="text-4xl font-bold leading-[1.02] tracking-[-0.04em] text-[var(--cb-dark)] sm:text-5xl lg:text-[3.5rem]">
-            Your Expense
-            <span className="block text-[var(--cb-primary)]">Tracking Agent</span>
+          <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.05em] text-[var(--cb-dark)] sm:text-6xl lg:text-[4.75rem]">
+            Your Expense Tracking Agent
           </h1>
 
           <p className="mt-6 text-lg leading-8 text-[var(--cb-muted)] sm:text-xl">
-            Moodna Scans receipts, reconciles transactions with bank statements, and exports expense data into Appfolio and Quickbooks.
+            Kai KJ turns receipt photos into organized expenses with purchase dates,
+            card folders, AppFolio work orders, saved images, and export-ready data.
           </p>
 
           <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
