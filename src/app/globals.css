@@ -86,6 +86,101 @@ html {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
+.dashboard-top-bar {
+  display: flex;
+  height: 4rem;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.dashboard-gutter {
+  padding-inline: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-gutter {
+    padding-inline: 2rem;
+  }
+}
+
+.dashboard-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--qb-radius);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--qb-text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+
+.dashboard-nav-link:hover {
+  background: var(--qb-bg);
+  color: var(--qb-text);
+}
+
+.dashboard-nav-link-active {
+  background: var(--qb-blue-light);
+  color: var(--qb-blue-dark);
+}
+
+.dashboard-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--qb-border);
+  background: var(--qb-surface);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--qb-text-secondary);
+  white-space: nowrap;
+}
+
+.dashboard-nav-pill-active {
+  border-color: var(--qb-blue);
+  background: var(--qb-blue-light);
+  color: var(--qb-blue-dark);
+}
+
+.dashboard-menu-card {
+  display: flex;
+  gap: 0.875rem;
+  border-radius: var(--qb-radius-lg);
+  border: 1px solid var(--qb-border);
+  background: var(--qb-bg);
+  padding: 1rem;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.dashboard-menu-card:hover {
+  border-color: var(--qb-blue);
+  box-shadow: var(--qb-shadow);
+}
+
+.dashboard-menu-card-active {
+  border-color: var(--qb-blue);
+  background: var(--qb-blue-light);
+}
+
+.dashboard-menu-card-icon {
+  display: flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--qb-radius);
+  background: var(--qb-surface);
+  color: var(--qb-blue);
+}
+
+.dashboard-menu-card-active .dashboard-menu-card-icon {
+  background: white;
+}
+
 /* Momentum scrolling for horizontal live feed on iPhone */
 .ios-scroll-x {
   -webkit-overflow-scrolling: touch;

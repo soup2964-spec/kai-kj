@@ -1,5 +1,5 @@
-import { HomePage } from "@/components/HomePage";
+import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 
 export default function DashboardPage() {
-  return <HomePage />;
+  return <DashboardOverview />;
 }

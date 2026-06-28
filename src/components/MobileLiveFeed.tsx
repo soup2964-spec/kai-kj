@@ -28,7 +28,7 @@ export function MobileLiveFeed({ expenses }: MobileLiveFeedProps) {
 
   return (
     <section className="border-b border-qb-border bg-qb-surface lg:hidden">
-      <div className="flex items-center justify-between px-4 py-2.5">
+      <div className="dashboard-top-bar dashboard-gutter justify-between border-b border-qb-border-light">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-qb-blue opacity-60" />
@@ -49,13 +49,13 @@ export function MobileLiveFeed({ expenses }: MobileLiveFeedProps) {
       </div>
 
       {expenses.length === 0 ? (
-        <p className="px-4 pb-3 text-xs text-qb-text-muted">
+        <p className="dashboard-gutter pb-3 text-xs text-qb-text-muted">
           Scans appear here instantly
         </p>
       ) : (
         <div
           ref={scrollRef}
-          className="ios-scroll-x flex gap-2.5 overflow-x-auto px-4 pb-3"
+          className="dashboard-gutter ios-scroll-x flex gap-2.5 overflow-x-auto pb-3"
         >
           {expenses.map((expense) => (
             <div
