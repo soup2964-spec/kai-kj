@@ -1,3 +1,5 @@
+import type { CardBrand } from "@/lib/card-last-four";
+
 export const EXPENSE_CATEGORIES = [
   "groceries",
   "dining",
@@ -48,6 +50,8 @@ export interface ExtractedReceipt {
   confidence: number;
   /** Last 4 digits of the payment card, when visible on the receipt */
   cardLastFour?: string | null;
+  /** Card network when detected (Visa, Mastercard, etc.) */
+  cardBrand?: CardBrand | null;
 }
 
 /** Full scan result after billable rules are applied */

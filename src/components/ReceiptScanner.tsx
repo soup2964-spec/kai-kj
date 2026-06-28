@@ -244,7 +244,11 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
                     <div className="flex flex-wrap items-center gap-2">
                       <CategoryBadge category={result.category} size="md" />
                       <BillableBadge status={result.billableStatus} size="md" />
-                      <CardBadge lastFour={result.cardLastFour} size="md" />
+                      <CardBadge
+                        lastFour={result.cardLastFour}
+                        brand={result.cardBrand}
+                        size="md"
+                      />
                     </div>
 
                     <p className="text-sm leading-relaxed text-qb-text-secondary">

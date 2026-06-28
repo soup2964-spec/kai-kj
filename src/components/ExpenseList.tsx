@@ -160,7 +160,7 @@ function ExpenseRow({
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={expense.category} />
               <BillableBadge status={expense.billableStatus} />
-              <CardBadge lastFour={expense.cardLastFour} />
+              <CardBadge lastFour={expense.cardLastFour} brand={expense.cardBrand} />
               <AccountingSyncBadge status={expense.accountingStatus} />
             </div>
           </div>

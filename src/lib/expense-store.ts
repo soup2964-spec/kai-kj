@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { normalizeAccountingFields } from "./accounting-fields";
 import { normalizeBillableFields } from "./billable-engine";
-import { normalizeCardLastFour } from "./card-last-four";
+import { normalizeCardBrand, normalizeCardLastFour } from "./card-last-four";
 import {
   deleteExpenseRemote,
   fetchExpensesRemote,
@@ -22,6 +22,7 @@ function normalizeExpense(expense: Expense): Expense {
     ...expense,
     lineItems: normalizeLineItems(expense.lineItems),
     cardLastFour: normalizeCardLastFour(expense.cardLastFour),
+    cardBrand: normalizeCardBrand(expense.cardBrand),
     ...normalizeBillableFields(expense),
     ...normalizeAccountingFields(expense),
   };

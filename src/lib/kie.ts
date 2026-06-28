@@ -1,5 +1,9 @@
 import { EXPENSE_CATEGORIES, type ExtractedReceipt } from "@/lib/types";
-import { normalizeCardLastFour } from "@/lib/card-last-four";
+import {
+  normalizeCardLastFour,
+  resolveCardBrand,
+  resolveCardLastFour,
+} from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 
 const KIE_CHAT_URL =
@@ -16,10 +20,12 @@ Return ONLY valid JSON with this shape:
   "categoryReason": "brief explanation for the category",
   "lineItems": [
     { "name": "Coffee", "amount": 4.50 },
-    { "name": "Sandwich", "amount": 8.99 }
+    { "name": "VISA CREDIT ****1234", "amount": null }
   ],
   "confidence": 0.95,
-  "cardLastFour": "1234"
+  "cardLastFour": "1234",
+  "cardBrand": "visa",
+  "paymentDetails": "VISA CREDIT ************1234"
 }
 
 Rules:
@@ -29,7 +35,11 @@ Rules:
 - confidence is 0-1 based on image clarity and extraction certainty
 - lineItems must list purchased items visible on the receipt with name and price when shown
 - each lineItems[].amount must be a number (use null only if price is not visible on the receipt)
-- cardLastFour: the last 4 digits of the credit or debit card used for payment, if shown on the receipt (e.g. ****1234, x1234, ending in 1234). Use null if no card digits are visible
+- PAYMENT SECTION (critical): read the card type and masked card number near the bottom of the receipt
+- cardLastFour: exactly 4 digits for the card used to pay. Look for ****1234, XXXX1234, x1234, ending in 1234, or Visa/Mastercard/Amex/Discover followed by masked digits. Use null only if no card digits appear anywhere on the receipt
+- cardBrand: one of visa, mastercard, amex, discover, other — from the payment line (e.g. VISA, MC, AMEX). Use null if no card network is shown
+- paymentDetails: copy the full payment/tender line exactly as printed on the receipt (e.g. "VISA CREDIT ************1234", "MASTERCARD  ****5678", "CHIP READ"). Use null if no card payment line exists
+- when card payment is shown, always add that payment line as a lineItems entry with amount null
 - use category "months" for recurring monthly charges (rent, lease payments, subscriptions, membership fees, monthly insurance premiums)
 - use category "credit_cards" for credit card payments, card statements, finance charges, or purchases where the merchant is a bank/card issuer (Visa, Mastercard, Amex, Chase, Capital One, etc.)
 - respond with JSON only, no markdown fences or extra text`;
@@ -42,6 +52,10 @@ interface KieChatResponse {
   }>;
   error?: { message?: string };
 }
+
+type KieReceiptPayload = ExtractedReceipt & {
+  paymentDetails?: string | null;
+};
 
 function extractTextContent(content: unknown): string {
   if (!content) return "";
@@ -63,14 +77,25 @@ function extractTextContent(content: unknown): string {
   return "";
 }
 
-function parseJsonFromModel(text: string): ExtractedReceipt {
+function parseJsonFromModel(text: string): KieReceiptPayload {
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   const jsonText = fenced ? fenced[1].trim() : trimmed;
-  return JSON.parse(jsonText) as ExtractedReceipt;
+  return JSON.parse(jsonText) as KieReceiptPayload;
 }
 
-function validateReceipt(parsed: ExtractedReceipt): ExtractedReceipt {
+function collectPaymentText(parsed: KieReceiptPayload): string {
+  return [
+    parsed.paymentDetails,
+    parsed.lineItems.map((item) => item.name).join("\n"),
+    parsed.categoryReason,
+    parsed.merchant,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join("\n");
+}
+
+function validateReceipt(parsed: KieReceiptPayload): ExtractedReceipt {
   if (
     !parsed.merchant ||
     typeof parsed.amount !== "number" ||
@@ -79,10 +104,18 @@ function validateReceipt(parsed: ExtractedReceipt): ExtractedReceipt {
     throw new Error("Invalid receipt data returned");
   }
 
+  const paymentText = collectPaymentText(parsed);
+
   return {
-    ...parsed,
+    merchant: parsed.merchant,
+    amount: parsed.amount,
+    date: parsed.date,
+    category: parsed.category,
+    categoryReason: parsed.categoryReason,
     lineItems: normalizeLineItems(parsed.lineItems),
-    cardLastFour: normalizeCardLastFour(parsed.cardLastFour),
+    confidence: parsed.confidence,
+    cardLastFour: resolveCardLastFour(parsed.cardLastFour, paymentText),
+    cardBrand: resolveCardBrand(parsed.cardBrand, paymentText),
   };
 }
 
@@ -105,7 +138,7 @@ export async function scanReceiptWithKie(
           content: [
             {
               type: "text",
-              text: "Extract and categorize this receipt.",
+              text: "Extract and categorize this receipt. Carefully read the payment section at the bottom for the card network (Visa, Mastercard, etc.) and the last 4 digits of the card used.",
             },
             {
               type: "image_url",

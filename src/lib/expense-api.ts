@@ -1,6 +1,6 @@
 import { normalizeBillableFields } from "@/lib/billable-engine";
 import { normalizeAccountingFields } from "@/lib/accounting-fields";
-import { normalizeCardLastFour } from "@/lib/card-last-four";
+import { normalizeCardBrand, normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
 import {
   EXPENSE_CATEGORIES,
@@ -66,6 +66,7 @@ export function parseExpensePayload(value: unknown): Expense {
     ),
     confidence: input.confidence,
     cardLastFour: normalizeCardLastFour(input.cardLastFour),
+    cardBrand: normalizeCardBrand(input.cardBrand),
     createdAt: input.createdAt,
     ...normalizeBillableFields({
       billableStatus,

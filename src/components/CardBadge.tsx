@@ -1,13 +1,15 @@
-import { formatCardLabel } from "@/lib/card-last-four";
+import { formatCardLabel, type CardBrand } from "@/lib/card-last-four";
 
 export function CardBadge({
   lastFour,
+  brand,
   size = "sm",
 }: {
   lastFour: string | null | undefined;
+  brand?: CardBrand | null;
   size?: "sm" | "md";
 }) {
-  const label = formatCardLabel(lastFour);
+  const label = formatCardLabel(lastFour, brand);
   const isUnknown = !lastFour;
   const sizeClass =
     size === "md"

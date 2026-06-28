@@ -85,7 +85,10 @@ export function groupExpensesByCard(expenses: Expense[]): ExpenseGroup[] {
     const sorted = sortByDateDesc(items);
     return {
       key,
-      label: formatCardLabel(key === "unknown" ? null : key),
+      label: formatCardLabel(
+        key === "unknown" ? null : key,
+        sorted[0]?.cardBrand,
+      ),
       expenses: sorted,
       total: sumAmount(sorted),
     };
