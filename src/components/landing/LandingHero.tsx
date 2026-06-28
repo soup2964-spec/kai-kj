@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HERO_SLIDES, LOGO_3D } from "./constants";
+import { HERO_SLIDES, SITE_LOGO_3D, SITE_LOGO_ALT } from "./constants";
 
 export function LandingHero() {
   const [activeIndex, setActiveIndex] = useState(2);
@@ -20,45 +20,37 @@ export function LandingHero() {
       <div className="container mx-auto flex max-md:bg-flare-hero flex-col px-2 pb-48 sm:px-5 md:flex-row">
         <div className="z-30 flex-1 pt-30 text-center md:pt-38 md:text-left">
           <div className="flex w-full justify-center md:hidden">
-            <Image
-              src={LOGO_3D}
-              alt=""
-              width={150}
-              height={23}
-              className="scale-75 md:scale-100"
-              priority
-            />
+            {SITE_LOGO_3D ? (
+              <Image
+                src={SITE_LOGO_3D}
+                alt={SITE_LOGO_ALT}
+                width={150}
+                height={23}
+                className="scale-75 md:scale-100"
+                priority
+                unoptimized={SITE_LOGO_3D.startsWith("http")}
+              />
+            ) : (
+              <span className="inline-block h-[23px] w-[150px] scale-75 md:scale-100" aria-hidden />
+            )}
           </div>
           <h1 className="homepage-heading-gradient mt-5 max-w-[509px] pb-2 text-[40px] font-medium leading-[110%] md:mt-8 md:text-[53px]">
-            The AI SRE
+            Your Expense
             <br />
-            observability stack
+            Tracking Agent
           </h1>
           <p className="md:mt-2 md:text-[20px] max-md:text-center">
-            30x cheaper than Datadog. Predictable pricing.
+            Cheaper than an accountant. Predictable pricing.
             <br />
             Exceptional customer support.
           </p>
           <div className="mt-7 w-full sm:w-auto">
-            <form
-              className="flex flex-col items-center gap-3 sm:flex-row"
-              onSubmit={(event) => event.preventDefault()}
+            <Link
+              href="/sign-up"
+              className="cta-button flex h-[50px] w-full max-w-[316px] items-center justify-center whitespace-nowrap px-6 font-medium text-white sm:w-auto"
             >
-              <input
-                type="email"
-                name="email"
-                placeholder="Your work e-mail"
-                required
-                autoComplete="email"
-                className="h-[52px] w-full max-w-[316px] appearance-none rounded-lg border border-[#727DA1]/20 bg-[#727DA1]/10 px-5 text-white backdrop-blur-2xl placeholder:text-neutral-300 sm:w-[324px]"
-              />
-              <Link
-                href="/sign-up"
-                className="cta-button flex h-[50px] w-full max-w-[316px] items-center justify-center whitespace-nowrap px-6 font-medium text-white sm:w-auto"
-              >
-                Start for free
-              </Link>
-            </form>
+              Start for free
+            </Link>
             <div className="flex w-full justify-center md:justify-start md:pl-1">
               <p className="mt-5 max-w-[315px] text-[13px] text-[#646E87] max-md:text-center">
                 Datadog bill too high? Migrate today, the rest of your contract is on us.

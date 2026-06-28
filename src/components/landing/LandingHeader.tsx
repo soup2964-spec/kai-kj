@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
 import { useState } from "react";
-import { BETTER_STACK_LOGO_SVG } from "./constants";
+import { LandingLogo } from "./LandingLogo";
 
 const PLATFORM_LINKS = [
   { title: "AI SRE", desc: "Agentic root cause analysis", href: "https://betterstack.com/ai-sre" },
@@ -75,16 +74,7 @@ export function LandingHeader() {
     <header className="helvetica fixed left-0 right-0 top-0 z-40 flex justify-center bg-[#0B0C14]/80 before:absolute before:inset-0 before:-z-10 before:backdrop-blur-2xl">
       <nav className="mx-5 flex h-[52px] max-w-[1110px] grow items-stretch justify-between border-b border-[#727DA1]/15 text-[13px] leading-none text-[#C9D3EE]">
         <div className="flex items-stretch gap-3">
-          <Link href="/" className="flex items-center py-3" aria-label="Go to homepage">
-            <Image
-              src={BETTER_STACK_LOGO_SVG}
-              alt="Better Stack"
-              width={154}
-              height={21}
-              className="-mx-6 scale-[65%]"
-              unoptimized
-            />
-          </Link>
+          <LandingLogo className="-mx-6 scale-[65%]" />
           <div className="hidden items-stretch gap-4 md:flex">
             <NavDropdown label="Platform" className="left-0 w-[667px] min-[1100px]:w-[950px] xl:w-[1005px]">
               <div className="grid w-full md:grid-cols-2 min-[1100px]:grid-cols-3">

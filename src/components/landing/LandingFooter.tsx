@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { BETTER_STACK_LOGO_SVG, CUSTOMERS_SVG, TESTIMONIALS, TWITTER_ICON } from "./constants";
+import { TESTIMONIALS, TWITTER_ICON } from "./constants";
+import { LandingCustomersBanner } from "./LandingCustomersBanner";
+import { LandingLogo } from "./LandingLogo";
 
 function renderQuote(quote: string) {
   const parts = quote.split("@BetterStackHQ");
@@ -38,24 +40,7 @@ export function LandingTestimonials() {
         </p>
       </div>
 
-      <div className="relative mt-4 -mb-20 flex flex-col items-center overflow-hidden">
-        <div className="scale-75 md:scale-100">
-          <div className="customers-scroll flex justify-center">
-            <Image src={CUSTOMERS_SVG} alt="" aria-hidden width={1752} height={40} className="w-[1752px]" unoptimized />
-            <Image src={CUSTOMERS_SVG} alt="" aria-hidden width={1752} height={40} className="w-[1752px]" unoptimized />
-          </div>
-        </div>
-        <div className="pointer-events-none absolute inset-0 flex justify-center">
-          <div className="h-full grow bg-linear-to-r from-[#0B0C14] md:from-50%" />
-          <div className="min-w-[200px] md:min-w-[1000px]" />
-          <div className="h-full grow bg-linear-to-l from-[#0B0C14] md:from-50%" />
-        </div>
-        <div className="pointer-events-none absolute inset-0 flex justify-center">
-          <div className="mask-gradient-to-l h-full grow backdrop-blur-[2px]" />
-          <div className="w-[710px]" />
-          <div className="mask-gradient-to-r h-full grow backdrop-blur-[2px]" />
-        </div>
-      </div>
+      <LandingCustomersBanner />
 
       <div className="mt-10 columns-1 sm:columns-2 md:columns-3 lg:columns-4">
         {TESTIMONIALS.map((item) => (
@@ -224,13 +209,9 @@ export function LandingFooter() {
         <div className="mx-auto max-w-[1110px] text-base text-[#363D4E] dark:text-neutral-200 lg:px-5">
           <div className="flex flex-col items-center justify-between border-t border-neutral-300/10 px-5 pt-7 lg:flex-row lg:items-end lg:px-2 lg:mx-3">
             <div>
-              <Image
-                src={BETTER_STACK_LOGO_SVG}
-                alt="Better Stack"
-                width={154}
-                height={21}
+              <LandingLogo
                 className="scale-75 text-black dark:text-white lg:scale-100"
-                unoptimized
+                linkToHome={false}
               />
               <p className="mt-3 hidden max-w-[342px] lg:block">
                 30x cheaper than Datadog. Predictable pricing. Exceptional customer support.

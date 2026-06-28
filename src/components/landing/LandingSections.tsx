@@ -1,45 +1,8 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { CUSTOMERS_SVG } from "./constants";
+import { LandingCustomersBanner } from "./LandingCustomersBanner";
 
 export function LandingCustomersMarquee() {
-  return (
-    <section className="relative -mb-20 mt-4 flex flex-col items-center overflow-hidden">
-      <div className="scale-75 md:scale-100">
-        <div className="customers-scroll flex justify-center">
-          <Image
-            src={CUSTOMERS_SVG}
-            alt="Better Stack customers include Accenture, the Raspberry Pi foundation, Brave browser, NordVPN, Unicef, the government of Canada, Decathlon and more."
-            width={1752}
-            height={40}
-            className="w-[1752px]"
-            unoptimized
-          />
-          <Image
-            src={CUSTOMERS_SVG}
-            alt=""
-            aria-hidden
-            width={1752}
-            height={40}
-            className="w-[1752px]"
-            unoptimized
-          />
-        </div>
-      </div>
-      <div className="pointer-events-none absolute inset-0 flex justify-center">
-        <div className="h-full grow bg-linear-to-r from-[#0B0C14] md:from-50%" />
-        <div className="min-w-[200px] md:min-w-[1000px]" />
-        <div className="h-full grow bg-linear-to-l from-[#0B0C14] md:from-50%" />
-      </div>
-      <div className="pointer-events-none absolute inset-0 flex justify-center">
-        <div className="mask-gradient-to-l h-full grow backdrop-blur-[2px]" />
-        <div className="w-[710px]" />
-        <div className="mask-gradient-to-r h-full grow backdrop-blur-[2px]" />
-      </div>
-    </section>
-  );
+  return <LandingCustomersBanner />;
 }
 
 export function LandingPricingCompare() {
@@ -160,23 +123,12 @@ export function LandingBottomCta() {
             </p>
           </div>
           <div className="mt-10 w-full sm:w-auto">
-            <form
-              className="flex flex-col items-center gap-3 sm:flex-row"
-              onSubmit={(event) => event.preventDefault()}
+            <Link
+              href="/sign-up"
+              className="cta-button flex h-12 w-full max-w-[316px] items-center justify-center whitespace-nowrap px-6 font-medium text-white sm:w-auto"
             >
-              <input
-                type="email"
-                placeholder="Your work e-mail"
-                required
-                className="h-12 w-full max-w-[316px] appearance-none rounded-lg border border-[#727DA1]/20 bg-[#727DA1]/10 px-5 text-white backdrop-blur-2xl placeholder:text-neutral-300 sm:w-[324px]"
-              />
-              <Link
-                href="/sign-up"
-                className="cta-button flex h-12 w-full max-w-[316px] items-center justify-center whitespace-nowrap px-6 font-medium text-white sm:w-auto"
-              >
-                Start for free
-              </Link>
-            </form>
+              Start for free
+            </Link>
             <p className="mt-5 pb-2 text-center text-[13px] text-neutral-300 sm:text-base lg:ml-2 lg:text-left">
               Start monitoring for free or{" "}
               <a

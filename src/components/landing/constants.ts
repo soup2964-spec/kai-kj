@@ -1,7 +1,13 @@
 const BS = "https://betterstack.com";
 
-export const CUSTOMERS_SVG = `${BS}/assets/v2/homepage-v3/customers-a51524c0.svg`;
-export const LOGO_3D = `${BS}/assets/v2/homepage-v3/better-stack-logo-3d-5c6cab03.png`;
+/** Add customer or partner names here when ready, e.g. "Acme Corp", "Globex". */
+export const CUSTOMER_NAMES: string[] = [];
+
+/** Set when you add your logo, e.g. "/logo.svg" or a remote URL. */
+export const SITE_LOGO_SVG = "";
+/** Optional hero logo shown on mobile, e.g. "/logo-3d.png". */
+export const SITE_LOGO_3D = "";
+export const SITE_LOGO_ALT = "Kai KJ";
 export const CAROUSEL_CARD_BG = `${BS}/assets/v2/homepage-v3/carousel-card-bg-48b67fdb.png`;
 
 export type HeroSlide = {
@@ -644,4 +650,3 @@ export const TESTIMONIALS = [
 ] as const;
 
 export const TWITTER_ICON = `${BS}/assets/betterstack/twitter-47a84f03.png`;
-export const BETTER_STACK_LOGO_SVG = `${BS}/assets/v2/better-stack-logo-f5a76de1.svg`;
