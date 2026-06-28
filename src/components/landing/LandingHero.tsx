@@ -34,7 +34,7 @@ export function LandingHero() {
               <span className="inline-block h-[23px] w-[150px] scale-75 md:scale-100" aria-hidden />
             )}
           </div>
-          <h1 className="homepage-heading-gradient mt-5 max-w-[509px] pb-2 text-[40px] font-medium leading-[110%] md:mt-8 md:text-[53px]">
+          <h1 className="homepage-heading-gradient mt-5 max-w-[509px] pb-2 text-[40px] font-bold leading-[110%] md:mt-8 md:text-[53px]">
             Your Expense
             <br />
             Tracking Agent
