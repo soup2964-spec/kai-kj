@@ -12,7 +12,7 @@ export interface Database {
       expenses: {
         Row: {
           id: string;
-          clerk_user_id: string;
+          owner_id: string;
           merchant: string;
           amount: number;
           date: string;
@@ -26,11 +26,15 @@ export interface Database {
           matched_rule_id: string | null;
           card_last_four: string | null;
           receipt_image: string | null;
+          accounting_status: "pending" | "rejected" | "synced" | "failed";
+          accounting_synced_at: string | null;
+          accounting_reference: string | null;
+          accounting_error: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          clerk_user_id: string;
+          owner_id: string;
           merchant: string;
           amount: number;
           date: string;
@@ -44,11 +48,15 @@ export interface Database {
           matched_rule_id?: string | null;
           card_last_four?: string | null;
           receipt_image?: string | null;
+          accounting_status?: "pending" | "rejected" | "synced" | "failed";
+          accounting_synced_at?: string | null;
+          accounting_reference?: string | null;
+          accounting_error?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
-          clerk_user_id?: string;
+          owner_id?: string;
           merchant?: string;
           amount?: number;
           date?: string;
@@ -62,6 +70,10 @@ export interface Database {
           matched_rule_id?: string | null;
           card_last_four?: string | null;
           receipt_image?: string | null;
+          accounting_status?: "pending" | "rejected" | "synced" | "failed";
+          accounting_synced_at?: string | null;
+          accounting_reference?: string | null;
+          accounting_error?: string | null;
           created_at?: string;
         };
         Relationships: [];

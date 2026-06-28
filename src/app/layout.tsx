@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { sourceSans } from "@/lib/fonts";
+import { landingFont } from "@/lib/landing-fonts";
 import "./globals.css";
-
 export const metadata: Metadata = {
   title: "Kai KJ — Expense Tracker",
   description:
@@ -40,10 +40,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sourceSans.variable} ios-html h-full`}>
+    <html lang="en" className={`${sourceSans.variable} ${landingFont.variable} ios-html h-full`}>
       <body className="ios-body min-h-dvh flex flex-col font-sans antialiased">
         {children}
-      </body>
-    </html>
+      </body>    </html>
   );
 }

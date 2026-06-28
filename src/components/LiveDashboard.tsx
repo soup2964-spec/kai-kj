@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
@@ -61,7 +62,7 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
   return (
     <aside className="flex h-full w-full flex-col border-r border-qb-border bg-qb-surface">
       {/* Sidebar brand header */}
-      <div className="bg-qb-blue-dark px-5 py-4">
+      <div className="dashboard-top-bar dashboard-gutter bg-qb-blue-dark">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded bg-white/15">
             <IconReceipt className="h-4 w-4 text-white" />
@@ -72,6 +73,8 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
           </div>
         </div>
       </div>
+
+      <DashboardNav variant="sidebar" />
 
       {/* Live feed header */}
       <div className="border-b border-qb-border-light px-5 py-4">

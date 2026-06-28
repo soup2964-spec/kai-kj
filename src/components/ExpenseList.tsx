@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  AccountingSyncBadge,
+  canSubmitAccountingReview,
+} from "@/components/AccountingSyncBadge";
 import type { BillableStatus, Expense } from "@/lib/types";
 import {
   GROUP_MODE_LABELS,
@@ -9,15 +13,18 @@ import {
   type ExpenseGroupMode,
 } from "@/lib/expense-grouping";
 import { formatCardLabel } from "@/lib/card-last-four";
+import { useExpenseContext } from "@/lib/expense-context";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
 import { CardBadge } from "./CardBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import {
   IconChevronDown,
+  IconCheck,
   IconExpenses,
   IconReceipt,
   IconTrash,
+  IconX,
 } from "./icons";
 import { formatCurrency, formatDate } from "@/lib/categories";
 
@@ -31,6 +38,51 @@ interface ExpenseListProps {
       cardLastFour?: string | null;
     },
   ) => void;
+}
+
+function AccountingActions({
+  expense,
+  compact = false,
+}: {
+  expense: Expense;
+  compact?: boolean;
+}) {
+  const { submitAccountingDecision, accountingBusyId } = useExpenseContext();
+  const busy = accountingBusyId === expense.id;
+  const canReview = canSubmitAccountingReview(expense.accountingStatus);
+
+  if (!canReview) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`flex shrink-0 items-center gap-2 ${compact ? "" : "flex-wrap"}`}
+    >
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => {
+          void submitAccountingDecision(expense.id, "approve");
+        }}
+        className="qb-btn-primary qb-btn-compact"
+      >
+        <IconCheck className="h-4 w-4" />
+        {busy ? "Sending..." : "Approve"}
+      </button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => {
+          void submitAccountingDecision(expense.id, "disapprove");
+        }}
+        className="qb-btn-secondary qb-btn-compact"
+      >
+        <IconX />
+        Disapprove
+      </button>
+    </div>
+  );
 }
 
 function ExpenseRow({
@@ -109,22 +161,29 @@ function ExpenseRow({
               <CategoryBadge category={expense.category} />
               <BillableBadge status={expense.billableStatus} />
               <CardBadge lastFour={expense.cardLastFour} />
+              <AccountingSyncBadge status={expense.accountingStatus} />
             </div>
           </div>
 
-          <p className="shrink-0 text-sm font-bold tabular-nums text-qb-text">
+          <p className="hidden shrink-0 text-sm font-bold tabular-nums text-qb-text sm:block">
             {formatCurrency(expense.amount)}
           </p>
         </button>
 
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Remove ${expense.merchant}`}
-          className="qb-btn-ghost shrink-0 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
-        >
-          <IconTrash />
-        </button>
+        <div className="flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center">
+          <p className="shrink-0 text-sm font-bold tabular-nums text-qb-text sm:hidden">
+            {formatCurrency(expense.amount)}
+          </p>
+          <AccountingActions expense={expense} compact />
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`Remove ${expense.merchant}`}
+            className="qb-btn-ghost shrink-0 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100"
+          >
+            <IconTrash />
+          </button>
+        </div>
       </div>
 
       {expanded && (
@@ -132,6 +191,41 @@ function ExpenseRow({
           id={`expense-items-${expense.id}`}
           className="border-t border-qb-border-light bg-qb-bg/30 px-4 py-3 lg:px-5 qb-animate-in space-y-3"
         >
+          <div className="rounded-lg border border-qb-border bg-qb-surface p-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
+                  Accounting software
+                </p>
+                <p className="mt-1 text-sm text-qb-text-secondary">
+                  Approve to send this receipt to your connected accounting
+                  software. Disapprove keeps it in Kai KJ only.
+                </p>
+              </div>
+              <AccountingSyncBadge status={expense.accountingStatus} size="md" />
+            </div>
+
+            {expense.accountingStatus === "synced" &&
+            expense.accountingReference ? (
+              <p className="mt-3 text-xs text-qb-text-secondary">
+                Reference:{" "}
+                <span className="font-semibold text-qb-text">
+                  {expense.accountingReference}
+                </span>
+              </p>
+            ) : null}
+
+            {expense.accountingStatus === "failed" && expense.accountingError ? (
+              <p className="mt-3 text-xs text-qb-danger">
+                {expense.accountingError}
+              </p>
+            ) : null}
+
+            <div className="mt-3">
+              <AccountingActions expense={expense} />
+            </div>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label
@@ -274,6 +368,9 @@ function FolderSection({
 export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) {
   const [groupMode, setGroupMode] = useState<ExpenseGroupMode>("month");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const pendingCount = expenses.filter(
+    (expense) => expense.accountingStatus === "pending",
+  ).length;
 
   const groups = useMemo(
     () => groupExpenses(expenses, groupMode),
@@ -298,8 +395,8 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
           </div>
           <p className="font-semibold text-qb-text">No expenses recorded</p>
           <p className="mt-1 max-w-xs text-sm text-qb-text-secondary">
-            Scan your first receipt above — receipts are filed by month, card,
-            and billable status.
+            Scan your first receipt — receipts are filed by month, card, and
+            billable status.
           </p>
         </div>
       </section>
@@ -309,16 +406,23 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
   return (
     <section className="qb-card overflow-hidden">
       <div className="qb-card-header flex flex-col gap-3 py-3 lg:py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <IconExpenses className="h-4 w-4 text-qb-blue" />
             <h2 className="text-base font-bold text-qb-text lg:text-lg">
               Receipt folders
             </h2>
           </div>
-          <span className="rounded bg-qb-bg px-2 py-0.5 text-xs font-semibold tabular-nums text-qb-text-secondary">
-            {expenses.length}
-          </span>
+          <div className="flex items-center gap-2">
+            {pendingCount > 0 ? (
+              <span className="rounded bg-qb-blue-light px-2 py-0.5 text-xs font-semibold text-qb-blue-dark">
+                {pendingCount} pending
+              </span>
+            ) : null}
+            <span className="rounded bg-qb-bg px-2 py-0.5 text-xs font-semibold tabular-nums text-qb-text-secondary">
+              {expenses.length}
+            </span>
+          </div>
         </div>
 
         <div
@@ -353,7 +457,7 @@ export function ExpenseList({ expenses, onRemove, onUpdate }: ExpenseListProps) 
         {groupMode === "card" &&
           "Grouped by card last 4 digits. New cards create folders when detected."}
         {groupMode === "billable" &&
-          "Grouped by billable status. Change status in receipt details."}
+          "Grouped by billable status. Approve receipts before sending to accounting."}
       </p>
 
       <div>

@@ -1,0 +1,54 @@
+import { NextResponse } from "next/server";
+import { apiErrorMessage, parseExpensePayload, parseOwnerId } from "@/lib/expense-api";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  deleteExpenseForOwner,
+  updateExpenseForOwner,
+} from "@/lib/supabase/expenses";
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await context.params;
+    const body = await request.json();
+    const ownerId = parseOwnerId(body.ownerId);
+    const expense = parseExpensePayload(body.expense);
+
+    if (expense.id !== id) {
+      return NextResponse.json(
+        { error: "Expense id mismatch." },
+        { status: 400 },
+      );
+    }
+
+    const supabase = createAdminClient();
+    const saved = await updateExpenseForOwner(supabase, expense, ownerId);
+    return NextResponse.json({ expense: saved });
+  } catch (error) {
+    return NextResponse.json(
+      { error: apiErrorMessage(error, "Could not update expense.") },
+      { status: 400 },
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await context.params;
+    const { searchParams } = new URL(request.url);
+    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const supabase = createAdminClient();
+    await deleteExpenseForOwner(supabase, id, ownerId);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: apiErrorMessage(error, "Could not delete expense.") },
+      { status: 400 },
+    );
+  }
+}

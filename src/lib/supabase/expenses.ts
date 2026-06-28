@@ -1,12 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { normalizeAccountingFields } from "@/lib/accounting-fields";
 import { normalizeBillableFields } from "@/lib/billable-engine";
 import { normalizeCardLastFour } from "@/lib/card-last-four";
 import { normalizeLineItems } from "@/lib/receipt-line-items";
-import type { Expense } from "@/lib/types";
+import type { AccountingSyncStatus, Expense } from "@/lib/types";
 import type { Database } from "./database.types";
 
 type ExpenseRow = Database["public"]["Tables"]["expenses"]["Row"];
 type ExpenseInsert = Database["public"]["Tables"]["expenses"]["Insert"];
+type ExpenseUpdate = Database["public"]["Tables"]["expenses"]["Update"];
 
 function rowToExpense(row: ExpenseRow): Expense {
   return {
@@ -21,7 +23,6 @@ function rowToExpense(row: ExpenseRow): Expense {
     ),
     confidence: Number(row.confidence),
     cardLastFour: normalizeCardLastFour(row.card_last_four),
-    receiptImage: row.receipt_image ?? undefined,
     createdAt: row.created_at,
     ...normalizeBillableFields({
       billableStatus: row.billable_status,
@@ -29,13 +30,19 @@ function rowToExpense(row: ExpenseRow): Expense {
       billableSource: row.billable_source,
       matchedRuleId: row.matched_rule_id ?? undefined,
     }),
+    ...normalizeAccountingFields({
+      accountingStatus: row.accounting_status,
+      accountingSyncedAt: row.accounting_synced_at ?? undefined,
+      accountingReference: row.accounting_reference ?? undefined,
+      accountingError: row.accounting_error ?? undefined,
+    }),
   };
 }
 
-function expenseToInsert(expense: Expense, clerkUserId: string): ExpenseInsert {
+function expenseToInsert(expense: Expense, ownerId: string): ExpenseInsert {
   return {
     id: expense.id,
-    clerk_user_id: clerkUserId,
+    owner_id: ownerId,
     merchant: expense.merchant,
     amount: expense.amount,
     date: expense.date,
@@ -48,33 +55,63 @@ function expenseToInsert(expense: Expense, clerkUserId: string): ExpenseInsert {
     billable_source: expense.billableSource,
     matched_rule_id: expense.matchedRuleId ?? null,
     card_last_four: expense.cardLastFour ?? null,
-    receipt_image: expense.receiptImage ?? null,
+    receipt_image: null,
+    accounting_status: expense.accountingStatus,
+    accounting_synced_at: expense.accountingSyncedAt ?? null,
+    accounting_reference: expense.accountingReference ?? null,
+    accounting_error: expense.accountingError ?? null,
     created_at: expense.createdAt,
   };
 }
 
-export async function fetchExpensesForUser(
+function expenseToUpdate(expense: Expense): ExpenseUpdate {
+  return {
+    billable_status: expense.billableStatus,
+    billable_reason: expense.billableReason,
+    billable_source: expense.billableSource,
+    matched_rule_id: expense.matchedRuleId ?? null,
+    card_last_four: expense.cardLastFour ?? null,
+  };
+}
+
+export async function fetchExpensesForOwner(
   supabase: SupabaseClient<Database>,
-  clerkUserId: string,
+  ownerId: string,
 ): Promise<Expense[]> {
   const { data, error } = await supabase
     .from("expenses")
     .select("*")
-    .eq("clerk_user_id", clerkUserId)
+    .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return (data ?? []).map(rowToExpense);
 }
 
-export async function insertExpenseForUser(
+export async function fetchExpenseForOwner(
   supabase: SupabaseClient<Database>,
-  expense: Expense,
-  clerkUserId: string,
+  expenseId: string,
+  ownerId: string,
 ): Promise<Expense> {
   const { data, error } = await supabase
     .from("expenses")
-    .insert(expenseToInsert(expense, clerkUserId))
+    .select("*")
+    .eq("id", expenseId)
+    .eq("owner_id", ownerId)
+    .single();
+
+  if (error) throw error;
+  return rowToExpense(data);
+}
+
+export async function insertExpenseForOwner(
+  supabase: SupabaseClient<Database>,
+  expense: Expense,
+  ownerId: string,
+): Promise<Expense> {
+  const { data, error } = await supabase
+    .from("expenses")
+    .insert(expenseToInsert(expense, ownerId))
     .select("*")
     .single();
 
@@ -82,16 +119,63 @@ export async function insertExpenseForUser(
   return rowToExpense(data);
 }
 
-export async function deleteExpenseForUser(
+export async function updateExpenseForOwner(
+  supabase: SupabaseClient<Database>,
+  expense: Expense,
+  ownerId: string,
+): Promise<Expense> {
+  const { data, error } = await supabase
+    .from("expenses")
+    .update(expenseToUpdate(expense))
+    .eq("id", expense.id)
+    .eq("owner_id", ownerId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return rowToExpense(data);
+}
+
+export async function updateExpenseAccountingForOwner(
   supabase: SupabaseClient<Database>,
   expenseId: string,
-  clerkUserId: string,
+  ownerId: string,
+  update: {
+    accountingStatus: AccountingSyncStatus;
+    accountingSyncedAt?: string | null;
+    accountingReference?: string | null;
+    accountingError?: string | null;
+  },
+): Promise<Expense> {
+  const payload: ExpenseUpdate = {
+    accounting_status: update.accountingStatus,
+    accounting_synced_at: update.accountingSyncedAt ?? null,
+    accounting_reference: update.accountingReference ?? null,
+    accounting_error: update.accountingError ?? null,
+  };
+
+  const { data, error } = await supabase
+    .from("expenses")
+    .update(payload)
+    .eq("id", expenseId)
+    .eq("owner_id", ownerId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return rowToExpense(data);
+}
+
+export async function deleteExpenseForOwner(
+  supabase: SupabaseClient<Database>,
+  expenseId: string,
+  ownerId: string,
 ): Promise<void> {
   const { error } = await supabase
     .from("expenses")
     .delete()
     .eq("id", expenseId)
-    .eq("clerk_user_id", clerkUserId);
+    .eq("owner_id", ownerId);
 
   if (error) throw error;
 }
