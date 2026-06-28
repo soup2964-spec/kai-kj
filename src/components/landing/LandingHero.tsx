@@ -9,18 +9,13 @@ export function LandingHero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:gap-14">
         <div className="flex max-w-xl flex-col items-start text-left">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--cb-primary)] shadow-sm backdrop-blur">
-            Built for receipt-heavy teams
-          </div>
-
-          <h1 className="mt-6 text-5xl font-bold leading-[0.98] tracking-[-0.05em] text-[var(--cb-dark)] sm:text-6xl lg:text-[4.75rem]">
-            Receipts in.
-            <span className="block text-[var(--cb-primary)]">Reports out.</span>
+          <h1 className="text-4xl font-bold leading-[1.02] tracking-[-0.04em] text-[var(--cb-dark)] sm:text-5xl lg:text-[3.5rem]">
+            Your Expense
+            <span className="block text-[var(--cb-primary)]">Tracking Agent</span>
           </h1>
 
           <p className="mt-6 text-lg leading-8 text-[var(--cb-muted)] sm:text-xl">
-            Kai KJ turns receipt photos into organized expenses with purchase dates,
-            card folders, AppFolio work orders, saved images, and export-ready data.
+            Moodna Scans receipts, reconciles transactions with bank statements, and exports expense data into Appfolio and Quickbooks.
           </p>
 
           <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
