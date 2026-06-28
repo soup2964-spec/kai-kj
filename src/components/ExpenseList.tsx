@@ -548,37 +548,22 @@ export function ExpenseList({
         {groupMode === "billable" &&
           "Grouped by billable status. Approve receipts before sending to accounting."}
         {groupMode === "date" &&
-          "Flat list sorted by receipt date using the sort control above."}
+          "Grouped by purchase date on the receipt. Folders use the receipt date, not the upload date."}
         {groupMode === "workorder" &&
           "Billable receipts grouped by AppFolio work order. Missing WOs appear in the WO missing folder."}
       </p>
 
       <div>
-        {groupMode === "date" ? (
-          <ul className="divide-y divide-qb-border-light">
-            {groups[0]?.expenses.map((expense) => (
-              <ExpenseRow
-                key={expense.id}
-                expense={expense}
-                expanded={expandedId === expense.id}
-                onToggle={() => handleToggleExpense(expense.id)}
-                onRemove={() => handleRemove(expense.id)}
-                onUpdate={onUpdate}
-              />
-            ))}
-          </ul>
-        ) : (
-          groups.map((group) => (
-            <FolderSection
-              key={group.key}
-              group={group}
-              expandedId={expandedId}
-              onToggleExpense={handleToggleExpense}
-              onRemove={handleRemove}
-              onUpdate={onUpdate}
-            />
-          ))
-        )}
+        {groups.map((group) => (
+          <FolderSection
+            key={group.key}
+            group={group}
+            expandedId={expandedId}
+            onToggleExpense={handleToggleExpense}
+            onRemove={handleRemove}
+            onUpdate={onUpdate}
+          />
+        ))}
       </div>
     </section>
   );

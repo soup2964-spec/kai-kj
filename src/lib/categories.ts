@@ -1,4 +1,5 @@
 import type { ExpenseCategory } from "./types";
+import { parsePurchaseDate } from "./expense-grouping";
 
 export const CATEGORY_META: Record<
   ExpenseCategory,
@@ -26,8 +27,8 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatDate(date: string): string {
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return date;
+  const parsed = parsePurchaseDate(date);
+  if (!parsed) return date;
   return parsed.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",

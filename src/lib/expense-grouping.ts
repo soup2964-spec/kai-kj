@@ -56,11 +56,52 @@ const BILLABLE_ORDER: BillableStatus[] = [
 ];
 
 export function monthKeyFromDate(date: string): string {
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "unknown";
+  const parsed = parsePurchaseDate(date);
+  if (!parsed) return "unknown";
   const year = parsed.getFullYear();
   const month = String(parsed.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
+}
+
+/** Parse receipt purchase dates without UTC timezone shifts on YYYY-MM-DD values. */
+export function parsePurchaseDate(date: string): Date | null {
+  const isoDay = date.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDay) {
+    const year = Number(isoDay[1]);
+    const month = Number(isoDay[2]);
+    const day = Number(isoDay[3]);
+    const local = new Date(year, month - 1, day);
+    return Number.isNaN(local.getTime()) ? null : local;
+  }
+
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function dayKeyFromDate(date: string): string {
+  const parsed = parsePurchaseDate(date);
+  if (!parsed) return "unknown";
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function formatDayLabel(dayKey: string): string {
+  if (dayKey === "unknown") return "Unknown date";
+  const [year, month, day] = dayKey.split("-").map(Number);
+  if (!year || !month || !day) return dayKey;
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function purchaseDateMs(date: string): number {
+  return parsePurchaseDate(date)?.getTime() ?? 0;
 }
 
 export function formatMonthLabel(monthKey: string): string {
@@ -80,8 +121,11 @@ function sortByDate(
   sort: ExpenseDateSort = "newest",
 ): Expense[] {
   return [...expenses].sort((a, b) => {
-    const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
-    return sort === "newest" ? diff : -diff;
+    const diff = purchaseDateMs(b.date) - purchaseDateMs(a.date);
+    if (diff !== 0) {
+      return sort === "newest" ? diff : -diff;
+    }
+    return a.merchant.localeCompare(b.merchant);
   });
 }
 
@@ -96,8 +140,8 @@ export function getExpenseYears(expenses: Expense[]): number[] {
   const years = new Set<number>([new Date().getFullYear()]);
 
   for (const expense of expenses) {
-    const parsed = new Date(expense.date);
-    if (!Number.isNaN(parsed.getTime())) {
+    const parsed = parsePurchaseDate(expense.date);
+    if (parsed) {
       years.add(parsed.getFullYear());
     }
   }
@@ -130,8 +174,8 @@ export function filterExpensesByPeriod(
   filter: ExpensePeriodFilter,
 ): Expense[] {
   return expenses.filter((expense) => {
-    const parsed = new Date(expense.date);
-    if (Number.isNaN(parsed.getTime())) {
+    const parsed = parsePurchaseDate(expense.date);
+    if (!parsed) {
       return filter.month === "all" && filter.year === "all";
     }
 
@@ -300,17 +344,30 @@ export function groupExpensesByDate(
   expenses: Expense[],
   sort: ExpenseDateSort = "newest",
 ): ExpenseGroup[] {
-  const sorted = sortByDate(expenses, sort);
-  if (sorted.length === 0) return [];
+  const buckets = new Map<string, Expense[]>();
 
-  return [
-    {
-      key: "all",
-      label: "All receipts",
-      expenses: sorted,
-      total: sumAmount(sorted),
-    },
-  ];
+  for (const expense of expenses) {
+    const key = dayKeyFromDate(expense.date);
+    const list = buckets.get(key) ?? [];
+    list.push(expense);
+    buckets.set(key, list);
+  }
+
+  return [...buckets.entries()]
+    .sort(([a], [b]) => {
+      if (a === "unknown") return 1;
+      if (b === "unknown") return -1;
+      return sort === "newest" ? b.localeCompare(a) : a.localeCompare(b);
+    })
+    .map(([key, items]) => {
+      const sorted = sortByDate(items, sort);
+      return {
+        key,
+        label: formatDayLabel(key),
+        expenses: sorted,
+        total: sumAmount(sorted),
+      };
+    });
 }
 
 export function groupExpenses(

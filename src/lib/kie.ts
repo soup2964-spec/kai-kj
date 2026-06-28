@@ -32,7 +32,7 @@ Return ONLY valid JSON with this shape:
 
 Rules:
 - amount must be the final total paid (after tax), as a number
-- date should be the receipt date; use today's date if unclear
+- date must be the transaction date printed on the receipt (YYYY-MM-DD). Never use today's date or the scan/upload date
 - category must be exactly one of the allowed values
 - confidence is 0-1 based on image clarity and extraction certainty
 - lineItems must list purchased items visible on the receipt with name and price when shown
