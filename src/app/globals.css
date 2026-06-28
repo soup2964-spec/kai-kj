@@ -513,7 +513,9 @@ body {
   --cb-success: #10b981;
   font-family: var(--font-landing), Inter, system-ui, sans-serif;
   color: var(--cb-dark);
-  background-color: #ffffff;
+  background:
+    radial-gradient(circle at top left, rgba(3, 101, 172, 0.08), transparent 32rem),
+    #ffffff;
 }
 
 .cb-btn-primary {
@@ -524,18 +526,21 @@ body {
   padding: 0.5rem 1rem;
   border-radius: 9999px;
   background: var(--cb-primary, #0365ac);
+  box-shadow: 0 12px 30px rgba(3, 101, 172, 0.18);
   font-weight: 600;
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: #ffffff;
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .cb-btn-primary:hover {
   background: var(--cb-primary-hover, #025492);
   color: #ffffff;
+  box-shadow: 0 16px 36px rgba(3, 101, 172, 0.22);
+  transform: translateY(-1px);
 }
 
 .cb-btn-secondary {
@@ -553,12 +558,13 @@ body {
   color: var(--cb-dark, #0a0a12);
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .cb-btn-secondary:hover {
   background: var(--cb-surface);
   border-color: #cbd5e1;
+  transform: translateY(-1px);
 }
 
 .auth-modal-input {

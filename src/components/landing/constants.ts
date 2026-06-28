@@ -3,9 +3,9 @@ export const SITE_LOGO_SVG: string = "";
 export const SITE_LOGO_ALT = "Kai KJ";
 
 export const ANNOUNCEMENT = {
-  text: "Receipt scanning and Google Sheets export are live.",
+  text: "New: receipt image viewer, card folders, month folders, and purchase-date sorting.",
   href: "/dashboard/scan",
-  linkLabel: "Try it free",
+  linkLabel: "Scan a receipt",
 };
 
 export const NAV_PRODUCT_LINKS = [
@@ -39,31 +39,31 @@ export const NAV_INTEGRATION_LINKS = [
 
 export const BENEFIT_CARDS = [
   {
-    title: "Capture receipts in seconds",
+    title: "Capture the paper trail",
     description:
-      "Stop losing paper receipts. Scan from your phone or bulk-upload PDFs and photos.",
-    stat: "90% faster",
-    statLabel: "than manual entry",
+      "Upload a receipt photo and keep the original image attached for later review.",
+    stat: "Image",
+    statLabel: "viewer included",
   },
   {
-    title: "Stay audit-ready",
+    title: "File every receipt automatically",
     description:
-      "Every expense is categorized, dated, and stored with card and billable tags.",
-    stat: "100%",
-    statLabel: "searchable history",
+      "Group expenses by purchase date, card number, month, billable status, and work order.",
+    stat: "5 ways",
+    statLabel: "to organize",
   },
   {
-    title: "Approve before accounting sync",
+    title: "Track billable work",
     description:
-      "Review each receipt and approve or reject before it syncs to your workflow.",
-    stat: "Zero",
-    statLabel: "surprise line items",
+      "Flag missing AppFolio work orders before billable receipts go to accounting.",
+    stat: "WO",
+    statLabel: "missing alerts",
   },
   {
-    title: "Export on your schedule",
+    title: "Export clean reports",
     description:
-      "Push to Google Sheets or download CSV — filter by month, card, or billable status.",
-    stat: "1-click",
+      "Send filtered receipt data to Google Sheets or download CSV for your books.",
+    stat: "1 click",
     statLabel: "exports",
   },
 ] as const;
@@ -71,18 +71,18 @@ export const BENEFIT_CARDS = [
 export const HOW_IT_WORKS = [
   {
     step: "01",
-    title: "Scan",
-    description: "Upload a receipt photo or PDF. Kai KJ reads merchant, amount, date, and line items.",
+    title: "Scan the receipt",
+    description: "Take a photo or upload a file. Kai KJ reads merchant, amount, date, card, and line items.",
   },
   {
     step: "02",
-    title: "Organize",
-    description: "Expenses auto-group by month, card, billable status, and date — sort any way you need.",
+    title: "Organize by the receipt",
+    description: "Receipts file into purchase-date folders, card folders, month folders, and work-order views.",
   },
   {
     step: "03",
-    title: "Sync",
-    description: "Approve expenses, export to Sheets, and keep everything tied to your account email.",
+    title: "Review and export",
+    description: "Open the original image, check billable details, then export to Sheets or CSV.",
   },
 ] as const;
 
@@ -90,26 +90,26 @@ export const PLATFORM_TABS = [
   {
     id: "dashboard",
     label: "Dashboard",
-    title: "Your expense command center",
-    description: "Overview of recent receipts, quick actions, and totals at a glance.",
+    title: "A live workspace for receipts",
+    description: "Watch scans arrive, open card folders, and jump into review without digging through files.",
   },
   {
     id: "scanner",
     label: "Scanner",
-    title: "AI receipt extraction",
-    description: "Point, shoot, done. Merchant, amount, category, and card last four — extracted automatically.",
+    title: "AI extraction with the image saved",
+    description: "Merchant, total, purchase date, line items, card last four, and work orders are extracted from the receipt.",
   },
   {
     id: "expenses",
     label: "Expenses",
-    title: "Folders, filters, and approvals",
-    description: "Browse by month or card, filter by billable, and approve accounting sync with one tap.",
+    title: "Folders that match bookkeeping",
+    description: "Browse by month, date, card, nested card-month folders, billable status, and AppFolio work order.",
   },
   {
     id: "export",
     label: "Export",
-    title: "Google Sheets & CSV",
-    description: "Send filtered expense data to your spreadsheet or download for your bookkeeper.",
+    title: "Reports ready for your accountant",
+    description: "Export structured rows to Google Sheets or CSV with dates, cards, work orders, and receipt details.",
   },
 ] as const;
 

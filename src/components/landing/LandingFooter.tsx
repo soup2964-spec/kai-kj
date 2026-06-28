@@ -30,13 +30,13 @@ function FooterColumn({
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-[var(--cb-border)] bg-[var(--cb-dark)] text-white">
+    <footer className="border-t border-white/10 bg-[#06111f] text-white">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">
             <LandingLogo linkToHome={false} className="text-white [&_span]:text-white" />
             <p className="mt-4 max-w-xs text-sm text-white/60">
-              The leading way to scan receipts, organize expenses, and export on autopilot.
+              Receipt scanning, purchase-date folders, card organization, work orders, and exports in one workspace.
             </p>
           </div>
           <FooterColumn title="Solutions" links={FOOTER_COLUMNS.solutions} />
