@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExpenseExportButton } from "@/components/ExpenseExportButton";
+import { ExpenseDateSortBar } from "@/components/ExpenseDateSortBar";
 import { ExpenseList } from "@/components/ExpenseList";
 import { SummaryBar } from "@/components/SummaryBar";
 import type { ExpenseDateSort } from "@/lib/expense-grouping";
@@ -13,11 +13,7 @@ export function ExpensesPage() {
 
   return (
     <>
-      <section className="qb-card">
-        <div className="qb-card-body">
-          <ExpenseExportButton expenses={expenses} dateSort={dateSort} />
-        </div>
-      </section>
+      <ExpenseDateSortBar value={dateSort} onChange={setDateSort} />
       <SummaryBar expenses={expenses} />
       <ExpenseList
         expenses={expenses}

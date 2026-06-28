@@ -7,7 +7,6 @@ import {
 } from "@/components/AccountingSyncBadge";
 import type { BillableStatus, Expense } from "@/lib/types";
 import {
-  DATE_SORT_LABELS,
   GROUP_MODE_LABELS,
   groupExpenses,
   type ExpenseDateSort,
@@ -15,6 +14,7 @@ import {
   type ExpenseGroupMode,
 } from "@/lib/expense-grouping";
 import { formatCardLabel } from "@/lib/card-last-four";
+import { ExpenseExportButton } from "@/components/ExpenseExportButton";
 import { useExpenseContext } from "@/lib/expense-context";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
@@ -402,15 +402,21 @@ export function ExpenseList({
 
   if (expenses.length === 0) {
     return (
-      <section className="qb-card">
+      <section className="qb-card overflow-hidden">
+        <div className="qb-card-header flex items-center gap-2.5 py-3 lg:py-4">
+          <IconExpenses className="h-4 w-4 text-qb-blue" />
+          <h2 className="text-base font-bold text-qb-text lg:text-lg">
+            Receipt folders
+          </h2>
+        </div>
         <div className="flex flex-col items-center px-5 py-10 text-center lg:px-6 lg:py-12">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-qb-bg">
             <IconExpenses className="h-7 w-7 text-qb-text-muted" />
           </div>
           <p className="font-semibold text-qb-text">No expenses recorded</p>
           <p className="mt-1 max-w-xs text-sm text-qb-text-secondary">
-            Scan your first receipt — receipts are filed by month, card, and
-            billable status.
+            Scan your first receipt — sorting above applies once receipts are
+            saved.
           </p>
         </div>
       </section>
@@ -464,26 +470,11 @@ export function ExpenseList({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-qb-text-secondary">
-            Sort by date
-          </span>
-          {(Object.keys(DATE_SORT_LABELS) as ExpenseDateSort[]).map((sort) => (
-            <button
-              key={sort}
-              type="button"
-              aria-pressed={dateSort === sort}
-              onClick={() => setDateSort(sort)}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                dateSort === sort
-                  ? "bg-qb-blue-dark text-white"
-                  : "border border-qb-border bg-qb-surface text-qb-text-secondary hover:bg-qb-bg"
-              }`}
-            >
-              {DATE_SORT_LABELS[sort]}
-            </button>
-          ))}
-        </div>
+        <ExpenseExportButton
+          expenses={expenses}
+          dateSort={dateSort}
+          className="rounded-lg border border-qb-border bg-qb-bg/60 p-3"
+        />
       </div>
 
       <p className="border-b border-qb-border-light px-4 py-2 text-xs text-qb-text-muted lg:px-5">
@@ -494,7 +485,7 @@ export function ExpenseList({
         {groupMode === "billable" &&
           "Grouped by billable status. Approve receipts before sending to accounting."}
         {groupMode === "date" &&
-          "Flat list sorted by receipt date. Switch newest or oldest first above."}
+          "Flat list sorted by receipt date using the sort control above."}
       </p>
 
       <div>
