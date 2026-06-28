@@ -5,7 +5,7 @@ import {
 } from "@/lib/work-order";
 import type { BillableStatus, Expense } from "@/lib/types";
 
-export type ExpenseGroupMode = "month" | "card" | "billable" | "date" | "workorder";
+export type ExpenseGroupMode = "month" | "billable" | "date" | "workorder";
 
 export type ExpenseDateSort = "newest" | "oldest";
 
@@ -321,8 +321,6 @@ export function groupExpenses(
   switch (mode) {
     case "month":
       return groupExpensesByMonth(expenses, sort);
-    case "card":
-      return groupExpensesByCard(expenses, sort);
     case "billable":
       return groupExpensesByBillable(expenses, sort);
     case "date":
@@ -334,7 +332,6 @@ export function groupExpenses(
 
 export const GROUP_MODE_LABELS: Record<ExpenseGroupMode, string> = {
   month: "Month",
-  card: "Card",
   billable: "Billable",
   date: "Date",
   workorder: "Work order",

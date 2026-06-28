@@ -1,6 +1,7 @@
 "use client";
 
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { SidebarCardFolders } from "@/components/SidebarCardFolders";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Expense } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
@@ -15,6 +16,8 @@ import {
 interface LiveDashboardProps {
   expenses: Expense[];
 }
+
+type SidebarPanel = "feed" | "cards";
 
 function formatScanTime(iso: string): string {
   const date = new Date(iso);
@@ -35,6 +38,7 @@ function formatScanTime(iso: string): string {
 export function LiveDashboard({ expenses }: LiveDashboardProps) {
   const prevCountRef = useRef(expenses.length);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [sidebarPanel, setSidebarPanel] = useState<SidebarPanel>("feed");
 
   useEffect(() => {
     if (expenses.length > prevCountRef.current && expenses[0]) {
@@ -96,9 +100,42 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
             {expenses.length} scan{expenses.length === 1 ? "" : "s"}
           </p>
         </div>
+
+        <div
+          className="mt-4 flex gap-1 rounded-lg bg-qb-bg p-1"
+          role="tablist"
+          aria-label="Live feed sidebar panels"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={sidebarPanel === "feed"}
+            onClick={() => setSidebarPanel("feed")}
+            className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
+              sidebarPanel === "feed"
+                ? "bg-qb-surface text-qb-text shadow-sm"
+                : "text-qb-text-secondary hover:text-qb-text"
+            }`}
+          >
+            Live Feed
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={sidebarPanel === "cards"}
+            onClick={() => setSidebarPanel("cards")}
+            className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
+              sidebarPanel === "cards"
+                ? "bg-qb-surface text-qb-text shadow-sm"
+                : "text-qb-text-secondary hover:text-qb-text"
+            }`}
+          >
+            Cards
+          </button>
+        </div>
       </div>
 
-      {categoryCounts.length > 0 && (
+      {sidebarPanel === "feed" && categoryCounts.length > 0 && (
         <div className="border-b border-qb-border-light px-5 py-3">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-qb-text-muted">
             Expense Types
@@ -128,7 +165,9 @@ export function LiveDashboard({ expenses }: LiveDashboardProps) {
       )}
 
       <div className="flex-1 overflow-y-auto">
-        {expenses.length === 0 ? (
+        {sidebarPanel === "cards" ? (
+          <SidebarCardFolders expenses={expenses} />
+        ) : expenses.length === 0 ? (
           <div className="flex flex-col items-center px-5 py-10 text-center">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-qb-bg">
               <IconReceipt className="h-6 w-6 text-qb-text-muted" />
