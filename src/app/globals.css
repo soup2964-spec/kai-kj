@@ -398,3 +398,213 @@ body {
   height: 1px;
   opacity: 0.001;
 }
+
+/* Better Stack–inspired marketing landing */
+.landing-page {
+  font-family: var(--font-landing), "Helvetica Now Text", Inter, system-ui, sans-serif;
+  color: #c9d3ee;
+}
+
+.landing-hero-heading {
+  background: linear-gradient(180deg, #ffffff 0%, #c9d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-section-heading {
+  background: linear-gradient(180deg, #ffffff 35%, #98a4f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-cta-btn {
+  background: linear-gradient(180deg, #98a4f7 0%, #5b63d3 100%);
+  box-shadow:
+    0px -1px 2px 0px rgba(20, 72, 203, 0.48) inset,
+    0px 0px 0px 1px rgba(34, 90, 234, 0.16),
+    0px 8px 16px -8px rgba(34, 90, 234, 0.64),
+    0px 4px 4px 0px rgba(0, 0, 0, 0.06);
+}
+
+.landing-separator {
+  border: 0;
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      rgba(114, 125, 161, 0) 0%,
+      rgba(114, 125, 161, 0.25) 50%,
+      rgba(114, 125, 161, 0) 100%
+    )
+    1;
+}
+
+.landing-customers-scroll {
+  animation: landing-marquee 40s linear infinite;
+  width: max-content;
+}
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.landing-carousel-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.landing-carousel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.landing-mock-ui {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(152, 164, 247, 0.18), transparent 45%),
+    linear-gradient(180deg, rgba(15, 16, 26, 0.2) 0%, rgba(15, 16, 26, 0.95) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 24px,
+      rgba(114, 125, 161, 0.06) 24px,
+      rgba(114, 125, 161, 0.06) 25px
+    );
+}
+
+.landing-hero-mock {
+  background:
+    radial-gradient(circle at top right, rgba(152, 164, 247, 0.2), transparent 50%),
+    #0f101a;
+}
+
+.homepage-heading-gradient,
+.landing-hero-heading {
+  background: linear-gradient(180deg, #ffffff 0%, #c9d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logs-text,
+.landing-section-heading {
+  background: linear-gradient(180deg, #ffffff 35%, #98a4f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cta-button,
+.landing-cta-btn {
+  background: linear-gradient(180deg, #98a4f7 0%, #5b63d3 100%);
+  box-shadow:
+    0px -1px 2px 0px rgba(20, 72, 203, 0.48) inset,
+    0px 0px 0px 1px rgba(34, 90, 234, 0.16),
+    0px 8px 16px -8px rgba(34, 90, 234, 0.64),
+    0px 4px 4px 0px rgba(0, 0, 0, 0.06);
+}
+
+.bg-button-gradient {
+  background: linear-gradient(180deg, #98a4f7 0%, #5b63d3 100%);
+}
+
+.border-separator-gradient,
+.landing-separator {
+  border: 0;
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      rgba(114, 125, 161, 0) 0%,
+      rgba(114, 125, 161, 0.25) 50%,
+      rgba(114, 125, 161, 0) 100%
+    )
+    1;
+}
+
+.customers-scroll,
+.landing-customers-scroll {
+  animation: landing-marquee 40s linear infinite;
+  width: max-content;
+}
+
+.no-scrollbars,
+.landing-carousel-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbars::-webkit-scrollbar,
+.landing-carousel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.font-helveticaDisplay {
+  font-family: var(--font-landing), "Helvetica Now Display", Inter, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.helvetica {
+  font-family: var(--font-landing), "Helvetica Now Text", Inter, system-ui, sans-serif;
+}
+
+.text-brand-primary-90 {
+  color: #98a4f7;
+}
+
+.bg-flare-hero {
+  background: radial-gradient(ellipse at top, rgba(152, 164, 247, 0.12), transparent 60%);
+}
+
+.bg-market-presence {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(152, 164, 247, 0.08), transparent 50%),
+    #0b0c14;
+}
+
+.bg-market-presence-sm {
+  background: radial-gradient(circle at center, rgba(152, 164, 247, 0.15), transparent 70%);
+}
+
+.mask-gradient-to-l {
+  mask-image: linear-gradient(to left, transparent, black);
+}
+
+.mask-gradient-to-r {
+  mask-image: linear-gradient(to right, transparent, black);
+}
+
+.pt-30 {
+  padding-top: 7.5rem;
+}
+
+.pt-38 {
+  padding-top: 9.5rem;
+}
+
+.-left-50 {
+  left: -12.5rem;
+}
+
+.top-13 {
+  top: 3.25rem;
+}
+
+.gap-x-4\.5 {
+  column-gap: 1.125rem;
+}
+
+.h-6\.5 {
+  height: 1.625rem;
+}
+
+.w-6\.5 {
+  width: 1.625rem;
+}
+
+.duration-400 {
+  transition-duration: 400ms;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { BulkUpload } from "@/components/BulkUpload";
+import { AuthNav } from "@/components/AuthNav";
 import { ExpenseList } from "@/components/ExpenseList";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { LiveDashboard } from "@/components/LiveDashboard";
@@ -46,9 +47,12 @@ export function HomePage() {
                 Welcome back — scan and track your expenses
               </p>
             </div>
-            <span className="rounded border border-qb-border bg-qb-bg px-2.5 py-1 text-xs font-semibold text-qb-text-secondary">
-              Beta
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="rounded border border-qb-border bg-qb-bg px-2.5 py-1 text-xs font-semibold text-qb-text-secondary">
+                Beta
+              </span>
+              <AuthNav variant="dashboard" />
+            </div>
           </div>
         </header>
 
