@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SITE_LOGO_ALT, SITE_LOGO_SVG } from "./constants";
+import { SITE_LOGO_ALT, SITE_LOGO_SVG, SITE_NAME } from "./constants";
 
 type LandingLogoProps = {
   className?: string;
@@ -18,7 +18,14 @@ export function LandingLogo({ className = "", linkToHome = true }: LandingLogoPr
       unoptimized={SITE_LOGO_SVG.startsWith("http")}
     />
   ) : (
-    <span className={`inline-block h-[21px] w-[154px] ${className}`} aria-hidden />
+    <span
+      className={`inline-flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--cb-dark)] ${className}`}
+    >
+      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--cb-primary)] text-xs font-bold text-white">
+        KJ
+      </span>
+      {SITE_NAME}
+    </span>
   );
 
   if (linkToHome) {
