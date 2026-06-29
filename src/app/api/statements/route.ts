@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiErrorMessage, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   detectStatementSourceType,
   parseStatementFile,
@@ -58,7 +59,7 @@ function localUploadFallback(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not load statements.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }
@@ -88,7 +89,10 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file");
-    const ownerId = parseOwnerId(formData.get("ownerId"));
+    const incomingOwnerId = formData.get("ownerId");
+    const ownerId = await requireOwnerId(
+      typeof incomingOwnerId === "string" ? incomingOwnerId : null,
+    );
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Missing statement file." }, { status: 400 });
@@ -149,7 +153,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not parse statement.") },
-      { status: 500 },
+      { status: authErrorStatus(error) },
     );
   }
 }

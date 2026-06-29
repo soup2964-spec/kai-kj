@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { exportExpenseToAccounting } from "@/lib/accounting-export";
-import { apiErrorMessage, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   fetchExpenseForOwner,
@@ -24,7 +25,7 @@ export async function POST(
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const decision = parseAccountingDecision(body.decision);
     const supabase = createAdminClient();
 
@@ -86,7 +87,7 @@ export async function POST(
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not update accounting status.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }

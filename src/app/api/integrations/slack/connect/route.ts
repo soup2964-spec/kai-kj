@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseOwnerId } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   buildSlackAuthorizeUrl,
   isSlackOAuthConfigured,
@@ -8,7 +8,7 @@ import {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
 
     if (!isSlackOAuthConfigured()) {
       return NextResponse.json(
@@ -25,6 +25,6 @@ export async function GET(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Could not start Slack connect.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message }, { status: authErrorStatus(error) });
   }
 }

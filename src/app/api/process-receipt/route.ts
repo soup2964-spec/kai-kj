@@ -5,7 +5,7 @@ import {
   type ReceiptAgentState,
 } from "@/lib/agent/receipt-state";
 import { mapAgentStateToExpense } from "@/lib/agent/map-state-to-expense";
-import { parseOwnerId } from "@/lib/expense-api";
+import { requireOwnerId } from "@/lib/auth/server";
 import { runStatementReconciliation } from "@/lib/reconcile-service";
 import type { ScannedReceipt } from "@/lib/types";
 
@@ -87,10 +87,11 @@ export async function POST(request: Request) {
       agentForm.set("extracted_data", JSON.stringify(extracted));
     }
 
-    const ownerId = incoming.get("ownerId");
-    if (typeof ownerId === "string" && ownerId.trim()) {
-      agentForm.set("owner_id", ownerId.trim());
-    }
+    const incomingOwnerId = incoming.get("ownerId");
+    const ownerId = await requireOwnerId(
+      typeof incomingOwnerId === "string" ? incomingOwnerId : null,
+    );
+    agentForm.set("owner_id", ownerId);
 
     const expenseId = incoming.get("expenseId");
     if (typeof expenseId === "string" && expenseId.trim()) {
@@ -128,11 +129,10 @@ export async function POST(request: Request) {
 
     let reconciliation = null;
 
-    if (typeof ownerId === "string" && ownerId.trim()) {
+    if (ownerId) {
       try {
-        const parsedOwnerId = parseOwnerId(ownerId);
         const recon = await runStatementReconciliation({
-          ownerId: parsedOwnerId,
+          ownerId,
           expenseIds: [expense.id],
           expenses: [expense],
         });

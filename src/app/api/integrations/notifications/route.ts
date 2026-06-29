@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiErrorMessage, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   sendEmailViaOwnerSmtp,
   verifyOwnerSmtpConnection,
@@ -60,7 +61,7 @@ function notificationResponse(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
@@ -83,7 +84,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const notifyEmailsRaw = String(body.notifyEmails ?? body.emails ?? "").trim();
     const hasSmtpFields =
       body.smtpHost != null ||
@@ -191,7 +192,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
     const target = searchParams.get("target");
 
     if (target !== "smtp") {
@@ -218,7 +219,7 @@ export async function DELETE(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const supabase = createAdminClient();
     const integration = await fetchOwnerIntegrations(supabase, ownerId);
     const smtp = ownerSmtpFromIntegration(integration ?? {

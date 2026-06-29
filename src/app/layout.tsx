@@ -1,3 +1,4 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import { sourceSans } from "@/lib/fonts";
 import { landingFont } from "@/lib/landing-fonts";
@@ -45,6 +46,8 @@ export default function RootLayout({
       lang="en"
       className={`${sourceSans.variable} ${landingFont.variable} ios-html h-full`}
       suppressHydrationWarning
-    ><body className="ios-body min-h-dvh flex flex-col font-sans antialiased">{children}</body></html>
+    ><body className="ios-body min-h-dvh flex flex-col font-sans antialiased">
+        <ClerkProvider>{children}</ClerkProvider>
+      </body></html>
   );
 }

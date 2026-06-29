@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiErrorMessage, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import { runStatementReconciliation } from "@/lib/reconcile-service";
 import type { Expense } from "@/lib/types";
 import type { StatementTransaction } from "@/lib/statement-types";
@@ -7,7 +8,7 @@ import type { StatementTransaction } from "@/lib/statement-types";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const expenseIds = Array.isArray(body.expenseIds)
       ? body.expenseIds.filter((id: unknown): id is string => typeof id === "string")
       : undefined;
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not reconcile statements.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }

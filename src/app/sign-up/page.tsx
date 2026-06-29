@@ -8,7 +8,7 @@ import { SignInForm } from "@/components/auth/SignInForm";
 import { LandingLogo } from "@/components/landing/LandingLogo";
 import { landingFont } from "@/lib/landing-fonts";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
 
@@ -36,7 +36,7 @@ export default function SignInPage() {
 
       <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
         <div className="w-full max-w-[420px] rounded-2xl border border-[var(--cb-border)] bg-white p-6 shadow-xl sm:p-8">
-          <SignInForm mode="sign-in" />
+          <SignInForm mode="sign-up" />
         </div>
       </main>
     </div>

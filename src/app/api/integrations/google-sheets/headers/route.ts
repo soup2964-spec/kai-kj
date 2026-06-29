@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiErrorMessage, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import { ccTabName, readTabHeaderRow } from "@/lib/google-sheets-ledger";
 import {
   resolveCcLedgerLayout,
@@ -13,7 +14,7 @@ import {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
     const tabInput = searchParams.get("tab")?.trim();
     const cardLastFour = searchParams.get("cardLastFour")?.trim() || null;
 

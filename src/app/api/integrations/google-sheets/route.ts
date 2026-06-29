@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiErrorMessage, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   googleSpreadsheetUrl,
   parseGoogleSpreadsheetId,
@@ -75,7 +76,7 @@ function integrationResponse(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
@@ -109,7 +110,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const rawInput = String(body.spreadsheetUrl ?? body.spreadsheetId ?? "").trim();
 
     if (!rawInput) {
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const layoutConfig = mergeSheetsLayoutConfig(body.layoutConfig);
     const layoutErrors = validateSheetsLayoutConfig(layoutConfig);
 
@@ -206,7 +207,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({ ownerId, disconnected: true, localOnly: true });

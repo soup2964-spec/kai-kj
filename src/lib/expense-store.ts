@@ -1,7 +1,7 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
-import { getAccountEmail } from "./account-id";
 import { normalizeAccountingFields } from "./accounting-fields";
 import { normalizeCreditCardReconcileFields } from "./credit-card-reconcile-fields";
 import { normalizeBillableFields } from "./billable-engine";
@@ -149,13 +149,15 @@ function replaceExpense(expenses: Expense[], updated: Expense) {
 }
 
 export function useExpenses() {
+  const { user } = useUser();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [accountingBusyId, setAccountingBusyId] = useState<string | null>(null);
-  const [accountEmail, setAccountEmailState] = useState<string | null>(() =>
-    typeof window === "undefined" ? null : getAccountEmail(),
-  );
+  const accountEmail =
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses[0]?.emailAddress ??
+    null;
 
   const loadExpenses = useCallback(async () => {
     const localExpenses = readExpenses();
@@ -189,7 +191,6 @@ export function useExpenses() {
   }, [loadExpenses]);
 
   const refreshAccount = useCallback(async () => {
-    setAccountEmailState(getAccountEmail());
     setLoaded(false);
     await loadExpenses();
   }, [loadExpenses]);
