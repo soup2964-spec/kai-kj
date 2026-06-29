@@ -246,6 +246,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      support_complaints: {
+        Row: {
+          id: string;
+          owner_id: string;
+          subject: string;
+          message: string;
+          status: "open" | "resolved";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          subject: string;
+          message: string;
+          status?: "open" | "resolved";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          subject?: string;
+          message?: string;
+          status?: "open" | "resolved";
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

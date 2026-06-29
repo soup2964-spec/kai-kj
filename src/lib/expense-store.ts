@@ -22,6 +22,7 @@ import {
 } from "./expense-sync";
 import { reconcileStatementsRemote } from "./statement-sync";
 import { normalizeLineItems } from "./receipt-line-items";
+import { emitLiveFeedEvent } from "./live-feed/store";
 import type {
   BillableStatus,
   Expense,
@@ -232,6 +233,17 @@ export function useExpenses() {
             ? error.message
             : "Could not save receipt to Supabase.",
         );
+      });
+
+      emitLiveFeedEvent({
+        kind: "expense_saved",
+        message: `Saved expense — ${expense.merchant}`,
+        expenseId: expense.id,
+        meta: {
+          merchant: expense.merchant,
+          amount: expense.amount,
+          inboxStatus: expense.inboxStatus,
+        },
       });
 
       return expense;

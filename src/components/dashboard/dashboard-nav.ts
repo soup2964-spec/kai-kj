@@ -2,8 +2,10 @@ import {
   IconCamera,
   IconDashboard,
   IconExpenses,
+  IconLiveFeed,
   IconSpark,
   IconStatement,
+  IconSupport,
 } from "@/components/icons";
 
 export type DashboardNavItem = {
@@ -17,8 +19,14 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   {
     href: "/dashboard",
     label: "Overview",
-    description: "Summary and quick actions",
+    description: "Summary of your receipts and activity",
     icon: IconDashboard,
+  },
+  {
+    href: "/dashboard/live-feed",
+    label: "Live feed",
+    description: "Track agent activity and pending expenses in real time",
+    icon: IconLiveFeed,
   },
   {
     href: "/dashboard/scan",
@@ -43,6 +51,12 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     label: "Expenses",
     description: "All saved receipts",
     icon: IconExpenses,
+  },
+  {
+    href: "/dashboard/support",
+    label: "Support",
+    description: "Submit complaints and view your support inbox",
+    icon: IconSupport,
   },
 ];
 

@@ -2,9 +2,8 @@
 
 import { AuthNav } from "@/components/AuthNav";
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { getDashboardPageMeta } from "@/components/dashboard/dashboard-nav";
-import { LiveDashboard } from "@/components/LiveDashboard";
-import { MobileLiveFeed } from "@/components/MobileLiveFeed";
 import { useExpenseContext } from "@/lib/expense-context";
 import { usePathname } from "next/navigation";
 
@@ -12,7 +11,7 @@ const MAIN_CONTENT_CLASS = "dashboard-gutter mx-auto w-full max-w-3xl";
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { expenses, loaded, syncError } = useExpenseContext();
+  const { loaded, syncError } = useExpenseContext();
   const { title, description } = getDashboardPageMeta(pathname);
 
   if (!loaded) {
@@ -25,10 +24,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="ios-shell flex min-h-dvh flex-col lg:flex-row">
-      <MobileLiveFeed expenses={expenses} />
-
       <div className="hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-72 lg:shrink-0 xl:w-80">
-        <LiveDashboard expenses={expenses} />
+        <DashboardSidebar />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { NAV_INTEGRATION_LINKS, NAV_PRODUCT_LINKS } from "./constants";
 import { LandingLogo } from "./LandingLogo";
 
@@ -45,7 +44,6 @@ function NavDropdown({
 
 export function LandingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { openSignIn } = useAuthModal();
 
   return (
     <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
@@ -100,13 +98,12 @@ export function LandingHeader() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={openSignIn}
+          <Link
+            href="/sign-in"
             className="hidden text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)] sm:inline"
           >
             Sign in
-          </button>
+          </Link>
           <Link href="/dashboard/scan" className="cb-btn-primary">
             Try Moodna
           </Link>
@@ -173,16 +170,13 @@ export function LandingHeader() {
           >
             FAQ
           </Link>
-          <button
-            type="button"
-            className="mt-4 block py-2.5 text-left text-sm font-medium text-[var(--cb-muted)]"
-            onClick={() => {
-              setMobileOpen(false);
-              openSignIn();
-            }}
+          <Link
+            href="/sign-in"
+            className="mt-4 block py-2.5 text-sm font-medium text-[var(--cb-muted)]"
+            onClick={() => setMobileOpen(false)}
           >
             Sign in
-          </button>
+          </Link>
           <Link
             href="/dashboard/scan"
             className="cb-btn-primary mt-3 w-full"

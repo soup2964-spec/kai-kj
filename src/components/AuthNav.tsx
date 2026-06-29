@@ -15,7 +15,7 @@ export function AuthNav({ variant = "landing" }: AuthNavProps) {
 
   return (
     <>
-      <Link href="/dashboard" className="qb-btn-ghost text-sm">
+      <Link href="/sign-in" className="qb-btn-ghost text-sm">
         Sign in
       </Link>
       <Link href="/dashboard" className="qb-btn-primary text-sm">

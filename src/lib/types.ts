@@ -97,3 +97,13 @@ export interface Expense extends ScannedReceipt, AccountingFields, CreditCardRec
   vendorName?: string | null;
   duplicateOfId?: string | null;
 }
+
+export type SupportComplaintStatus = "open" | "resolved";
+
+export interface SupportComplaint {
+  id: string;
+  subject: string;
+  message: string;
+  status: SupportComplaintStatus;
+  createdAt: string;
+}

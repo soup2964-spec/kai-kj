@@ -59,7 +59,7 @@ export const FEATURE_ROWS = [
     description:
       "Every receipt lands in card folders with nested month dropdowns. Browse by purchase date, billable status, or AppFolio work order without digging through spreadsheets.",
     primaryCta: { label: "Open folders", href: "/dashboard/expenses" },
-    secondaryCta: { label: "See live feed", href: "/dashboard" },
+    secondaryCta: { label: "See live feed", href: "/dashboard/live-feed" },
     videoLabel: "Card folder organization",
     reverse: true,
     icon: "folders",
