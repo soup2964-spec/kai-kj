@@ -29,7 +29,7 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   {
     href: "/dashboard/agent",
     label: "Agent",
-    description: "Sheets export, alerts, and full pipeline",
+    description: "Connect integrations and enable the receipt agent",
     icon: IconSpark,
   },
   {

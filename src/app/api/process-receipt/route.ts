@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { mergeScanWithAgent } from "@/lib/agent/merge-scan-with-agent";
 import {
   parseReceiptAgentResult,
   type ReceiptAgentState,
@@ -6,6 +7,7 @@ import {
 import { mapAgentStateToExpense } from "@/lib/agent/map-state-to-expense";
 import { parseOwnerId } from "@/lib/expense-api";
 import { runStatementReconciliation } from "@/lib/reconcile-service";
+import type { ScannedReceipt } from "@/lib/types";
 
 const AGENT_SERVICE_URL = process.env.AGENT_SERVICE_URL?.trim();
 
@@ -35,11 +37,21 @@ async function forwardToAgentService(
   return data as ReceiptAgentState;
 }
 
+function parseExtractedPayload(raw: FormDataEntryValue | null): ScannedReceipt | null {
+  if (typeof raw !== "string" || !raw.trim()) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as ScannedReceipt;
+  } catch {
+    throw new Error("Invalid extracted receipt payload.");
+  }
+}
+
 /**
- * Full LangGraph receipt pipeline.
- *
- * Requires AGENT_SERVICE_URL pointing at the Python agent (agent/README.md).
- * Returns agent state + mapped Expense for the dashboard.
+ * Run the LangGraph workflow on pre-extracted receipt data from /api/scan-receipt.
+ * KIE OCR runs once in scan-receipt; this route orchestrates billable/WO/Sheets/reconcile.
  */
 export async function POST(request: Request) {
   if (!AGENT_SERVICE_URL) {
@@ -56,17 +68,33 @@ export async function POST(request: Request) {
   try {
     const incoming = await request.formData();
     const file = incoming.get("image");
+    const extracted = parseExtractedPayload(incoming.get("extracted"));
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "Missing receipt image." }, { status: 400 });
+    if (!extracted && !(file instanceof File)) {
+      return NextResponse.json(
+        { error: "Missing extracted receipt data or receipt image." },
+        { status: 400 },
+      );
     }
 
     const agentForm = new FormData();
-    agentForm.set("image", file);
+
+    if (file instanceof File) {
+      agentForm.set("image", file);
+    }
+
+    if (extracted) {
+      agentForm.set("extracted_data", JSON.stringify(extracted));
+    }
 
     const ownerId = incoming.get("ownerId");
     if (typeof ownerId === "string" && ownerId.trim()) {
       agentForm.set("owner_id", ownerId.trim());
+    }
+
+    const expenseId = incoming.get("expenseId");
+    if (typeof expenseId === "string" && expenseId.trim()) {
+      agentForm.set("expense_id", expenseId.trim());
     }
 
     const hints = incoming.get("vendorWorkOrderHints");
@@ -82,27 +110,35 @@ export async function POST(request: Request) {
     const state = await forwardToAgentService(agentForm);
     const result = parseReceiptAgentResult(state);
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const receiptImage = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
+    let receiptImage: string | undefined;
+    if (file instanceof File) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      receiptImage = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
+    }
 
-    const expense = mapAgentStateToExpense(state, { receiptImage });
+    let expense = extracted
+      ? mergeScanWithAgent(extracted, state, {
+          expenseId:
+            typeof expenseId === "string" && expenseId.trim()
+              ? expenseId.trim()
+              : undefined,
+          receiptImage,
+        })
+      : mapAgentStateToExpense(state, { receiptImage });
 
-    let reconciledExpense = expense;
     let reconciliation = null;
 
-    const ownerIdRaw = incoming.get("ownerId");
-    if (typeof ownerIdRaw === "string" && ownerIdRaw.trim()) {
+    if (typeof ownerId === "string" && ownerId.trim()) {
       try {
-        const ownerId = parseOwnerId(ownerIdRaw);
+        const parsedOwnerId = parseOwnerId(ownerId);
         const recon = await runStatementReconciliation({
-          ownerId,
+          ownerId: parsedOwnerId,
           expenseIds: [expense.id],
           expenses: [expense],
         });
         reconciliation = recon.summary;
-        reconciledExpense =
-          recon.updatedExpenses.find((item) => item.id === expense.id) ??
-          expense;
+        expense =
+          recon.updatedExpenses.find((item) => item.id === expense.id) ?? expense;
       } catch {
         // Reconciliation is best-effort during agent processing.
       }
@@ -110,7 +146,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       agent: result,
-      expense: reconciledExpense,
+      expense,
       reconciliation,
     });
   } catch (error) {

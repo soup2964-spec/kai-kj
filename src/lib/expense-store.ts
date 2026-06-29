@@ -200,14 +200,18 @@ export function useExpenses() {
 
   const addExpense = useCallback(
     (scan: ScannedReceipt, receiptImage?: string) => {
+      const workflow = scan as Partial<Expense>;
       const expense: Expense = normalizeExpense({
         ...scan,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        receiptImage,
-        accountingStatus: "pending",
-        inboxStatus: "new",
-        reconciliationStatus: "unmatched",
+        id: workflow.id ?? crypto.randomUUID(),
+        createdAt: workflow.createdAt ?? new Date().toISOString(),
+        receiptImage: receiptImage ?? workflow.receiptImage,
+        accountingStatus: workflow.accountingStatus ?? "pending",
+        inboxStatus: workflow.inboxStatus ?? "new",
+        reconciliationStatus: workflow.reconciliationStatus ?? "unmatched",
+        creditCardReconciled: workflow.creditCardReconciled,
+        statementTransactionId: workflow.statementTransactionId,
+        reconciledAt: workflow.reconciledAt,
       });
 
       const next = [expense, ...readExpenses()];

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IconCheck, IconX } from "@/components/icons";
 import { useGoogleSheetsIntegration } from "@/lib/integrations-store";
 
-export function GoogleSheetsConnectCard() {
+export function GoogleSheetsConnectCard({ embedded = false }: { embedded?: boolean }) {
   const { status, loaded, error, saving, connect, disconnect } =
     useGoogleSheetsIntegration();
   const [input, setInput] = useState("");
@@ -37,18 +37,9 @@ export function GoogleSheetsConnectCard() {
   const connected = status?.connected ?? false;
   const unavailable = Boolean(loaded && status && !status.platformSheetsAvailable);
 
-  return (
-    <section className="qb-card overflow-hidden">
-      <div className="qb-card-header">
-        <h2 className="qb-section-title">Connect Google Sheets</h2>
-        <p className="qb-section-desc">
-          Link your CC ledger spreadsheet so the receipt agent can write
-          transactions to your account
-        </p>
-      </div>
-
-      <div className="qb-card-body space-y-4">
-        {unavailable ? (
+  const content = (
+    <>
+      {unavailable ? (
           <div className="rounded-lg border border-qb-border bg-qb-bg px-3 py-2.5 text-sm text-qb-text-secondary">
             Google Sheets export is not enabled on this deployment. Your admin
             needs to configure the service account.
@@ -139,7 +130,23 @@ export function GoogleSheetsConnectCard() {
             <span>{displayError}</span>
           </div>
         ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="space-y-4">{content}</div>;
+  }
+
+  return (
+    <section className="qb-card overflow-hidden">
+      <div className="qb-card-header">
+        <h2 className="qb-section-title">Connect Google Sheets</h2>
+        <p className="qb-section-desc">
+          Link your CC ledger spreadsheet so the receipt agent can write
+          transactions to your account
+        </p>
       </div>
+      <div className="qb-card-body space-y-4">{content}</div>
     </section>
   );
 }

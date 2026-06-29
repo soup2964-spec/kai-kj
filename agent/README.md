@@ -5,7 +5,7 @@ Implements the **agent framework flowchart** (`Downloads/agent framework.png`) f
 ## Flowchart (implemented 1:1)
 
 ```
-Receipt Received (OCR)
+Receipt Received (pre-extracted Moodna scan, or OCR fallback)
         │
     Billable?
     ┌───┴───┐
@@ -52,7 +52,7 @@ Environment (from kai-kj root `.env.local`):
 
 | Variable | Purpose |
 |----------|---------|
-| `KIE_API_KEY` | Cheap OCR extraction (required) |
+| `KIE_API_KEY` | OCR fallback for image-only agent runs (optional when extracted data is sent) |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Platform service account (Next.js app) |
 | `GOOGLE_SHEET_APPEND_URL` | Legacy webhook fallback for sheet append |
 | `KAI_KJ_API_URL` | Next.js — Sheets, reconcile, per-user `/api/agent/notify-work-order` |
@@ -68,10 +68,16 @@ kai-agent-serve          # HTTP on :8000
 kai-agent receipt.jpg      # CLI test
 ```
 
-Next.js: set `AGENT_SERVICE_URL=http://localhost:8000` and `POST /api/process-receipt`.
+Next.js: set `AGENT_SERVICE_URL=http://localhost:8000`.
+
+1. `POST /api/scan-receipt` — KIE OCR once (always)
+2. `POST /api/process-receipt` — agent workflow on extracted JSON (+ optional image for storage)
+
+The Python `/process-receipt` endpoint accepts `extracted_data` (ScannedReceipt JSON) and skips KIE when present.
 
 ## Shared with Next.js
 
-- OCR prompts: same as `src/lib/kie.ts`
+- OCR prompts: `src/lib/kie.ts` (used by `/api/scan-receipt` only in the app flow)
 - Billable rules: `src/config/billable-rules.json`
 - Work order format: AppFolio `xx-xxxx`
+- Statement lines: parsed once on upload in Next.js, consumed during agent reconciliation

@@ -11,7 +11,7 @@ import { SMTP_PRESETS } from "@/lib/smtp-config";
 
 type SmtpPresetKey = keyof typeof SMTP_PRESETS;
 
-export function NotifyConnectCard() {
+export function NotifyConnectCard({ embedded = false }: { embedded?: boolean }) {
   const searchParams = useSearchParams();
   const {
     status,
@@ -136,17 +136,8 @@ export function NotifyConnectCard() {
   const slackReady = status?.slackOAuthAvailable ?? false;
   const smtpConnected = status?.smtpConnected ?? false;
 
-  return (
-    <section className="qb-card overflow-hidden">
-      <div className="qb-card-header">
-        <h2 className="qb-section-title">Work order alerts</h2>
-        <p className="qb-section-desc">
-          When a billable receipt has no work order, Moodna notifies your team
-          immediately (ORANGE in Google Sheets).
-        </p>
-      </div>
-
-      <div className="qb-card-body space-y-4">
+  const content = (
+    <>
         <div className="rounded-lg border border-qb-border bg-qb-bg px-3 py-3 space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -379,7 +370,23 @@ export function NotifyConnectCard() {
             <span>{displayError}</span>
           </div>
         ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="space-y-4">{content}</div>;
+  }
+
+  return (
+    <section className="qb-card overflow-hidden">
+      <div className="qb-card-header">
+        <h2 className="qb-section-title">Work order alerts</h2>
+        <p className="qb-section-desc">
+          When a billable receipt has no work order, Moodna notifies your team
+          immediately (ORANGE in Google Sheets).
+        </p>
       </div>
+      <div className="qb-card-body space-y-4">{content}</div>
     </section>
   );
 }

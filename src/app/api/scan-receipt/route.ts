@@ -13,10 +13,12 @@ export async function POST(request: Request) {
 
   let imageBase64: string;
   let mimeType = "image/jpeg";
+  let scanMode: "default" | "bulk" = "default";
 
   try {
     const formData = await request.formData();
     const file = formData.get("image");
+    const incomingScanMode = formData.get("scanMode");
 
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -26,6 +28,9 @@ export async function POST(request: Request) {
     }
 
     mimeType = file.type || mimeType;
+    if (incomingScanMode === "bulk") {
+      scanMode = "bulk";
+    }
     const buffer = Buffer.from(await file.arrayBuffer());
     imageBase64 = buffer.toString("base64");
   } catch {
@@ -36,7 +41,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const extracted = await scanReceiptWithKie(apiKey, imageBase64, mimeType);
+    const extracted = await scanReceiptWithKie(apiKey, imageBase64, mimeType, {
+      scanMode,
+    });
     const result = evaluateAndApplyBillable(extracted);
     return NextResponse.json(result);
   } catch (error) {

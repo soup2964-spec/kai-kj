@@ -19,7 +19,7 @@ function previewTabName(pattern: string, sampleCard = "1234"): string {
     .replace(/\{card\}/gi, sampleCard);
 }
 
-export function GoogleSheetsLayoutMapper() {
+export function GoogleSheetsLayoutMapper({ embedded = false }: { embedded?: boolean }) {
   const { status, saving, saveLayout } = useGoogleSheetsIntegration();
   const [layout, setLayout] = useState<SheetsLayoutConfig | null>(null);
   const [tabSample, setTabSample] = useState("1234");
@@ -37,6 +37,13 @@ export function GoogleSheetsLayoutMapper() {
   }, [status?.layoutConfig]);
 
   if (!status?.connected || !layout) {
+    if (embedded) {
+      return (
+        <div className="rounded-lg border border-dashed border-qb-border bg-qb-bg px-4 py-3 text-sm text-qb-text-secondary">
+          Connect Google Sheets in step 1 to map your columns here.
+        </div>
+      );
+    }
     return null;
   }
 
@@ -103,17 +110,8 @@ export function GoogleSheetsLayoutMapper() {
     }
   }
 
-  return (
-    <section className="qb-card overflow-hidden">
-      <div className="qb-card-header">
-        <h2 className="qb-section-title">Map your existing sheet</h2>
-        <p className="qb-section-desc">
-          Tell Moodna which columns in your spreadsheet match each receipt field.
-          Required: Expense ID and Sheet status (ORANGE/GREEN).
-        </p>
-      </div>
-
-      <div className="qb-card-body space-y-4">
+  const content = (
+    <>
         {!status.layoutConfigured ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
             Column mapping is not saved yet. Read headers from one of your tabs
@@ -291,7 +289,23 @@ export function GoogleSheetsLayoutMapper() {
             <span>{localError}</span>
           </div>
         ) : null}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="space-y-4">{content}</div>;
+  }
+
+  return (
+    <section className="qb-card overflow-hidden">
+      <div className="qb-card-header">
+        <h2 className="qb-section-title">Map your existing sheet</h2>
+        <p className="qb-section-desc">
+          Tell Moodna which columns in your spreadsheet match each receipt field.
+          Required: Expense ID and Sheet status (ORANGE/GREEN).
+        </p>
       </div>
+      <div className="qb-card-body space-y-4">{content}</div>
     </section>
   );
 }

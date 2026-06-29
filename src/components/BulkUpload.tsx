@@ -11,7 +11,9 @@ import {
   expandFilesForBulkUpload,
 } from "@/lib/bulk-upload-files";
 import {
+  BULK_SCAN_CONCURRENCY,
   MAX_BULK_UPLOAD,
+  runWithConcurrency,
   scanReceiptFile,
 } from "@/lib/scan-receipt-client";
 
@@ -106,12 +108,10 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
     }
 
     setProcessing(true);
+    let completed = 0;
 
-    for (let i = 0; i < scannable.length; i++) {
-      const item = scannable[i];
-      if (!item.file) continue;
-
-      setCurrentIndex(i + 1);
+    await runWithConcurrency(scannable, BULK_SCAN_CONCURRENCY, async (item) => {
+      if (!item.file) return;
 
       setQueue((current) =>
         current.map((entry) =>
@@ -120,8 +120,12 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
       );
 
       try {
-        const { result, thumbnailUrl } = await scanReceiptFile(item.file);
+        const { result, thumbnailUrl } = await scanReceiptFile(item.file, {
+          scanMode: "bulk",
+        });
         onScanComplete(result, thumbnailUrl);
+        completed += 1;
+        setCurrentIndex(completed);
         setQueue((current) =>
           current.map((entry) =>
             entry.id === item.id
@@ -130,6 +134,8 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
           ),
         );
       } catch (err) {
+        completed += 1;
+        setCurrentIndex(completed);
         setQueue((current) =>
           current.map((entry) =>
             entry.id === item.id
@@ -143,7 +149,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
           ),
         );
       }
-    }
+    });
 
     setProcessing(false);
     if (inputRef.current) inputRef.current.value = "";
@@ -200,7 +206,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
                 {preparing
                   ? "Preparing files…"
                   : processing
-                    ? `Processing ${currentIndex} of ${progressTotal}…`
+                    ? `Processing ${currentIndex} of ${progressTotal} (${BULK_SCAN_CONCURRENCY} at a time)…`
                     : `Finished — ${doneCount} saved${errorCount ? `, ${errorCount} failed` : ""}`}
               </p>
               {!processing && !preparing && (

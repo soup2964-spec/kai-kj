@@ -25,6 +25,7 @@ from kai_agent.services.integrations import (
     store_receipt_in_monthly_folder,
     upload_to_quickbooks,
 )
+from kai_agent.extraction import has_prior_extraction
 from kai_agent.services.kie_ocr import scan_receipt_with_kie
 from kai_agent.services.work_order import resolve_work_order_number
 from kai_agent.state import ReceiptState
@@ -53,12 +54,27 @@ def _patch(state: ReceiptState, **updates: Any) -> dict[str, Any]:
 
 
 def receipt_received(state: ReceiptState) -> dict[str, Any]:
-    """OCR extract via cheap Kie LLM (~same cost as existing /api/scan-receipt)."""
+    """Use pre-extracted Moodna scan data, or fall back to KIE for image-only runs."""
+    if has_prior_extraction(state):
+        notes = [
+            *state.notes,
+            f"[receipt_received] Using pre-extracted {state.vendor} ${state.amount:.2f}",
+        ]
+        return _patch(
+            state,
+            current_step="receipt_received",
+            credit_card_tab=state.credit_card_tab or credit_card_tab_name(state.card_last_four),
+            credit_card_account=state.credit_card_account
+            or credit_card_account_name(state.card_last_four),
+            monthly_folder_path=state.monthly_folder_path or monthly_folder_path(state.date),
+            notes=notes,
+        )
+
     api_key = os.environ.get("KIE_API_KEY", "").strip()
     if not api_key:
         raise RuntimeError("KIE_API_KEY is not configured")
     if not state.receipt_image:
-        raise RuntimeError("receipt_image is required")
+        raise RuntimeError("receipt_image is required when extracted receipt data is missing")
 
     extracted = scan_receipt_with_kie(api_key, state.receipt_image, state.receipt_mime_type)
     cc_tab = credit_card_tab_name(extracted.get("card_last_four"))

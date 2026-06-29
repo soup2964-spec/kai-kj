@@ -103,50 +103,63 @@ def scan_receipt_with_kie(
     image_base64: str,
     mime_type: str = "image/jpeg",
 ) -> dict[str, Any]:
-    payload = {
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            "Extract and categorize this receipt. Read the payment section "
-                            "for card details. Look for AppFolio work order (xx-xxxx)."
-                        ),
+    reasoning_efforts = ("high", "medium")
+    parsed: dict[str, Any] | None = None
+    last_error: RuntimeError | None = None
+
+    for effort in reasoning_efforts:
+        payload = {
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "Extract and categorize this receipt. Read the payment section "
+                                "for card details. Look for AppFolio work order (xx-xxxx)."
+                            ),
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:{mime_type};base64,{image_base64}"},
+                        },
+                    ],
+                },
+            ],
+            "stream": False,
+            "reasoning_effort": effort,
+        }
+
+        try:
+            with httpx.Client(timeout=60.0) as client:
+                response = client.post(
+                    KIE_CHAT_URL,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
                     },
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{mime_type};base64,{image_base64}"},
-                    },
-                ],
-            },
-        ],
-        "stream": False,
-        "reasoning_effort": "high",
-    }
+                    json=payload,
+                )
 
-    with httpx.Client(timeout=60.0) as client:
-        response = client.post(
-            KIE_CHAT_URL,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json=payload,
-        )
+            data = response.json()
+            if not response.is_success:
+                message = (data.get("error") or {}).get("message") or f"Kie API error ({response.status_code})"
+                raise RuntimeError(message)
 
-    data = response.json()
-    if not response.is_success:
-        message = (data.get("error") or {}).get("message") or f"Kie API error ({response.status_code})"
-        raise RuntimeError(message)
+            raw = _extract_text_content((data.get("choices") or [{}])[0].get("message", {}).get("content"))
+            if not raw:
+                raise RuntimeError("Empty response from Gemini")
 
-    raw = _extract_text_content((data.get("choices") or [{}])[0].get("message", {}).get("content"))
-    if not raw:
-        raise RuntimeError("Empty response from Gemini")
+            parsed = _parse_json_from_model(raw)
+            break
+        except (RuntimeError, ValueError, json.JSONDecodeError) as exc:
+            last_error = RuntimeError(str(exc))
 
-    parsed = _parse_json_from_model(raw)
+    if parsed is None:
+        raise last_error or RuntimeError("Failed to scan receipt")
+
     receipt_text = _collect_receipt_text(parsed)
 
     if not parsed.get("merchant") or not isinstance(parsed.get("amount"), (int, float)):
