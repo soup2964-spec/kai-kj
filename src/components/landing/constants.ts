@@ -1,11 +1,11 @@
-export const SITE_NAME = "Kai KJ";
+export const SITE_NAME = "Moodna";
 export const SITE_LOGO_SVG: string = "";
-export const SITE_LOGO_ALT = "Kai KJ";
+export const SITE_LOGO_ALT = "Moodna";
 
 export const ANNOUNCEMENT = {
   text: "New: receipt image viewer, card folders, month folders, and purchase-date sorting.",
   href: "/dashboard/scan",
-  linkLabel: "Scan a receipt",
+  linkLabel: "Try Moodna",
 };
 
 export const NAV_PRODUCT_LINKS = [
@@ -37,157 +37,140 @@ export const NAV_INTEGRATION_LINKS = [
   { title: "CSV fallback", href: "/dashboard/expenses" },
 ] as const;
 
-export const BENEFIT_CARDS = [
+export const FEATURE_ROWS = [
   {
-    title: "Capture the paper trail",
+    id: "scan",
+    label: "RECEIPT SCANNING",
+    title: "Upload expenses",
+    highlight: "seamlessly",
     description:
-      "Upload a receipt photo and keep the original image attached for later review.",
-    stat: "Image",
-    statLabel: "viewer included",
+      "Snap a photo or upload a file. Moodna reads merchant, amount, purchase date, card last four, line items, and work orders — then saves the original image for review.",
+    primaryCta: { label: "Try Moodna", href: "/dashboard/scan" },
+    secondaryCta: { label: "View dashboard", href: "/dashboard" },
+    videoLabel: "Receipt scanning demo",
+    reverse: false,
+    icon: "scan",
   },
   {
-    title: "File every receipt automatically",
+    id: "folders",
+    label: "CARD FOLDERS",
+    title: "Verify billable client expenses",
+    highlight: "on autopilot",
     description:
-      "Group expenses by purchase date, card number, month, billable status, and work order.",
-    stat: "5 ways",
-    statLabel: "to organize",
+      "Every receipt lands in card folders with nested month dropdowns. Browse by purchase date, billable status, or AppFolio work order without digging through spreadsheets.",
+    primaryCta: { label: "Open folders", href: "/dashboard/expenses" },
+    secondaryCta: { label: "See live feed", href: "/dashboard/live-feed" },
+    videoLabel: "Card folder organization",
+    reverse: true,
+    icon: "folders",
   },
   {
-    title: "Track billable work",
+    id: "review",
+    label: "REVIEW & APPROVE",
+    title: "Review expenses",
+    highlight: "before export",
     description:
-      "Flag missing AppFolio work orders before billable receipts go to accounting.",
-    stat: "WO",
-    statLabel: "missing alerts",
-  },
-  {
-    title: "Export clean reports",
-    description:
-      "Send filtered receipt data to Google Sheets or download CSV for your books.",
-    stat: "1 click",
-    statLabel: "exports",
-  },
-] as const;
-
-export const HOW_IT_WORKS = [
-  {
-    step: "01",
-    title: "Scan the receipt",
-    description: "Take a photo or upload a file. Kai KJ reads merchant, amount, date, card, and line items.",
-  },
-  {
-    step: "02",
-    title: "Organize by the receipt",
-    description: "Receipts file into purchase-date folders, card folders, month folders, and work-order views.",
-  },
-  {
-    step: "03",
-    title: "Review and export",
-    description: "Open the original image, check billable details, then export to Sheets or CSV.",
-  },
-] as const;
-
-export const PLATFORM_TABS = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    title: "A live workspace for receipts",
-    description: "Watch scans arrive, open card folders, and jump into review without digging through files.",
-  },
-  {
-    id: "scanner",
-    label: "Scanner",
-    title: "AI extraction with the image saved",
-    description: "Merchant, total, purchase date, line items, card last four, and work orders are extracted from the receipt.",
-  },
-  {
-    id: "expenses",
-    label: "Expenses",
-    title: "Folders that match bookkeeping",
-    description: "Browse by month, date, card, nested card-month folders, billable status, and AppFolio work order.",
+      "Open the saved receipt image, fix categories, flag missing work orders, and approve what should sync to accounting — all from one dashboard.",
+    primaryCta: { label: "Review expenses", href: "/dashboard/expenses" },
+    secondaryCta: { label: "Try it free", href: "/dashboard/scan" },
+    videoLabel: "Expense review workflow",
+    reverse: false,
+    icon: "review",
   },
   {
     id: "export",
-    label: "Export",
-    title: "Reports ready for your accountant",
-    description: "Export structured rows to Google Sheets or CSV with dates, cards, work orders, and receipt details.",
+    label: "EXPORT",
+    title: "Export clean reports",
+    highlight: "in one click",
+    description:
+      "Send filtered receipt rows to Google Sheets or download CSV for your accountant. Dates, cards, work orders, and line items stay structured and ready to import.",
+    primaryCta: { label: "Export expenses", href: "/dashboard/expenses" },
+    secondaryCta: { label: "View integrations", href: "/#features" },
+    videoLabel: "Google Sheets export",
+    reverse: true,
+    icon: "export",
   },
 ] as const;
 
-export const FEATURE_PILLS = [
-  { title: "Fast setup", description: "Save your email and start scanning in under 2 minutes." },
-  { title: "No spreadsheets", description: "Replace manual receipt logs with structured, searchable data." },
-  { title: "Pay as you go", description: "Use the free tier — only add integrations when you need them." },
-  { title: "Always available", description: "Expenses sync to your account and stay accessible across devices." },
-] as const;
-
-export const INTEGRATIONS = [
+export const PRICING_PLANS = [
   {
-    name: "Google Sheets",
-    description: "Export filtered expenses directly to a shared spreadsheet.",
-    status: "Available",
-    href: "/dashboard/expenses",
+    name: "Starter",
+    badge: "Most popular",
+    description: "Best for solo operators and small teams",
+    monthlyPrice: "Free",
+    yearlyPrice: "Free",
+    features: [
+      "Unlimited receipt scans",
+      "Purchase-date & card folders",
+      "Receipt image viewer",
+      "CSV export",
+      "Local + cloud sync",
+    ],
+    href: "/dashboard/scan",
+    featured: true,
   },
   {
-    name: "Supabase",
-    description: "Structured expense storage synced to your account email.",
-    status: "Available",
+    name: "Pro",
+    badge: "Coming soon",
+    description: "Best for multi-user bookkeeping teams",
+    monthlyPrice: "$19",
+    yearlyPrice: "$15",
+    features: [
+      "Everything in Starter",
+      "Google Sheets auto-export",
+      "Accounting webhook",
+      "Shared team inbox",
+      "Priority support",
+    ],
     href: "/dashboard",
-  },
-  {
-    name: "CSV download",
-    description: "Fallback export when Google credentials aren't configured.",
-    status: "Available",
-    href: "/dashboard/expenses",
-  },
-  {
-    name: "Accounting webhook",
-    description: "Push approved expenses to your accounting system.",
-    status: "Coming soon",
-    href: "/dashboard/expenses",
+    featured: false,
   },
 ] as const;
 
-export const BLOG_POSTS = [
+export const FAQ_ITEMS = [
   {
-    category: "Guides",
-    date: "Jun 2026",
-    title: "Why receipt photos beat spreadsheet rows",
-    excerpt: "Structured receipt data saves hours at tax time and cuts reconciliation errors.",
-    readMinutes: 4,
+    question: "What does Moodna do?",
+    answer:
+      "Moodna turns receipt photos into organized expenses. Scan a receipt, review the extracted data with the original image attached, file everything into card and date folders, then export to Sheets or CSV when you're ready.",
   },
   {
-    category: "Product",
-    date: "May 2026",
-    title: "How to filter expenses by month and card",
-    excerpt: "Use folders and period filters to find any receipt in seconds.",
-    readMinutes: 3,
+    question: "Do I need to create an account?",
+    answer:
+      "You can open the dashboard and start scanning right away. Sign in with your email to tie expenses to your account and sync across devices when Supabase is configured.",
   },
   {
-    category: "Workflow",
-    date: "Apr 2026",
-    title: "Approve expenses before they hit accounting",
-    excerpt: "Review each receipt and control what syncs to your books.",
-    readMinutes: 5,
+    question: "What data gets extracted from a receipt?",
+    answer:
+      "Merchant name, total amount, purchase date, card last four, line items, categories, billable flags, and AppFolio work order numbers when present on the receipt.",
+  },
+  {
+    question: "Can I export to Google Sheets?",
+    answer:
+      "Yes. Configure Google service account credentials on the server to export directly to a spreadsheet. Without that setup, Moodna falls back to CSV download.",
+  },
+  {
+    question: "Will my receipt images be saved?",
+    answer:
+      "Yes. Every scan keeps the original receipt image attached so you can open it later from the expense list or folder views.",
+  },
+  {
+    question: "Can my teammate see my receipts?",
+    answer:
+      "Expenses sync to the account email you sign in with. Share the same account email with teammates if you want shared data, or use separate emails for separate workspaces.",
   },
 ] as const;
 
 export const FOOTER_COLUMNS = {
-  solutions: [
-    ["Receipt scanner", "/dashboard/scan"],
-    ["Expense dashboard", "/dashboard/expenses"],
-    ["Accounting approval", "/dashboard/expenses"],
-    ["Google Sheets export", "/dashboard/expenses"],
-  ],
-  resources: [
-    ["How it works", "/#how-it-works"],
-    ["Integrations", "/#integrations"],
-    ["Pricing", "/dashboard"],
-    ["Help", "/dashboard"],
-  ],
-  company: [
-    ["About", "/"],
-    ["Dashboard", "/dashboard"],
+  links: [
+    ["Features", "/#features"],
+    ["Pricing", "/#pricing"],
+    ["FAQ", "/#faq"],
     ["Scan receipts", "/dashboard/scan"],
-    ["Contact", "mailto:hello@kaikj.app"],
+  ],
+  product: [
+    ["Dashboard", "/dashboard"],
+    ["Expenses", "/dashboard/expenses"],
+    ["Integrations", "/#features"],
+    ["Help", "mailto:hello@kaikj.app"],
   ],
 } as const;

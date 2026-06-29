@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   apiErrorMessage,
   parseExpensePayload,
-  parseOwnerId,
 } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   createAdminClient,
   isSupabaseAdminConfigured,
@@ -16,7 +16,7 @@ import {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
 
     if (!isSupabaseAdminConfigured()) {
       return NextResponse.json({
@@ -27,7 +27,6 @@ export async function GET(request: Request) {
       });
     }
 
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
     const supabase = createAdminClient();
     let expenses;
     try {
@@ -44,7 +43,7 @@ export async function GET(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not load expenses.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }
@@ -52,7 +51,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const expense = parseExpensePayload(body.expense);
 
     if (!isSupabaseAdminConfigured()) {
@@ -80,7 +79,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not save expense.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }

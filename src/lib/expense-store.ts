@@ -1,8 +1,9 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
-import { getAccountEmail } from "./account-id";
 import { normalizeAccountingFields } from "./accounting-fields";
+import { normalizeCreditCardReconcileFields } from "./credit-card-reconcile-fields";
 import { normalizeBillableFields } from "./billable-engine";
 import { normalizeCardBrand, normalizeCardLastFour } from "./card-last-four";
 import { normalizeWorkOrderNumber } from "./work-order";
@@ -19,7 +20,9 @@ import {
   updateExpenseRemote,
   type AccountingDecision,
 } from "./expense-sync";
+import { reconcileStatementsRemote } from "./statement-sync";
 import { normalizeLineItems } from "./receipt-line-items";
+import { emitLiveFeedEvent } from "./live-feed/store";
 import type {
   BillableStatus,
   Expense,
@@ -45,6 +48,7 @@ function normalizeExpense(expense: Expense): Expense {
     duplicateOfId: normalizeBookkeepingText(expense.duplicateOfId),
     ...normalizeBillableFields(expense),
     ...normalizeAccountingFields(expense),
+    ...normalizeCreditCardReconcileFields(expense),
   };
 }
 
@@ -127,6 +131,31 @@ async function uploadMissingExpenses(
   return uploaded;
 }
 
+async function tryAutoReconcileExpenses(expenses: Expense[]) {
+  try {
+    const result = await reconcileStatementsRemote({ expenses });
+    if (result.updatedExpenses.length === 0) return expenses;
+
+    const byId = new Map(result.updatedExpenses.map((expense) => [expense.id, expense]));
+    return expenses.map((expense) => byId.get(expense.id) ?? expense);
+  } catch {
+    return expenses;
+  }
+}
+
+async function tryAutoReconcileExpense(expense: Expense): Promise<Expense> {
+  try {
+    const result = await reconcileStatementsRemote({
+      expenseId: expense.id,
+      expenses: readExpenses(),
+      transactions: undefined,
+    });
+    return result.updatedExpenses.find((item) => item.id === expense.id) ?? expense;
+  } catch {
+    return expense;
+  }
+}
+
 function replaceExpense(expenses: Expense[], updated: Expense) {
   return expenses.map((expense) =>
     expense.id === updated.id ? normalizeExpense(updated) : expense,
@@ -134,13 +163,15 @@ function replaceExpense(expenses: Expense[], updated: Expense) {
 }
 
 export function useExpenses() {
+  const { user } = useUser();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [accountingBusyId, setAccountingBusyId] = useState<string | null>(null);
-  const [accountEmail, setAccountEmailState] = useState<string | null>(() =>
-    typeof window === "undefined" ? null : getAccountEmail(),
-  );
+  const accountEmail =
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses[0]?.emailAddress ??
+    null;
 
   const loadExpenses = useCallback(async () => {
     const localExpenses = readExpenses();
@@ -157,8 +188,9 @@ export function useExpenses() {
       }
 
       const merged = mergeRemoteAndLocal(combinedRemote, localExpenses);
-      setExpenses(merged);
-      writeExpenses(merged);
+      const reconciled = await tryAutoReconcileExpenses(merged);
+      setExpenses(reconciled);
+      writeExpenses(reconciled);
       setSyncError(null);
     } catch {
       setExpenses(localExpenses);
@@ -173,7 +205,6 @@ export function useExpenses() {
   }, [loadExpenses]);
 
   const refreshAccount = useCallback(async () => {
-    setAccountEmailState(getAccountEmail());
     setLoaded(false);
     await loadExpenses();
   }, [loadExpenses]);
@@ -190,25 +221,49 @@ export function useExpenses() {
 
   const addExpense = useCallback(
     (scan: ScannedReceipt, receiptImage?: string) => {
+      const workflow = scan as Partial<Expense>;
       const expense: Expense = normalizeExpense({
         ...scan,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        receiptImage,
-        accountingStatus: "pending",
-        inboxStatus: "new",
-        reconciliationStatus: "unmatched",
+        id: workflow.id ?? crypto.randomUUID(),
+        createdAt: workflow.createdAt ?? new Date().toISOString(),
+        receiptImage: receiptImage ?? workflow.receiptImage,
+        accountingStatus: workflow.accountingStatus ?? "pending",
+        inboxStatus: workflow.inboxStatus ?? "new",
+        reconciliationStatus: workflow.reconciliationStatus ?? "unmatched",
+        creditCardReconciled: workflow.creditCardReconciled,
+        statementTransactionId: workflow.statementTransactionId,
+        reconciledAt: workflow.reconciledAt,
       });
 
       const next = [expense, ...readExpenses()];
       persist(next);
 
-      void saveExpenseRemote(expense).catch((error) => {
+      void tryAutoReconcileExpense(expense).then((reconciled) => {
+        persist(replaceExpense(readExpenses(), reconciled));
+      });
+
+      void saveExpenseRemote(expense)
+        .then((saved) => tryAutoReconcileExpense(saved))
+        .then((reconciled) => {
+          persist(replaceExpense(readExpenses(), reconciled));
+        })
+        .catch((error) => {
         setSyncError(
           error instanceof Error
             ? error.message
             : "Could not save receipt to Supabase.",
         );
+      });
+
+      emitLiveFeedEvent({
+        kind: "expense_saved",
+        message: `Saved expense — ${expense.merchant}`,
+        expenseId: expense.id,
+        meta: {
+          merchant: expense.merchant,
+          amount: expense.amount,
+          inboxStatus: expense.inboxStatus,
+        },
       });
 
       return expense;
@@ -339,6 +394,20 @@ export function useExpenses() {
     persist([]);
   }, [persist]);
 
+  const mergeReconciledExpenses = useCallback(
+    (updated: Expense[]) => {
+      const byId = new Map(updated.map((expense) => [expense.id, expense]));
+      persist(readExpenses().map((expense) => byId.get(expense.id) ?? expense));
+    },
+    [persist],
+  );
+
+  const reconcileAllReceipts = useCallback(async () => {
+    const result = await reconcileStatementsRemote({ expenses: readExpenses() });
+    mergeReconciledExpenses(result.updatedExpenses);
+    return result.summary;
+  }, [mergeReconciledExpenses]);
+
   return {
     expenses,
     loaded,
@@ -351,5 +420,7 @@ export function useExpenses() {
     updateExpense,
     submitAccountingDecision,
     clearExpenses,
+    mergeReconciledExpenses,
+    reconcileAllReceipts,
   };
 }

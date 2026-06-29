@@ -62,7 +62,7 @@ async function pdfToImages(
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     const page = await pdf.getPage(pageNum);
-    const viewport = page.getViewport({ scale: 2 });
+    const viewport = page.getViewport({ scale: 1.5 });
     const canvas = document.createElement("canvas");
     canvas.width = Math.floor(viewport.width);
     canvas.height = Math.floor(viewport.height);
@@ -80,7 +80,7 @@ async function pdfToImages(
           else reject(new Error("Could not render PDF page"));
         },
         "image/jpeg",
-        0.9,
+        0.82,
       );
     });
 

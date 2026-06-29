@@ -67,6 +67,13 @@ type KieReceiptPayload = ExtractedReceipt & {
   paymentDetails?: string | null;
 };
 
+type KieReasoningEffort = "high" | "medium" | "low";
+type KieScanMode = "default" | "bulk";
+
+interface KieScanOptions {
+  scanMode?: KieScanMode;
+}
+
 function extractTextContent(content: unknown): string {
   if (!content) return "";
   if (typeof content === "string") return content;
@@ -139,47 +146,61 @@ export async function scanReceiptWithKie(
   apiKey: string,
   imageBase64: string,
   mimeType: string,
+  options: KieScanOptions = {},
 ): Promise<ExtractedReceipt> {
-  const response = await fetch(KIE_CHAT_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
+  const mode = options.scanMode ?? "default";
+  const efforts: KieReasoningEffort[] =
+    mode === "bulk" ? ["low", "medium"] : ["medium", "high"];
+  let lastError: Error | null = null;
+
+  for (const effort of efforts) {
+    try {
+      const response = await fetch(KIE_CHAT_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
             {
-              type: "text",
-              text: "Extract and categorize this receipt. Read the payment section for card details. For property maintenance purchases, look for an AppFolio work order number (format xx-xxxx, e.g. 76-2234) written as WO or Work Order on the receipt.",
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:${mimeType};base64,${imageBase64}`,
-              },
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Extract and categorize this receipt. Read the payment section for card details. For property maintenance purchases, look for an AppFolio work order number (format xx-xxxx, e.g. 76-2234) written as WO or Work Order on the receipt.",
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${mimeType};base64,${imageBase64}`,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-      stream: false,
-      reasoning_effort: "high",
-    }),
-  });
+          stream: false,
+          reasoning_effort: effort,
+        }),
+      });
 
-  const data = (await response.json()) as KieChatResponse;
+      const data = (await response.json()) as KieChatResponse;
+      if (!response.ok) {
+        throw new Error(data.error?.message ?? `Kie API error (${response.status})`);
+      }
 
-  if (!response.ok) {
-    throw new Error(data.error?.message ?? `Kie API error (${response.status})`);
+      const rawContent = extractTextContent(data.choices?.[0]?.message?.content);
+      if (!rawContent) {
+        throw new Error("Empty response from Gemini");
+      }
+
+      return validateReceipt(parseJsonFromModel(rawContent));
+    } catch (error) {
+      lastError =
+        error instanceof Error ? error : new Error("Failed to parse KIE response");
+    }
   }
 
-  const rawContent = extractTextContent(data.choices?.[0]?.message?.content);
-  if (!rawContent) {
-    throw new Error("Empty response from Gemini");
-  }
-
-  return validateReceipt(parseJsonFromModel(rawContent));
+  throw lastError ?? new Error("Failed to scan receipt");
 }

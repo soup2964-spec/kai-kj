@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { NAV_INTEGRATION_LINKS, NAV_PRODUCT_LINKS } from "./constants";
 import { LandingLogo } from "./LandingLogo";
 
@@ -45,10 +44,9 @@ function NavDropdown({
 
 export function LandingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { openSignIn } = useAuthModal();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-blue-100 bg-white/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
           <LandingLogo />
@@ -79,24 +77,35 @@ export function LandingHeader() {
               ))}
             </NavDropdown>
             <Link
-              href="/dashboard"
+              href="/#features"
+              className="px-3 py-2 text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
+            >
+              Features
+            </Link>
+            <Link
+              href="/#pricing"
               className="px-3 py-2 text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
             >
               Pricing
+            </Link>
+            <Link
+              href="/#faq"
+              className="px-3 py-2 text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)]"
+            >
+              FAQ
             </Link>
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={openSignIn}
+          <Link
+            href="/sign-in"
             className="hidden text-sm font-medium text-[var(--cb-muted)] transition hover:text-[var(--cb-dark)] sm:inline"
           >
             Sign in
-          </button>
+          </Link>
           <Link href="/dashboard/scan" className="cb-btn-primary">
-            Scan receipt
+            Try Moodna
           </Link>
           <button
             type="button"
@@ -137,22 +146,43 @@ export function LandingHeader() {
               {item.title}
             </Link>
           ))}
-          <button
-            type="button"
-            className="mt-4 block py-2.5 text-left text-sm font-medium text-[var(--cb-muted)]"
-            onClick={() => {
-              setMobileOpen(false);
-              openSignIn();
-            }}
+          <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-[var(--cb-muted)]">
+            Explore
+          </p>
+          <Link
+            href="/#features"
+            className="block rounded-lg py-2.5 text-sm font-medium text-[var(--cb-dark)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            Features
+          </Link>
+          <Link
+            href="/#pricing"
+            className="block rounded-lg py-2.5 text-sm font-medium text-[var(--cb-dark)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/#faq"
+            className="block rounded-lg py-2.5 text-sm font-medium text-[var(--cb-dark)]"
+            onClick={() => setMobileOpen(false)}
+          >
+            FAQ
+          </Link>
+          <Link
+            href="/sign-in"
+            className="mt-4 block py-2.5 text-sm font-medium text-[var(--cb-muted)]"
+            onClick={() => setMobileOpen(false)}
           >
             Sign in
-          </button>
+          </Link>
           <Link
             href="/dashboard/scan"
             className="cb-btn-primary mt-3 w-full"
             onClick={() => setMobileOpen(false)}
           >
-            Scan receipt
+            Try Moodna
           </Link>
         </div>
       ) : null}

@@ -1,16 +1,12 @@
 "use client";
 
-import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
 import {
   LandingAnnouncement,
-  LandingBenefits,
-  LandingBlog,
   LandingBottomCta,
-  LandingFeaturePills,
-  LandingHowItWorks,
-  LandingIntegrations,
-  LandingPlatformShowcase,
-  LandingResults,
+  LandingFaq,
+  LandingFeatures,
+  LandingFounderStory,
+  LandingPricing,
 } from "@/components/landing/LandingSections";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 import { LandingHeader } from "@/components/landing/LandingHeader";
@@ -19,23 +15,20 @@ import { landingFont } from "@/lib/landing-fonts";
 
 export function LandingPage() {
   return (
-    <AuthModalProvider>
-      <div className={`landing-page min-h-dvh overflow-x-hidden ${landingFont.variable}`}>
-        <LandingAnnouncement />
-        <LandingHeader />
-        <main>
-          <LandingHero />
-          <LandingBenefits />
-          <LandingResults />
-          <LandingHowItWorks />
-          <LandingPlatformShowcase />
-          <LandingFeaturePills />
-          <LandingIntegrations />
+    <div className={`landing-page min-h-dvh overflow-x-hidden ${landingFont.variable}`}>
+      <LandingAnnouncement />
+      <LandingHeader />
+      <main>
+        <LandingHero />
+        <div className="landing-body">
+          <LandingFeatures />
+          <LandingFounderStory />
+          <LandingPricing />
+          <LandingFaq />
           <LandingBottomCta />
-          <LandingBlog />
-        </main>
-        <LandingFooter />
-      </div>
-    </AuthModalProvider>
+        </div>
+      </main>
+      <LandingFooter />
+    </div>
   );
 }

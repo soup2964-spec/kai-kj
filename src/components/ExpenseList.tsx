@@ -30,6 +30,7 @@ import { CardBadge } from "./CardBadge";
 import { WorkOrderBadge } from "./WorkOrderBadge";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
 import { ReceiptImageViewer } from "./ReceiptImageViewer";
+import { ReconcileBadge } from "./ReconcileBadge";
 import {
   IconChevronDown,
   IconCheck,
@@ -246,6 +247,7 @@ function ExpenseRow({
               <InboxStatusBadge status={expense.inboxStatus} />
               <CardBadge lastFour={expense.cardLastFour} brand={expense.cardBrand} />
               <WorkOrderBadge expense={expense} />
+              <ReconcileBadge expense={expense} />
               <AccountingSyncBadge status={expense.accountingStatus} />
               <MissingInfoBadges expense={expense} />
             </div>
@@ -300,7 +302,7 @@ function ExpenseRow({
                 </p>
                 <p className="mt-1 text-sm text-qb-text-secondary">
                   Approve to send this receipt to your connected accounting
-                  software. Disapprove keeps it in Kai KJ only.
+                  software. Disapprove keeps it in Moodna only.
                 </p>
               </div>
               <AccountingSyncBadge status={expense.accountingStatus} size="md" />

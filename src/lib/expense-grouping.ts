@@ -11,11 +11,13 @@ export type ExpenseDateSort = "newest" | "oldest";
 
 export type ExpensePeriodFilter = {
   month: "all" | number;
+  day: "all" | number;
   year: "all" | number;
 };
 
 export const DEFAULT_EXPENSE_PERIOD_FILTER: ExpensePeriodFilter = {
   month: "all",
+  day: "all",
   year: "all",
 };
 
@@ -149,41 +151,146 @@ export function getExpenseYears(expenses: Expense[]): number[] {
   return [...years].sort((a, b) => b - a);
 }
 
+export function getDayOptions(
+  month: ExpensePeriodFilter["month"],
+  year: ExpensePeriodFilter["year"],
+): number[] {
+  if (month === "all") {
+    return Array.from({ length: 31 }, (_, index) => index + 1);
+  }
+
+  const resolvedYear = year === "all" ? new Date().getFullYear() : year;
+  const daysInMonth = new Date(resolvedYear, month, 0).getDate();
+  return Array.from({ length: daysInMonth }, (_, index) => index + 1);
+}
+
+export function clampDayToPeriod(
+  filter: ExpensePeriodFilter,
+): ExpensePeriodFilter {
+  if (filter.day === "all" || filter.month === "all") {
+    return filter;
+  }
+
+  const validDays = getDayOptions(filter.month, filter.year);
+  const maxDay = validDays[validDays.length - 1] ?? 31;
+  if (filter.day <= maxDay) {
+    return filter;
+  }
+
+  return { ...filter, day: maxDay };
+}
+
+export function periodToDateInputValue(
+  filter: ExpensePeriodFilter,
+): string {
+  if (
+    filter.year === "all" ||
+    filter.month === "all" ||
+    filter.day === "all"
+  ) {
+    return "";
+  }
+
+  return `${filter.year}-${String(filter.month).padStart(2, "0")}-${String(filter.day).padStart(2, "0")}`;
+}
+
+export function parseDateInputValue(value: string): ExpensePeriodFilter | null {
+  const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  return clampDayToPeriod({ year, month, day });
+}
+
 export function formatPeriodLabel(filter: ExpensePeriodFilter): string {
-  if (filter.month === "all" && filter.year === "all") {
+  if (filter.month === "all" && filter.year === "all" && filter.day === "all") {
     return "All dates";
   }
 
-  if (filter.month === "all" && filter.year !== "all") {
+  if (
+    filter.month !== "all" &&
+    filter.year !== "all" &&
+    filter.day !== "all"
+  ) {
+    const dayKey = `${filter.year}-${String(filter.month).padStart(2, "0")}-${String(filter.day).padStart(2, "0")}`;
+    return formatDayLabel(dayKey);
+  }
+
+  if (filter.month === "all" && filter.year !== "all" && filter.day === "all") {
     return String(filter.year);
   }
 
-  if (filter.month !== "all" && filter.year === "all") {
+  if (filter.month !== "all" && filter.year === "all" && filter.day === "all") {
     const monthLabel =
       MONTH_FILTER_OPTIONS.find((option) => option.value === filter.month)
         ?.label ?? "Month";
     return monthLabel;
   }
 
-  const monthKey = `${filter.year}-${String(filter.month).padStart(2, "0")}`;
-  return formatMonthLabel(monthKey);
+  if (filter.month !== "all" && filter.year !== "all" && filter.day === "all") {
+    const monthKey = `${filter.year}-${String(filter.month).padStart(2, "0")}`;
+    return formatMonthLabel(monthKey);
+  }
+
+  const parts: string[] = [];
+  if (filter.month !== "all") {
+    parts.push(
+      MONTH_FILTER_OPTIONS.find((option) => option.value === filter.month)
+        ?.label ?? `Month ${filter.month}`,
+    );
+  }
+  if (filter.day !== "all") {
+    parts.push(`Day ${filter.day}`);
+  }
+  if (filter.year !== "all") {
+    parts.push(String(filter.year));
+  }
+
+  return parts.length > 0 ? parts.join(" · ") : "All dates";
 }
 
 export function filterExpensesByPeriod(
   expenses: Expense[],
   filter: ExpensePeriodFilter,
 ): Expense[] {
+  const normalized = clampDayToPeriod(filter);
+
   return expenses.filter((expense) => {
     const parsed = parsePurchaseDate(expense.date);
     if (!parsed) {
-      return filter.month === "all" && filter.year === "all";
+      return (
+        normalized.month === "all" &&
+        normalized.year === "all" &&
+        normalized.day === "all"
+      );
     }
 
-    if (filter.year !== "all" && parsed.getFullYear() !== filter.year) {
+    if (normalized.year !== "all" && parsed.getFullYear() !== normalized.year) {
       return false;
     }
 
-    if (filter.month !== "all" && parsed.getMonth() + 1 !== filter.month) {
+    if (
+      normalized.month !== "all" &&
+      parsed.getMonth() + 1 !== normalized.month
+    ) {
+      return false;
+    }
+
+    if (normalized.day !== "all" && parsed.getDate() !== normalized.day) {
       return false;
     }
 

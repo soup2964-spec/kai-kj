@@ -1,4 +1,4 @@
-# Kai KJ
+# Moodna
 
 Scan receipts with your phone and automatically categorize expenses.
 

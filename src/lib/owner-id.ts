@@ -1,9 +1,6 @@
-import {
-  accountEmailToOwnerId,
-  getAccountEmail,
-} from "@/lib/account-id";
-
 const OWNER_ID_KEY = "kai-kj-owner-id";
+
+let authenticatedOwnerId: string | null = null;
 
 function getAnonymousOwnerId(): string {
   if (typeof window === "undefined") {
@@ -19,12 +16,16 @@ function getAnonymousOwnerId(): string {
   return ownerId;
 }
 
-/** Stable owner id: account email when set, otherwise anonymous device id. */
+export function setAuthenticatedOwnerId(ownerId: string | null): void {
+  authenticatedOwnerId = ownerId?.trim() || null;
+}
+
+/** Stable owner id from Clerk when signed in, otherwise anonymous device id. */
 export function getOwnerId(): string {
-  const accountEmail = getAccountEmail();
-  if (accountEmail) {
-    return accountEmailToOwnerId(accountEmail);
+  if (authenticatedOwnerId) {
+    return authenticatedOwnerId;
   }
+
   return getAnonymousOwnerId();
 }
 

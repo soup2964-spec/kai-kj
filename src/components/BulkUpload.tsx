@@ -11,9 +11,15 @@ import {
   expandFilesForBulkUpload,
 } from "@/lib/bulk-upload-files";
 import {
+  BULK_SCAN_CONCURRENCY,
   MAX_BULK_UPLOAD,
+  runWithConcurrency,
   scanReceiptFile,
 } from "@/lib/scan-receipt-client";
+import {
+  emitLiveFeedEvent,
+  syncBulkPipelineJobs,
+} from "@/lib/live-feed/store";
 
 type QueueStatus = "pending" | "processing" | "done" | "error";
 
@@ -35,6 +41,18 @@ function revokeQueuePreviews(items: QueueItem[]) {
   for (const item of items) {
     if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
   }
+}
+
+function syncQueueToLiveFeed(items: QueueItem[]) {
+  syncBulkPipelineJobs(
+    items.map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      status: entry.status,
+      result: entry.result,
+      error: entry.error,
+    })),
+  );
 }
 
 export function BulkUpload({ onScanComplete }: BulkUploadProps) {
@@ -105,45 +123,94 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
       return;
     }
 
+    emitLiveFeedEvent({
+      kind: "bulk_started",
+      message: `Bulk upload started — ${scannable.length} receipt${scannable.length === 1 ? "" : "s"}`,
+      meta: { count: scannable.length },
+    });
+    syncQueueToLiveFeed(items);
+
     setProcessing(true);
+    let completed = 0;
+    let successCount = 0;
+    let errorCount = 0;
 
-    for (let i = 0; i < scannable.length; i++) {
-      const item = scannable[i];
-      if (!item.file) continue;
+    await runWithConcurrency(scannable, BULK_SCAN_CONCURRENCY, async (item) => {
+      if (!item.file) return;
 
-      setCurrentIndex(i + 1);
+      setQueue((current) => {
+        const next: QueueItem[] = current.map((entry) =>
+          entry.id === item.id
+            ? { ...entry, status: "processing" as const }
+            : entry,
+        );
+        syncQueueToLiveFeed(next);
+        return next;
+      });
 
-      setQueue((current) =>
-        current.map((entry) =>
-          entry.id === item.id ? { ...entry, status: "processing" } : entry,
-        ),
-      );
+      emitLiveFeedEvent({
+        kind: "bulk_item_processing",
+        message: `Scanning ${item.label}`,
+        jobId: item.id,
+      });
 
       try {
-        const { result, receiptImageUrl } = await scanReceiptFile(item.file);
+        const { result, receiptImageUrl } = await scanReceiptFile(item.file, {
+          scanMode: "bulk",
+          jobId: item.id,
+          label: item.label,
+        });
         onScanComplete(result, receiptImageUrl);
-        setQueue((current) =>
-          current.map((entry) =>
+        completed += 1;
+        successCount += 1;
+        setCurrentIndex(completed);
+        setQueue((current) => {
+          const next: QueueItem[] = current.map((entry) =>
             entry.id === item.id
-              ? { ...entry, status: "done", result }
+              ? { ...entry, status: "done" as const, result }
               : entry,
-          ),
-        );
+          );
+          syncQueueToLiveFeed(next);
+          return next;
+        });
+        emitLiveFeedEvent({
+          kind: "bulk_item_complete",
+          message: `Bulk item saved — ${result.merchant}`,
+          jobId: item.id,
+          meta: { merchant: result.merchant, amount: result.amount },
+        });
       } catch (err) {
-        setQueue((current) =>
-          current.map((entry) =>
+        completed += 1;
+        errorCount += 1;
+        setCurrentIndex(completed);
+        const errorMessage =
+          err instanceof Error ? err.message : "Scan failed";
+        setQueue((current) => {
+          const next: QueueItem[] = current.map((entry) =>
             entry.id === item.id
               ? {
                   ...entry,
-                  status: "error",
-                  error:
-                    err instanceof Error ? err.message : "Scan failed",
+                  status: "error" as const,
+                  error: errorMessage,
                 }
               : entry,
-          ),
-        );
+          );
+          syncQueueToLiveFeed(next);
+          return next;
+        });
+        emitLiveFeedEvent({
+          kind: "bulk_item_error",
+          message: `${item.label} failed — ${errorMessage}`,
+          jobId: item.id,
+        });
       }
-    }
+    });
+
+    emitLiveFeedEvent({
+      kind: "bulk_complete",
+      message: `Bulk upload finished — ${successCount} saved${errorCount ? `, ${errorCount} failed` : ""}`,
+      meta: { done: successCount, errors: errorCount },
+    });
 
     setProcessing(false);
     if (inputRef.current) inputRef.current.value = "";
@@ -200,7 +267,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
                 {preparing
                   ? "Preparing files…"
                   : processing
-                    ? `Processing ${currentIndex} of ${progressTotal}…`
+                    ? `Processing ${currentIndex} of ${progressTotal} (${BULK_SCAN_CONCURRENCY} at a time)…`
                     : `Finished — ${doneCount} saved${errorCount ? `, ${errorCount} failed` : ""}`}
               </p>
               {!processing && !preparing && (

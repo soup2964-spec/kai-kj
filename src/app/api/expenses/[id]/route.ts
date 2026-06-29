@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { apiErrorMessage, parseExpensePayload, parseOwnerId } from "@/lib/expense-api";
+import { apiErrorMessage, parseExpensePayload } from "@/lib/expense-api";
+import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   createAdminClient,
   isSupabaseAdminConfigured,
@@ -16,7 +17,7 @@ export async function PATCH(
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const ownerId = parseOwnerId(body.ownerId);
+    const ownerId = await requireOwnerId(body.ownerId);
     const expense = parseExpensePayload(body.expense);
 
     if (expense.id !== id) {
@@ -51,7 +52,7 @@ export async function PATCH(
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not update expense.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }
@@ -63,18 +64,7 @@ export async function DELETE(
   try {
     const { id } = await context.params;
     const { searchParams } = new URL(request.url);
-    parseOwnerId(searchParams.get("ownerId"));
-
-    if (!isSupabaseAdminConfigured()) {
-      return NextResponse.json({
-        ok: true,
-        storage: "local",
-        warning:
-          "Remote expense storage is not configured. Receipt deleted from this browser.",
-      });
-    }
-
-    const ownerId = parseOwnerId(searchParams.get("ownerId"));
+    const ownerId = await requireOwnerId(searchParams.get("ownerId"));
     const supabase = createAdminClient();
     try {
       await deleteExpenseForOwner(supabase, id, ownerId);
@@ -90,7 +80,7 @@ export async function DELETE(
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not delete expense.") },
-      { status: 400 },
+      { status: authErrorStatus(error) },
     );
   }
 }

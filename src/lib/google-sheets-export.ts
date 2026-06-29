@@ -35,7 +35,14 @@ function getServiceAccountCredentials() {
 export async function exportExpensesToGoogleSheet(
   expenses: Expense[],
   sort: ExpenseDateSort,
+  shareEmail: string,
 ): Promise<{ spreadsheetId: string; spreadsheetUrl: string }> {
+  if (!shareEmail?.trim()) {
+    throw new Error(
+      "A share email is required so the exported sheet can be granted to the user.",
+    );
+  }
+
   const sorted = sortExpensesByDate(expenses, sort);
   const auth = new google.auth.GoogleAuth({
     credentials: getServiceAccountCredentials(),
@@ -47,7 +54,7 @@ export async function exportExpensesToGoogleSheet(
 
   const sheets = google.sheets({ version: "v4", auth });
   const drive = google.drive({ version: "v3", auth });
-  const title = `Kai KJ Expenses ${new Date().toISOString().slice(0, 10)}`;
+  const title = `Moodna Expenses ${new Date().toISOString().slice(0, 10)}`;
 
   const created = await sheets.spreadsheets.create({
     requestBody: {
@@ -102,26 +109,18 @@ export async function exportExpensesToGoogleSheet(
     },
   });
 
-  const shareEmail = process.env.GOOGLE_SHEETS_SHARE_EMAIL?.trim();
-  if (shareEmail) {
-    await drive.permissions.create({
-      fileId: spreadsheetId,
-      sendNotificationEmail: false,
-      requestBody: {
-        type: "user",
-        role: "writer",
-        emailAddress: shareEmail,
-      },
-    });
-  } else {
-    await drive.permissions.create({
-      fileId: spreadsheetId,
-      requestBody: {
-        type: "anyone",
-        role: "writer",
-      },
-    });
-  }
+  // Sheets created by the service account are owned by the service account,
+  // so the signed-in user must be granted access explicitly. We never fall
+  // back to "anyone" sharing — that would make every user's export public.
+  await drive.permissions.create({
+    fileId: spreadsheetId,
+    sendNotificationEmail: false,
+    requestBody: {
+      type: "user",
+      role: "writer",
+      emailAddress: shareEmail.trim(),
+    },
+  });
 
   return {
     spreadsheetId,
