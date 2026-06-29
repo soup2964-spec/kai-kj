@@ -32,9 +32,17 @@ import type {
 
 const STORAGE_KEY = "kai-kj-expenses";
 
+function normalizeExpenseDate(value: unknown): string {
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value.trim();
+  }
+  return new Date().toISOString().slice(0, 10);
+}
+
 function normalizeExpense(expense: Expense): Expense {
   return {
     ...expense,
+    date: normalizeExpenseDate(expense.date),
     lineItems: normalizeLineItems(expense.lineItems),
     cardLastFour: normalizeCardLastFour(expense.cardLastFour),
     cardBrand: normalizeCardBrand(expense.cardBrand),

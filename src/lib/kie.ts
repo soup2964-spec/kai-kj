@@ -104,12 +104,26 @@ function parseJsonFromModel(text: string): KieReceiptPayload {
 function collectReceiptText(parsed: KieReceiptPayload): string {
   return [
     parsed.paymentDetails,
-    parsed.lineItems.map((item) => item.name).join("\n"),
+    (Array.isArray(parsed.lineItems) ? parsed.lineItems : [])
+      .map((item) => item?.name)
+      .join("\n"),
     parsed.categoryReason,
     parsed.merchant,
   ]
     .filter((value): value is string => Boolean(value))
     .join("\n");
+}
+
+function normalizeReceiptDate(value: unknown): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length > 0) {
+      return trimmed;
+    }
+  }
+  // The model occasionally omits the purchase date; fall back to today so the
+  // expense stays a valid string (avoids save failures and downstream crashes).
+  return new Date().toISOString().slice(0, 10);
 }
 
 function validateReceipt(parsed: KieReceiptPayload): ExtractedReceipt {
@@ -126,11 +140,12 @@ function validateReceipt(parsed: KieReceiptPayload): ExtractedReceipt {
   return {
     merchant: parsed.merchant,
     amount: parsed.amount,
-    date: parsed.date,
+    date: normalizeReceiptDate(parsed.date),
     category: parsed.category,
-    categoryReason: parsed.categoryReason,
+    categoryReason:
+      typeof parsed.categoryReason === "string" ? parsed.categoryReason : "",
     lineItems: normalizeLineItems(parsed.lineItems),
-    confidence: parsed.confidence,
+    confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
     cardLastFour: resolveCardLastFour(parsed.cardLastFour, receiptText),
     cardBrand: resolveCardBrand(parsed.cardBrand, receiptText),
     workOrderNumber: resolveWorkOrderNumber(

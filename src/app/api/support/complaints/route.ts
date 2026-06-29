@@ -27,7 +27,17 @@ export async function GET(request: Request) {
     }
 
     const supabase = createAdminClient();
-    const complaints = await fetchSupportComplaintsForOwner(supabase, ownerId);
+    let complaints;
+    try {
+      complaints = await fetchSupportComplaintsForOwner(supabase, ownerId);
+    } catch {
+      return NextResponse.json({
+        complaints: [],
+        storage: "local",
+        warning:
+          "Remote support storage is unavailable. Complaints stay in this browser.",
+      });
+    }
     return NextResponse.json({ complaints });
   } catch (error) {
     return NextResponse.json(

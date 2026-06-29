@@ -66,7 +66,8 @@ export function monthKeyFromDate(date: string): string {
 }
 
 /** Parse receipt purchase dates without UTC timezone shifts on YYYY-MM-DD values. */
-export function parsePurchaseDate(date: string): Date | null {
+export function parsePurchaseDate(date: string | null | undefined): Date | null {
+  if (typeof date !== "string") return null;
   const isoDay = date.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (isoDay) {
     const year = Number(isoDay[1]);
