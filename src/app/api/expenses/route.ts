@@ -29,7 +29,17 @@ export async function GET(request: Request) {
 
     const ownerId = parseOwnerId(searchParams.get("ownerId"));
     const supabase = createAdminClient();
-    const expenses = await fetchExpensesForOwner(supabase, ownerId);
+    let expenses;
+    try {
+      expenses = await fetchExpensesForOwner(supabase, ownerId);
+    } catch {
+      return NextResponse.json({
+        expenses: [],
+        storage: "local",
+        warning:
+          "Remote expense storage is unavailable. Receipts will stay in this browser.",
+      });
+    }
     return NextResponse.json({ expenses });
   } catch (error) {
     return NextResponse.json(
@@ -55,7 +65,17 @@ export async function POST(request: Request) {
     }
 
     const supabase = createAdminClient();
-    const saved = await insertExpenseForOwner(supabase, expense, ownerId);
+    let saved;
+    try {
+      saved = await insertExpenseForOwner(supabase, expense, ownerId);
+    } catch {
+      return NextResponse.json({
+        expense,
+        storage: "local",
+        warning:
+          "Remote expense storage is unavailable. Receipt saved in this browser.",
+      });
+    }
     return NextResponse.json({ expense: saved });
   } catch (error) {
     return NextResponse.json(

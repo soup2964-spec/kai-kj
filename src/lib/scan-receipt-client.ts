@@ -3,7 +3,7 @@ import { prepareReceiptImage } from "@/lib/image-utils";
 
 export interface ScanReceiptResult {
   result: ScannedReceipt;
-  thumbnailUrl: string;
+  receiptImageUrl: string;
 }
 
 export async function scanReceiptFile(
@@ -25,7 +25,7 @@ export async function scanReceiptFile(
 
   return {
     result: data as ScannedReceipt,
-    thumbnailUrl: prepared.previewUrl,
+    receiptImageUrl: prepared.thumbnailUrl,
   };
 }
 

@@ -36,7 +36,17 @@ export async function PATCH(
     }
 
     const supabase = createAdminClient();
-    const saved = await updateExpenseForOwner(supabase, expense, ownerId);
+    let saved;
+    try {
+      saved = await updateExpenseForOwner(supabase, expense, ownerId);
+    } catch {
+      return NextResponse.json({
+        expense,
+        storage: "local",
+        warning:
+          "Remote expense storage is unavailable. Receipt update saved in this browser.",
+      });
+    }
     return NextResponse.json({ expense: saved });
   } catch (error) {
     return NextResponse.json(
@@ -66,7 +76,16 @@ export async function DELETE(
 
     const ownerId = parseOwnerId(searchParams.get("ownerId"));
     const supabase = createAdminClient();
-    await deleteExpenseForOwner(supabase, id, ownerId);
+    try {
+      await deleteExpenseForOwner(supabase, id, ownerId);
+    } catch {
+      return NextResponse.json({
+        ok: true,
+        storage: "local",
+        warning:
+          "Remote expense storage is unavailable. Receipt deleted from this browser.",
+      });
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json(

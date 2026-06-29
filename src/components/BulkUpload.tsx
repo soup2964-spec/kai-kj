@@ -120,8 +120,8 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
       );
 
       try {
-        const { result, thumbnailUrl } = await scanReceiptFile(item.file);
-        onScanComplete(result, thumbnailUrl);
+        const { result, receiptImageUrl } = await scanReceiptFile(item.file);
+        onScanComplete(result, receiptImageUrl);
         setQueue((current) =>
           current.map((entry) =>
             entry.id === item.id

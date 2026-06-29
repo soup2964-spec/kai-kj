@@ -60,8 +60,22 @@ function readExpenses(): Expense[] {
   }
 }
 
-function writeExpenses(expenses: Expense[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+function withoutStoredImages(expenses: Expense[]): Expense[] {
+  return expenses.map((expense) => ({
+    ...expense,
+    receiptImage: undefined,
+  }));
+}
+
+function writeExpenses(expenses: Expense[]): Expense[] {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+    return expenses;
+  } catch (error) {
+    const compact = withoutStoredImages(expenses);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(compact));
+    return compact;
+  }
 }
 
 function mergeRemoteAndLocal(
@@ -165,8 +179,13 @@ export function useExpenses() {
   }, [loadExpenses]);
 
   const persist = useCallback((next: Expense[]) => {
-    setExpenses(next);
-    writeExpenses(next);
+    const saved = writeExpenses(next);
+    setExpenses(saved);
+    if (saved !== next) {
+      setSyncError(
+        "Browser storage was full, so receipt images were removed but expense details were saved.",
+      );
+    }
   }, []);
 
   const addExpense = useCallback(
