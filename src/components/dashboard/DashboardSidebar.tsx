@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
-import { SidebarReceiptFolders } from "@/components/SidebarReceiptFolders";
+import { SidebarReceiptWidgets } from "@/components/SidebarReceiptWidgets";
 import { IconReceipt } from "@/components/icons";
 import { useExpenseContext } from "@/lib/expense-context";
 
@@ -23,7 +23,7 @@ export function DashboardSidebar() {
       </div>
 
       <DashboardNav variant="sidebar" />
-      <SidebarReceiptFolders expenses={expenses} />
+      <SidebarReceiptWidgets expenses={expenses} />
     </aside>
   );
 }
