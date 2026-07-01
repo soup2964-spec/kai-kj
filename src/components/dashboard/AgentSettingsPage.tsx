@@ -9,6 +9,7 @@ import {
   getUseAgentPipeline,
   setUseAgentPipeline,
 } from "@/lib/agent-scan-preference";
+import { isGoogleSheetsSyncReady } from "@/lib/google-sheets-setup";
 import { useGoogleSheetsIntegration } from "@/lib/integrations-store";
 import { useNotificationIntegrations } from "@/lib/notify-integrations-store";
 
@@ -107,22 +108,17 @@ export function AgentSettingsPage() {
 
   const setup = useMemo(() => {
     const sheetsConnected = Boolean(sheetsStatus?.connected);
-    const layoutReady = Boolean(
-      sheetsStatus?.layoutConfigured && sheetsStatus?.layoutValid,
-    );
+    const sheetsReady = isGoogleSheetsSyncReady(sheetsStatus);
     const alertsReady = Boolean(notifyStatus?.notificationsConfigured);
-    const stepsComplete = [
-      sheetsConnected,
-      layoutReady,
-      alertsReady,
-    ].filter(Boolean).length;
+    const stepsComplete = [sheetsReady, alertsReady].filter(Boolean).length;
 
     return {
       sheetsConnected,
-      layoutReady,
+      sheetsReady,
+      layoutReady: sheetsReady,
       alertsReady,
       stepsComplete,
-      readyToRun: sheetsConnected && alertsReady,
+      readyToRun: sheetsReady && alertsReady,
     };
   }, [sheetsStatus, notifyStatus]);
 
@@ -181,13 +177,19 @@ export function AgentSettingsPage() {
           {[
             {
               label: "Setup progress",
-              value: loaded ? `${setup.stepsComplete} / 3` : "…",
-              hint: "Integrations configured",
+              value: loaded ? `${setup.stepsComplete} / 2` : "…",
+              hint: "Sheets + alerts configured",
             },
             {
               label: "Google Sheets",
-              value: setup.sheetsConnected ? "Connected" : "Not connected",
-              hint: setup.layoutReady ? "Columns mapped" : "Map columns in step 2",
+              value: setup.sheetsReady
+                ? "Ready"
+                : setup.sheetsConnected
+                  ? "Needs mapping"
+                  : "Not connected",
+              hint: setup.sheetsReady
+                ? "Syncing to your spreadsheet"
+                : "Connect your CC ledger in step 1",
             },
             {
               label: "Alerts",
@@ -217,15 +219,16 @@ export function AgentSettingsPage() {
         <div className="border-b border-qb-border-light py-4">
           <h3 className="text-base font-bold text-qb-text">Connect integrations</h3>
           <p className="mt-1 text-sm text-qb-text-secondary">
-            Three quick steps. You only do this once per account.
+            Two quick steps for Sheets, plus alerts. Each user connects their own
+            spreadsheet once.
           </p>
         </div>
 
         <SetupStep
           step={1}
           title="Google Sheets"
-          description="Link your CC ledger so scanned receipts export to the right spreadsheet."
-          complete={setup.sheetsConnected}
+          description="Link your CC ledger so scanned receipts export to your spreadsheet."
+          complete={setup.sheetsReady}
         >
           <GoogleSheetsConnectCard embedded />
         </SetupStep>
@@ -234,7 +237,7 @@ export function AgentSettingsPage() {
           step={2}
           title="Column mapping"
           description="Match Moodna fields to your existing sheet columns."
-          complete={setup.layoutReady}
+          complete={setup.sheetsReady}
         >
           <GoogleSheetsLayoutMapper embedded />
         </SetupStep>

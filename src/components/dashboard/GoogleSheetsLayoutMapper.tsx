@@ -28,6 +28,8 @@ export function GoogleSheetsLayoutMapper({ embedded = false }: { embedded?: bool
   const [localError, setLocalError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [loadingHeaders, setLoadingHeaders] = useState(false);
+  const [mappingSource, setMappingSource] = useState<string | null>(null);
+  const [llmNotes, setLlmNotes] = useState<string | null>(null);
 
   useEffect(() => {
     if (status?.layoutConfig) {
@@ -74,6 +76,8 @@ export function GoogleSheetsLayoutMapper({ embedded = false }: { embedded?: bool
       });
       setHeaders(result.headers);
       setReadTab(result.tab);
+      setMappingSource(result.mappingSource ?? null);
+      setLlmNotes(result.llmNotes ?? null);
 
       if (autoMap) {
         setLayout((current) =>
@@ -114,12 +118,35 @@ export function GoogleSheetsLayoutMapper({ embedded = false }: { embedded?: bool
     <>
         {!status.layoutConfigured ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
-            Column mapping is not saved yet. Read headers from one of your tabs
-            and save before the agent writes transactions.
+            Column mapping is not saved yet. Connect your sheet to run AI
+            auto-mapping, or click Auto-map with AI below.
           </div>
         ) : null}
 
         <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block space-y-1.5 sm:col-span-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-qb-text-muted">
+              Fixed tab name (optional)
+            </span>
+            <input
+              type="text"
+              value={layout.fixedTab ?? ""}
+              onChange={(event) => {
+                setLayout({
+                  ...layout,
+                  fixedTab: event.target.value.trim() || undefined,
+                });
+                setSaved(false);
+              }}
+              placeholder="Leave blank to use tab pattern per card"
+              className="w-full rounded-lg border border-qb-border bg-white px-3 py-2 text-sm"
+            />
+            <span className="text-xs text-qb-text-muted">
+              Use this when all transactions live on one tab (e.g. from a sheet
+              URL with gid=…).
+            </span>
+          </label>
+
           <label className="block space-y-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-qb-text-muted">
               Tab name pattern
@@ -213,9 +240,23 @@ export function GoogleSheetsLayoutMapper({ embedded = false }: { embedded?: bool
             onClick={() => void handleReadHeaders(true)}
             className="qb-btn-secondary shrink-0 disabled:opacity-50"
           >
-            {loadingHeaders ? "Reading…" : "Auto-map from headers"}
+            {loadingHeaders ? "Mapping…" : "Auto-map with AI"}
           </button>
         </div>
+
+        {mappingSource ? (
+          <p className="text-xs text-qb-text-muted">
+            Mapping source:{" "}
+            <strong>
+              {mappingSource === "llm"
+                ? "AI"
+                : mappingSource === "hybrid"
+                  ? "AI + rules"
+                  : "Header rules"}
+            </strong>
+            {llmNotes ? ` — ${llmNotes}` : null}
+          </p>
+        ) : null}
 
         {headers.length > 0 ? (
           <p className="text-xs text-qb-text-muted">
@@ -301,8 +342,8 @@ export function GoogleSheetsLayoutMapper({ embedded = false }: { embedded?: bool
       <div className="qb-card-header">
         <h2 className="qb-section-title">Map your existing sheet</h2>
         <p className="qb-section-desc">
-          Tell Moodna which columns in your spreadsheet match each receipt field.
-          Required: Expense ID and Sheet status (ORANGE/GREEN).
+          Match Moodna fields to your existing sheet columns. AI reads your
+          headers and sample rows when you connect or click Auto-map with AI.
         </p>
       </div>
       <div className="qb-card-body space-y-4">{content}</div>

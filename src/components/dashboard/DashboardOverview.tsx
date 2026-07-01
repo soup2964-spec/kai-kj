@@ -3,16 +3,23 @@
 import Link from "next/link";
 import { ExpenseList } from "@/components/ExpenseList";
 import { SummaryBar } from "@/components/SummaryBar";
+import { GoogleSheetsSetupBanner } from "@/components/dashboard/GoogleSheetsSetupBanner";
+import { isGoogleSheetsSyncReady } from "@/lib/google-sheets-setup";
 import { useExpenseContext } from "@/lib/expense-context";
+import { useGoogleSheetsIntegration } from "@/lib/integrations-store";
 import { getOperationsMetrics } from "@/lib/receipt-workflow";
 
 export function DashboardOverview() {
   const { expenses, removeExpense, updateExpense } = useExpenseContext();
+  const { status, loaded: sheetsLoaded } = useGoogleSheetsIntegration();
   const recentExpenses = expenses.slice(0, 5);
   const metrics = getOperationsMetrics(expenses);
 
   return (
     <>
+      {sheetsLoaded && !isGoogleSheetsSyncReady(status) ? (
+        <GoogleSheetsSetupBanner compact />
+      ) : null}
       <SummaryBar expenses={expenses} />
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

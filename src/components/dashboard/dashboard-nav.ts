@@ -28,8 +28,8 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   },
   {
     href: "/dashboard/agent",
-    label: "Agent",
-    description: "Connect integrations and enable the receipt agent",
+    label: "Integrations",
+    description: "Connect Google Sheets and enable the receipt agent",
     icon: IconSpark,
   },
   {

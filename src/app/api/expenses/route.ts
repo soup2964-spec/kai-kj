@@ -12,6 +12,7 @@ import {
   fetchExpensesForOwner,
   insertExpenseForOwner,
 } from "@/lib/supabase/expenses";
+import { tryPushExpenseToSheet } from "@/lib/google-sheets-sync";
 
 export async function GET(request: Request) {
   try {
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
           "Remote expense storage is unavailable. Receipt saved in this browser.",
       });
     }
+    void tryPushExpenseToSheet(ownerId, saved);
     return NextResponse.json({ expense: saved });
   } catch (error) {
     return NextResponse.json(

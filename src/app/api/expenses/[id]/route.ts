@@ -9,6 +9,7 @@ import {
   deleteExpenseForOwner,
   updateExpenseForOwner,
 } from "@/lib/supabase/expenses";
+import { tryPushExpenseToSheet } from "@/lib/google-sheets-sync";
 
 export async function PATCH(
   request: Request,
@@ -48,6 +49,7 @@ export async function PATCH(
           "Remote expense storage is unavailable. Receipt update saved in this browser.",
       });
     }
+    void tryPushExpenseToSheet(ownerId, saved);
     return NextResponse.json({ expense: saved });
   } catch (error) {
     return NextResponse.json(

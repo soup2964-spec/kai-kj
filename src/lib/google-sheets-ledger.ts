@@ -1,11 +1,15 @@
-import { google } from "googleapis";
 import type { CcLedgerRowInput, CcLedgerSheetStatus } from "@/lib/cc-ledger-types";
+import { google } from "googleapis";
 import { isGoogleSheetsExportConfigured } from "@/lib/google-sheets-export";
 import {
   buildMappedCellUpdates,
   buildStatusCellUpdates,
+  columnLetterToIndex,
   DEFAULT_SHEETS_LAYOUT,
   expenseIdColumn,
+  indexToColumnLetter,
+  resolveLedgerTab,
+  type CcLedgerFieldKey,
   type SheetsLayoutConfig,
 } from "@/lib/sheets-layout";
 
@@ -55,13 +59,7 @@ export function ccTabName(
   cardLastFour: string | null | undefined,
   layout: SheetsLayoutConfig = DEFAULT_SHEETS_LAYOUT,
 ): string {
-  const lastFour =
-    cardLastFour && cardLastFour.length === 4 ? cardLastFour : "Unknown";
-
-  return layout.tabPattern
-    .replace(/\{cardLastFour\}/gi, lastFour)
-    .replace(/\{card\}/gi, lastFour)
-    .trim();
+  return resolveLedgerTab(layout, cardLastFour);
 }
 
 async function getSheetsClient() {
@@ -298,6 +296,135 @@ export async function readTabHeaderRow(
   });
 
   return (response.data.values?.[0] ?? []).map((value) => String(value ?? ""));
+}
+
+export async function listSpreadsheetTabs(
+  spreadsheetId: string,
+): Promise<Array<{ title: string; sheetId: number }>> {
+  const sheets = await getSheetsClient();
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+
+  return (meta.data.sheets ?? [])
+    .map((sheet) => ({
+      title: sheet.properties?.title ?? "",
+      sheetId: sheet.properties?.sheetId ?? 0,
+    }))
+    .filter((sheet) => sheet.title.length > 0);
+}
+
+export async function getTabNameByGid(
+  spreadsheetId: string,
+  gid: string,
+): Promise<string | null> {
+  const numericGid = Number(gid);
+  if (!Number.isFinite(numericGid)) return null;
+
+  const tabs = await listSpreadsheetTabs(spreadsheetId);
+  const match = tabs.find((tab) => tab.sheetId === numericGid);
+  return match?.title ?? null;
+}
+
+export interface CcLedgerSheetRow {
+  rowNumber: number;
+  values: Partial<Record<CcLedgerFieldKey, string>>;
+}
+
+function mappedColumnRange(layout: SheetsLayoutConfig): {
+  startColumn: string;
+  endColumn: string;
+} {
+  const indices = Object.values(layout.columns)
+    .filter(Boolean)
+    .map((column) => columnLetterToIndex(column!))
+    .filter((index): index is number => index != null);
+
+  if (indices.length === 0) {
+    return { startColumn: "A", endColumn: "K" };
+  }
+
+  const min = Math.min(...indices);
+  const max = Math.max(...indices);
+  return {
+    startColumn: indexToColumnLetter(min),
+    endColumn: indexToColumnLetter(max),
+  };
+}
+
+/** Read transaction rows from a mapped CC ledger tab. */
+export async function readCcLedgerRows(
+  spreadsheetId: string,
+  tab: string,
+  layout: SheetsLayoutConfig,
+): Promise<CcLedgerSheetRow[]> {
+  if (!(await tabExists(spreadsheetId, tab))) {
+    throw new Error(`Tab "${tab}" was not found in your spreadsheet.`);
+  }
+
+  const { startColumn, endColumn } = mappedColumnRange(layout);
+  const sheets = await getSheetsClient();
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `'${tab}'!${startColumn}${layout.dataStartRow}:${endColumn}`,
+  });
+
+  const rows = response.data.values ?? [];
+  const parsed: CcLedgerSheetRow[] = [];
+
+  for (let index = 0; index < rows.length; index++) {
+    const rowValues = rows[index] ?? [];
+    const values: Partial<Record<CcLedgerFieldKey, string>> = {};
+    let hasContent = false;
+
+    for (const [field, column] of Object.entries(layout.columns) as Array<
+      [CcLedgerFieldKey, string | undefined]
+    >) {
+      if (!column) continue;
+      const columnIndex =
+        columnLetterToIndex(column)! - columnLetterToIndex(startColumn)!;
+      const cell = String(rowValues[columnIndex] ?? "").trim();
+      if (cell) hasContent = true;
+      values[field] = cell;
+    }
+
+    if (!hasContent) continue;
+
+    parsed.push({
+      rowNumber: layout.dataStartRow + index,
+      values,
+    });
+  }
+
+  return parsed;
+}
+
+/** Read a few data rows below the header for LLM column mapping context. */
+export async function readSampleDataRows(
+  spreadsheetId: string,
+  tab: string,
+  layout: SheetsLayoutConfig,
+  rowCount = 3,
+  headerCount?: number,
+): Promise<string[][]> {
+  if (!(await tabExists(spreadsheetId, tab))) {
+    return [];
+  }
+
+  const { endColumn: mappedEndColumn } = mappedColumnRange(layout);
+  const endColumn =
+    headerCount && headerCount > 0
+      ? indexToColumnLetter(Math.max(headerCount - 1, 0))
+      : mappedEndColumn;
+  const startRow = layout.dataStartRow;
+  const endRow = startRow + Math.max(rowCount - 1, 0);
+  const sheets = await getSheetsClient();
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `'${tab}'!A${startRow}:${endColumn}${endRow}`,
+  });
+
+  return (response.data.values ?? []).map((row) =>
+    row.map((value) => String(value ?? "")),
+  );
 }
 
 export function parseAgentStateToCcLedgerRow(

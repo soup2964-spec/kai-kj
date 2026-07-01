@@ -3,19 +3,32 @@ import { apiErrorMessage } from "@/lib/expense-api";
 import { authErrorStatus, requireOwnerId } from "@/lib/auth/server";
 import {
   googleSpreadsheetUrl,
+  parseGoogleSpreadsheetGid,
   parseGoogleSpreadsheetId,
 } from "@/lib/integrations-types";
 import {
   buildSpreadsheetUrl,
   getGoogleServiceAccountEmail,
   getPlatformDefaultSpreadsheetId,
+  isDevSheetsFallbackEnabled,
   isPlatformSheetsAvailable,
 } from "@/lib/resolve-cc-ledger";
+import {
+  getGoogleSheetsSetupPhase,
+  isGoogleSheetsSyncReady,
+} from "@/lib/google-sheets-setup";
+import {
+  getTabNameByGid,
+  listSpreadsheetTabs,
+  readSampleDataRows,
+  readTabHeaderRow,
+} from "@/lib/google-sheets-ledger";
 import {
   CC_LEDGER_FIELD_DEFINITIONS,
   DEFAULT_SHEETS_LAYOUT,
   mergeSheetsLayoutConfig,
   parseSheetsLayoutConfig,
+  suggestLayoutFromSheetContext,
   validateSheetsLayoutConfig,
   type SheetsLayoutConfig,
 } from "@/lib/sheets-layout";
@@ -43,33 +56,95 @@ function resolveLayout(
   return mergeSheetsLayoutConfig(DEFAULT_SHEETS_LAYOUT);
 }
 
-function integrationResponse(
+async function buildInitialLayoutFromInput(
+  spreadsheetId: string,
+  rawInput: string,
+): Promise<SheetsLayoutConfig> {
+  const layoutConfig = mergeSheetsLayoutConfig(DEFAULT_SHEETS_LAYOUT);
+  const gid = parseGoogleSpreadsheetGid(rawInput);
+
+  let tab: string | null = null;
+  if (gid) {
+    tab = await getTabNameByGid(spreadsheetId, gid);
+  }
+
+  if (!tab) {
+    const tabs = await listSpreadsheetTabs(spreadsheetId);
+    if (tabs.length === 1) {
+      tab = tabs[0]?.title ?? null;
+    }
+  }
+
+  if (!tab) {
+    throw new Error(
+      "Could not detect which tab to use. Paste a spreadsheet URL that includes gid=… for your CC ledger tab.",
+    );
+  }
+
+  const headers = await readTabHeaderRow(
+    spreadsheetId,
+    tab,
+    layoutConfig.headerRow,
+  );
+  const sampleRows = await readSampleDataRows(
+    spreadsheetId,
+    tab,
+    layoutConfig,
+    3,
+    headers.length,
+  );
+  const suggestion = await suggestLayoutFromSheetContext({
+    headers,
+    sampleRows,
+    tabName: tab,
+  });
+
+  return mergeSheetsLayoutConfig({
+    ...layoutConfig,
+    fixedTab: tab,
+    createMissingTabs: false,
+    columns: {
+      ...layoutConfig.columns,
+      ...suggestion.columns,
+    },
+  });
+}
+
+function buildIntegrationPayload(
   ownerId: string,
   integration: Awaited<ReturnType<typeof fetchOwnerIntegrations>>,
 ) {
-  const spreadsheetId =
-    integration?.googleSheetsCcLedgerId ?? getPlatformDefaultSpreadsheetId();
+  const userSpreadsheetId = integration?.googleSheetsCcLedgerId ?? null;
+  const devFallbackId =
+    isDevSheetsFallbackEnabled() ? getPlatformDefaultSpreadsheetId() : null;
+  const spreadsheetId = userSpreadsheetId ?? devFallbackId;
   const serviceAccountEmail = getGoogleServiceAccountEmail();
   const layoutConfig = resolveLayout(integration);
   const layoutErrors = validateSheetsLayoutConfig(layoutConfig);
-
-  return {
+  const layoutValid = layoutErrors.length === 0;
+  const layoutConfigured = Boolean(integration?.googleSheetsLayoutConfig);
+  const connected = Boolean(userSpreadsheetId);
+  const status = {
     ownerId,
-    connected: Boolean(integration?.googleSheetsCcLedgerId),
+    connected,
     platformSheetsAvailable: isPlatformSheetsAvailable(),
-    spreadsheetId: integration?.googleSheetsCcLedgerId ?? null,
+    spreadsheetId: userSpreadsheetId,
     spreadsheetUrl: spreadsheetId ? buildSpreadsheetUrl(spreadsheetId) : null,
     connectedAt: integration?.googleSheetsConnectedAt ?? null,
     serviceAccountEmail,
-    usingPlatformDefault:
-      !integration?.googleSheetsCcLedgerId &&
-      Boolean(getPlatformDefaultSpreadsheetId()),
+    usingPlatformDefault: !userSpreadsheetId && Boolean(devFallbackId),
     layoutConfig,
-    layoutConfigured: Boolean(integration?.googleSheetsLayoutConfig),
-    layoutValid: layoutErrors.length === 0,
+    layoutConfigured,
+    layoutValid,
     layoutErrors,
     fieldDefinitions: CC_LEDGER_FIELD_DEFINITIONS,
     defaultLayout: DEFAULT_SHEETS_LAYOUT,
+  };
+
+  return {
+    ...status,
+    setupPhase: getGoogleSheetsSetupPhase(status),
+    setupComplete: isGoogleSheetsSyncReady(status),
   };
 }
 
@@ -80,7 +155,7 @@ export async function GET(request: Request) {
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
-        ...integrationResponse(ownerId, null),
+        ...buildIntegrationPayload(ownerId, null),
         localOnly: true,
       });
     }
@@ -88,7 +163,7 @@ export async function GET(request: Request) {
     const supabase = createAdminClient();
     const integration = await fetchOwnerIntegrations(supabase, ownerId);
 
-    return NextResponse.json(integrationResponse(ownerId, integration));
+    return NextResponse.json(buildIntegrationPayload(ownerId, integration));
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not load Google Sheets settings.") },
@@ -128,8 +203,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const layoutConfig = await buildInitialLayoutFromInput(spreadsheetId, rawInput);
+    const layoutErrors = validateSheetsLayoutConfig(layoutConfig);
+    const layoutValid = layoutErrors.length === 0;
+
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({
+      const payload = {
         ownerId,
         connected: true,
         localOnly: true,
@@ -138,23 +217,37 @@ export async function POST(request: Request) {
         connectedAt: new Date().toISOString(),
         serviceAccountEmail: getGoogleServiceAccountEmail(),
         platformSheetsAvailable: true,
-        layoutConfig: mergeSheetsLayoutConfig(DEFAULT_SHEETS_LAYOUT),
-        layoutConfigured: false,
-        layoutValid: true,
-        layoutErrors: [],
+        usingPlatformDefault: false,
+        layoutConfig,
+        layoutConfigured: layoutValid,
+        layoutValid,
+        layoutErrors,
         fieldDefinitions: CC_LEDGER_FIELD_DEFINITIONS,
         defaultLayout: DEFAULT_SHEETS_LAYOUT,
+      };
+      return NextResponse.json({
+        ...payload,
+        setupPhase: getGoogleSheetsSetupPhase(payload),
+        setupComplete: isGoogleSheetsSyncReady(payload),
       });
     }
 
     const supabase = createAdminClient();
-    const integration = await upsertOwnerGoogleSheetsLedger(
+    let integration = await upsertOwnerGoogleSheetsLedger(
       supabase,
       ownerId,
       spreadsheetId,
     );
 
-    return NextResponse.json(integrationResponse(ownerId, integration));
+    if (layoutValid) {
+      integration = await upsertOwnerGoogleSheetsLayout(
+        supabase,
+        ownerId,
+        layoutConfig as unknown as Record<string, unknown>,
+      );
+    }
+
+    return NextResponse.json(buildIntegrationPayload(ownerId, integration));
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not connect Google Sheets.") },
@@ -195,7 +288,7 @@ export async function PATCH(request: Request) {
       layoutConfig as unknown as Record<string, unknown>,
     );
 
-    return NextResponse.json(integrationResponse(ownerId, integration));
+    return NextResponse.json(buildIntegrationPayload(ownerId, integration));
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not save column mapping.") },
@@ -216,7 +309,7 @@ export async function DELETE(request: Request) {
     const supabase = createAdminClient();
     await clearOwnerGoogleSheetsLedger(supabase, ownerId);
 
-    return NextResponse.json(integrationResponse(ownerId, null));
+    return NextResponse.json(buildIntegrationPayload(ownerId, null));
   } catch (error) {
     return NextResponse.json(
       { error: apiErrorMessage(error, "Could not disconnect Google Sheets.") },

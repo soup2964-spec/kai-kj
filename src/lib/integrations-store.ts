@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getOwnerId } from "@/lib/owner-id";
 import type { SheetsLayoutConfig } from "@/lib/sheets-layout";
+import type { GoogleSheetsSetupPhase } from "@/lib/google-sheets-setup";
 import {
   CC_LEDGER_FIELD_DEFINITIONS,
   DEFAULT_SHEETS_LAYOUT,
@@ -25,6 +26,8 @@ export interface GoogleSheetsIntegrationStatus {
   layoutErrors: string[];
   fieldDefinitions: typeof CC_LEDGER_FIELD_DEFINITIONS;
   defaultLayout: SheetsLayoutConfig;
+  setupPhase?: GoogleSheetsSetupPhase;
+  setupComplete?: boolean;
   localOnly?: boolean;
 }
 
@@ -260,6 +263,9 @@ export async function fetchSheetHeaders(options: {
   headers: string[];
   suggestedColumns: Partial<Record<string, string>>;
   suggestedLayout: SheetsLayoutConfig;
+  mappingSource?: "llm" | "rules" | "hybrid";
+  llmConfidence?: number | null;
+  llmNotes?: string | null;
 }> {
   const ownerId = getOwnerId();
   const params = new URLSearchParams({ ownerId });

@@ -20,6 +20,8 @@ export type CcLedgerFieldKey =
 export interface SheetsLayoutConfig {
   /** Tab name template. Supports `{cardLastFour}` and `{card}`. */
   tabPattern: string;
+  /** When set, all reads/writes use this tab instead of tabPattern. */
+  fixedTab?: string;
   headerRow: number;
   dataStartRow: number;
   /** When false, tabs must already exist in the user's workbook. */
@@ -189,6 +191,7 @@ export function mergeSheetsLayoutConfig(
 
   return {
     tabPattern: partial.tabPattern?.trim() || DEFAULT_SHEETS_LAYOUT.tabPattern,
+    fixedTab: partial.fixedTab?.trim() || undefined,
     headerRow: partial.headerRow ?? DEFAULT_SHEETS_LAYOUT.headerRow,
     dataStartRow: partial.dataStartRow ?? DEFAULT_SHEETS_LAYOUT.dataStartRow,
     createMissingTabs:
@@ -198,6 +201,17 @@ export function mergeSheetsLayoutConfig(
       ...normalizeColumnMap(partial.columns),
     },
   };
+}
+
+export function resolveLedgerTab(
+  layout: SheetsLayoutConfig,
+  cardLastFour?: string | null,
+): string {
+  if (layout.fixedTab?.trim()) {
+    return layout.fixedTab.trim();
+  }
+
+  return resolveTabNameFromPattern(layout.tabPattern, cardLastFour);
 }
 
 function normalizeColumnMap(
@@ -356,6 +370,47 @@ export function suggestLayoutFromHeaders(
   });
 
   return suggestions;
+}
+
+export type LayoutMappingSource = "llm" | "rules" | "hybrid";
+
+export interface SheetLayoutSuggestion {
+  columns: Partial<Record<CcLedgerFieldKey, string>>;
+  mappingSource: LayoutMappingSource;
+  llmConfidence?: number;
+  llmNotes?: string;
+}
+
+/** Prefer LLM mapping, then fill gaps with header alias rules. */
+export async function suggestLayoutFromSheetContext(options: {
+  headers: string[];
+  sampleRows?: string[][];
+  tabName?: string;
+}): Promise<SheetLayoutSuggestion> {
+  const ruleColumns = suggestLayoutFromHeaders(options.headers);
+  const { suggestLayoutWithLlm } = await import("@/lib/sheets-layout-llm");
+  const llmResult = await suggestLayoutWithLlm(options);
+
+  if (!llmResult) {
+    return {
+      columns: ruleColumns,
+      mappingSource: "rules",
+    };
+  }
+
+  const merged = { ...ruleColumns, ...llmResult.columns };
+  const mappingSource: LayoutMappingSource =
+    Object.keys(llmResult.columns).length > 0 &&
+    Object.keys(ruleColumns).length > 0
+      ? "hybrid"
+      : "llm";
+
+  return {
+    columns: merged,
+    mappingSource,
+    llmConfidence: llmResult.confidence,
+    llmNotes: llmResult.notes,
+  };
 }
 
 export function buildStatusCellUpdates(

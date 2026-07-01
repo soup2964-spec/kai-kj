@@ -17,6 +17,11 @@ export function getPlatformDefaultSpreadsheetId(): string | null {
   );
 }
 
+/** Dev-only fallback — never treat as a connected user sheet in production UI. */
+export function isDevSheetsFallbackEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" && Boolean(getPlatformDefaultSpreadsheetId());
+}
+
 export function getGoogleServiceAccountEmail(): string | null {
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim();
   if (!raw) return null;
@@ -46,10 +51,10 @@ export async function resolveCcLedgerSpreadsheetId(
   }
 
   const fallback = getPlatformDefaultSpreadsheetId();
-  if (fallback) return fallback;
+  if (fallback && isDevSheetsFallbackEnabled()) return fallback;
 
   throw new Error(
-    "Google Sheets is not connected for this account. Open Agent settings and connect your CC ledger spreadsheet.",
+    "Google Sheets is not connected for this account. Open Integrations and connect your CC ledger spreadsheet.",
   );
 }
 

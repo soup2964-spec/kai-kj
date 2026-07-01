@@ -7,6 +7,11 @@ import {
 } from "@/components/ExpensePeriodFilterBar";
 import { ExpenseList } from "@/components/ExpenseList";
 import { SummaryBar } from "@/components/SummaryBar";
+import { GoogleSheetsSetupBanner } from "@/components/dashboard/GoogleSheetsSetupBanner";
+import { GoogleSheetsSyncPanel } from "@/components/dashboard/GoogleSheetsSyncPanel";
+import { ManualTransactionForm } from "@/components/dashboard/ManualTransactionForm";
+import { isGoogleSheetsSyncReady } from "@/lib/google-sheets-setup";
+import { useGoogleSheetsIntegration } from "@/lib/integrations-store";
 import {
   filterExpensesByPeriod,
   type ExpenseDateSort,
@@ -138,6 +143,7 @@ function OperationsDashboard({ expenses }: { expenses: ReturnType<typeof searchE
 
 export function ExpensesPage() {
   const { expenses, removeExpense, updateExpense } = useExpenseContext();
+  const { status, loaded: sheetsLoaded } = useGoogleSheetsIntegration();
   const [dateSort, setDateSort] = useState<ExpenseDateSort>("newest");
   const [period, setPeriod] = useState<ExpensePeriodFilter>(
     DEFAULT_EXPENSE_PERIOD_FILTER,
@@ -158,6 +164,13 @@ export function ExpensesPage() {
 
   return (
     <>
+      {sheetsLoaded && !isGoogleSheetsSyncReady(status) ? (
+        <GoogleSheetsSetupBanner />
+      ) : null}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ManualTransactionForm />
+        <GoogleSheetsSyncPanel />
+      </div>
       <ExpensePeriodFilterBar
         expenses={expenses}
         period={period}

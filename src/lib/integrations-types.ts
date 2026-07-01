@@ -30,6 +30,11 @@ export function parseGoogleSpreadsheetId(input: string): string | null {
   return match?.[1] ?? null;
 }
 
+export function parseGoogleSpreadsheetGid(input: string): string | null {
+  const match = input.trim().match(/[#&?]gid=(\d+)/);
+  return match?.[1] ?? null;
+}
+
 export function googleSpreadsheetUrl(spreadsheetId: string): string {
   return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
 }

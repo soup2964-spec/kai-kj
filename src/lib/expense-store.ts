@@ -15,6 +15,8 @@ import {
 import {
   deleteExpenseRemote,
   fetchExpensesRemote,
+  pullFromGoogleSheetRemote,
+  pushToGoogleSheetRemote,
   saveExpenseRemote,
   submitAccountingDecisionRemote,
   updateExpenseRemote,
@@ -438,6 +440,44 @@ export function useExpenses() {
     [persist],
   );
 
+  const addManualExpense = useCallback(
+    (input: {
+      merchant: string;
+      amount: number;
+      date: string;
+      category?: ExpenseCategory;
+      cardLastFour?: string | null;
+      billableStatus?: BillableStatus;
+    }) => {
+      const scan: ScannedReceipt = {
+        merchant: input.merchant.trim() || "Manual entry",
+        amount: input.amount,
+        date: normalizeExpenseDate(input.date),
+        category: input.category ?? "other",
+        categoryReason: "Entered manually",
+        lineItems: [],
+        confidence: 1,
+        cardLastFour: normalizeCardLastFour(input.cardLastFour),
+        billableStatus: input.billableStatus ?? "review",
+        billableReason: "Entered manually",
+        billableSource: "manual",
+      };
+
+      return addExpense(scan);
+    },
+    [addExpense],
+  );
+
+  const pullFromGoogleSheet = useCallback(async () => {
+    const { expenses: merged, result } = await pullFromGoogleSheetRemote();
+    persist(mergeRemoteAndLocal(merged, readExpenses()));
+    return result;
+  }, [persist]);
+
+  const pushToGoogleSheet = useCallback(async () => {
+    return pushToGoogleSheetRemote();
+  }, []);
+
   const clearExpenses = useCallback(() => {
     persist([]);
   }, [persist]);
@@ -464,8 +504,11 @@ export function useExpenses() {
     accountEmail,
     refreshAccount,
     addExpense,
+    addManualExpense,
     removeExpense,
     updateExpense,
+    pullFromGoogleSheet,
+    pushToGoogleSheet,
     submitAccountingDecision,
     clearExpenses,
     mergeReconciledExpenses,

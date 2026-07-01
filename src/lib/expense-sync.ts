@@ -107,3 +107,42 @@ export async function exportToGoogleSheetsRemote(
       : "Could not export expenses to Google Sheets.",
   );
 }
+
+export interface SheetSyncSummary {
+  spreadsheetId: string;
+  tab: string;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+}
+
+export async function pullFromGoogleSheetRemote(): Promise<{
+  expenses: Expense[];
+  result: SheetSyncSummary;
+}> {
+  const ownerId = getOwnerId();
+  const response = await fetch("/api/google-sheets/sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerId, direction: "pull" }),
+  });
+  const data = await parseJsonResponse(response);
+  return {
+    expenses: data.expenses as Expense[],
+    result: data.result as SheetSyncSummary,
+  };
+}
+
+export async function pushToGoogleSheetRemote(): Promise<{
+  result: SheetSyncSummary;
+}> {
+  const ownerId = getOwnerId();
+  const response = await fetch("/api/google-sheets/sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerId, direction: "push" }),
+  });
+  const data = await parseJsonResponse(response);
+  return { result: data.result as SheetSyncSummary };
+}
