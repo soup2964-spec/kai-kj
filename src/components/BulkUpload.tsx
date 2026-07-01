@@ -1,11 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
-import type { ScannedReceipt } from "@/lib/types";
+import { useEffect, useRef, useState } from "react";
+import type { Expense, ScannedReceipt } from "@/lib/types";
 import { CategoryBadge } from "./CategoryBadge";
 import { BillableBadge } from "./BillableBadge";
 import { IconPhoto } from "./icons";
 import { formatCurrency } from "@/lib/categories";
+import {
+  expenseToTransactionFields,
+  transactionFieldsToPatch,
+} from "@/lib/expense-update";
+import { useExpenseContext } from "@/lib/expense-context";
+import { ReceiptTransactionEditForm } from "./ReceiptTransactionEditForm";
 import {
   BULK_UPLOAD_ACCEPT,
   expandFilesForBulkUpload,
@@ -30,11 +36,8 @@ interface QueueItem {
   label: string;
   status: QueueStatus;
   result?: ScannedReceipt;
+  expenseId?: string;
   error?: string;
-}
-
-interface BulkUploadProps {
-  onScanComplete: (result: ScannedReceipt, thumbnailUrl: string) => void;
 }
 
 function revokeQueuePreviews(items: QueueItem[]) {
@@ -55,13 +58,83 @@ function syncQueueToLiveFeed(items: QueueItem[]) {
   );
 }
 
-export function BulkUpload({ onScanComplete }: BulkUploadProps) {
+function BulkDoneItem({
+  item,
+  expense,
+  editing,
+  onToggleEdit,
+  onSave,
+}: {
+  item: QueueItem;
+  expense: Expense | undefined;
+  editing: boolean;
+  onToggleEdit: () => void;
+  onSave: (patch: ReturnType<typeof transactionFieldsToPatch>) => void;
+}) {
+  const [fields, setFields] = useState(() =>
+    expense
+      ? expenseToTransactionFields(expense)
+      : item.result
+        ? expenseToTransactionFields(item.result)
+        : null,
+  );
+
+  useEffect(() => {
+    if (editing && expense) {
+      setFields(expenseToTransactionFields(expense));
+    }
+  }, [editing, expense]);
+
+  if (!item.result || !fields) return null;
+
+  return (
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-xs text-qb-text-muted">{item.label}</p>
+      <p className="truncate text-sm font-semibold text-qb-text">
+        {expense?.merchant ?? item.result.merchant}
+      </p>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        <CategoryBadge category={expense?.category ?? item.result.category} />
+        <BillableBadge
+          status={expense?.billableStatus ?? item.result.billableStatus}
+        />
+        <span className="text-sm font-bold tabular-nums text-qb-text">
+          {formatCurrency(expense?.amount ?? item.result.amount)}
+        </span>
+      </div>
+      {expense ? (
+        <button
+          type="button"
+          onClick={onToggleEdit}
+          className="mt-2 text-xs font-semibold text-qb-blue"
+        >
+          {editing ? "Hide editor" : "Edit transaction"}
+        </button>
+      ) : null}
+      {editing && expense ? (
+        <div className="mt-3 rounded-lg border border-qb-border bg-qb-bg p-3">
+          <ReceiptTransactionEditForm
+            idPrefix={`bulk-${item.id}`}
+            values={fields}
+            onChange={setFields}
+            onSave={() => onSave(transactionFieldsToPatch(fields))}
+            saveLabel="Save edits"
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function BulkUpload() {
+  const { addExpense, updateExpense, expenses } = useExpenseContext();
   const inputRef = useRef<HTMLInputElement>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [processing, setProcessing] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [active, setActive] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   async function handleFilesSelected(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
@@ -71,6 +144,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
     setPreparing(true);
     setProcessing(false);
     setCurrentIndex(0);
+    setEditingId(null);
     setQueue([]);
 
     let entries;
@@ -160,14 +234,19 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
           jobId: item.id,
           label: item.label,
         });
-        onScanComplete(result, receiptImageUrl);
+        const saved = addExpense(result, receiptImageUrl);
         completed += 1;
         successCount += 1;
         setCurrentIndex(completed);
         setQueue((current) => {
           const next: QueueItem[] = current.map((entry) =>
             entry.id === item.id
-              ? { ...entry, status: "done" as const, result }
+              ? {
+                  ...entry,
+                  status: "done" as const,
+                  result,
+                  expenseId: saved.id,
+                }
               : entry,
           );
           syncQueueToLiveFeed(next);
@@ -223,6 +302,7 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
     setProcessing(false);
     setPreparing(false);
     setCurrentIndex(0);
+    setEditingId(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -272,7 +352,8 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
               </p>
               {!processing && !preparing && (
                 <p className="mt-1 text-xs text-qb-text-muted">
-                  Scanned receipts were added to your transactions.
+                  Tap Edit transaction on any saved receipt to fix category or
+                  amount before moving on.
                 </p>
               )}
               {(processing || preparing) && progressTotal > 0 && (
@@ -293,78 +374,99 @@ export function BulkUpload({ onScanComplete }: BulkUploadProps) {
               )}
             </div>
 
-            <ul className="max-h-80 space-y-2 overflow-y-auto">
-              {queue.map((item, index) => (
-                <li
-                  key={item.id}
-                  className="flex items-center gap-3 rounded-lg border border-qb-border bg-white p-2.5"
-                >
-                  {item.previewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.previewUrl}
-                      alt=""
-                      className="h-12 w-12 shrink-0 rounded border border-qb-border object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg">
-                      <IconPhoto className="h-5 w-5 text-qb-text-muted" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs text-qb-text-muted">
-                      {item.label}
-                    </p>
-                    {item.status === "pending" && (
-                      <p className="text-sm text-qb-text-muted">
-                        Waiting… #{index + 1}
-                      </p>
-                    )}
-                    {item.status === "processing" && (
-                      <p className="flex items-center gap-2 text-sm font-medium text-qb-text">
-                        <span className="qb-spinner" />
-                        Scanning…
-                      </p>
-                    )}
-                    {item.status === "done" && item.result && (
-                      <>
-                        <p className="truncate text-sm font-semibold text-qb-text">
-                          {item.result.merchant}
-                        </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <CategoryBadge category={item.result.category} />
-                          <BillableBadge status={item.result.billableStatus} />
-                          <span className="text-sm font-bold tabular-nums text-qb-text">
-                            {formatCurrency(item.result.amount)}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                    {item.status === "error" && (
-                      <p className="text-sm text-qb-danger">
-                        {item.error ?? "Failed to scan"}
-                      </p>
-                    )}
-                  </div>
-                  <span
-                    className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${
-                      item.status === "done"
-                        ? "text-qb-blue"
-                        : item.status === "error"
-                          ? "text-qb-danger"
-                          : "text-qb-text-muted"
-                    }`}
+            <ul className="max-h-96 space-y-2 overflow-y-auto">
+              {queue.map((item, index) => {
+                const expense = item.expenseId
+                  ? expenses.find((entry) => entry.id === item.expenseId)
+                  : undefined;
+
+                return (
+                  <li
+                    key={item.id}
+                    className="flex items-start gap-3 rounded-lg border border-qb-border bg-white p-2.5"
                   >
-                    {item.status === "done"
-                      ? "Saved"
-                      : item.status === "error"
-                        ? "Error"
-                        : item.status === "processing"
-                          ? "…"
-                          : "Queued"}
-                  </span>
-                </li>
-              ))}
+                    {item.previewUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.previewUrl}
+                        alt=""
+                        className="h-12 w-12 shrink-0 rounded border border-qb-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded border border-qb-border bg-qb-bg">
+                        <IconPhoto className="h-5 w-5 text-qb-text-muted" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      {item.status === "pending" && (
+                        <>
+                          <p className="truncate text-xs text-qb-text-muted">
+                            {item.label}
+                          </p>
+                          <p className="text-sm text-qb-text-muted">
+                            Waiting… #{index + 1}
+                          </p>
+                        </>
+                      )}
+                      {item.status === "processing" && (
+                        <>
+                          <p className="truncate text-xs text-qb-text-muted">
+                            {item.label}
+                          </p>
+                          <p className="flex items-center gap-2 text-sm font-medium text-qb-text">
+                            <span className="qb-spinner" />
+                            Scanning…
+                          </p>
+                        </>
+                      )}
+                      {item.status === "done" && (
+                        <BulkDoneItem
+                          item={item}
+                          expense={expense}
+                          editing={editingId === item.id}
+                          onToggleEdit={() =>
+                            setEditingId((current) =>
+                              current === item.id ? null : item.id,
+                            )
+                          }
+                          onSave={(patch) => {
+                            if (item.expenseId) {
+                              updateExpense(item.expenseId, patch);
+                            }
+                          }}
+                        />
+                      )}
+                      {item.status === "error" && (
+                        <>
+                          <p className="truncate text-xs text-qb-text-muted">
+                            {item.label}
+                          </p>
+                          <p className="text-sm text-qb-danger">
+                            {item.error ?? "Failed to scan"}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                    <span
+                      className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${
+                        item.status === "done"
+                          ? "text-qb-blue"
+                          : item.status === "error"
+                            ? "text-qb-danger"
+                            : "text-qb-text-muted"
+                      }`}
+                    >
+                      {item.status === "done"
+                        ? "Saved"
+                        : item.status === "error"
+                          ? "Error"
+                          : item.status === "processing"
+                            ? "…"
+                            : "Queued"}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
 
             {!processing && !preparing && (
