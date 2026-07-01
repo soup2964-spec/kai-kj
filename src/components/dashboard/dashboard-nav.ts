@@ -1,10 +1,8 @@
 import {
   IconCamera,
   IconDashboard,
-  IconExpenses,
   IconLiveFeed,
   IconSpark,
-  IconStatement,
   IconSupport,
 } from "@/components/icons";
 
@@ -41,18 +39,6 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: IconSpark,
   },
   {
-    href: "/dashboard/statements",
-    label: "Upload statements",
-    description: "Import credit card PDF or CSV statements",
-    icon: IconStatement,
-  },
-  {
-    href: "/dashboard/expenses",
-    label: "Expenses",
-    description: "All saved receipts",
-    icon: IconExpenses,
-  },
-  {
     href: "/dashboard/support",
     label: "Support",
     description: "Submit complaints and view your support inbox",
@@ -61,6 +47,20 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
 ];
 
 export function getDashboardPageMeta(pathname: string) {
+  if (pathname.startsWith("/dashboard/expenses")) {
+    return {
+      title: "Expenses",
+      description: "Search, review, and edit uploaded receipts",
+    };
+  }
+
+  if (pathname.startsWith("/dashboard/statements")) {
+    return {
+      title: "Upload statements",
+      description: "Import credit card PDF or CSV statements",
+    };
+  }
+
   const match =
     DASHBOARD_NAV.find((item) =>
       item.href === "/dashboard"

@@ -98,6 +98,11 @@ function expenseToInsert(expense: Expense, ownerId: string): ExpenseInsert {
 
 function expenseToUpdate(expense: Expense): ExpenseUpdate {
   return {
+    merchant: expense.merchant,
+    amount: expense.amount,
+    date: expense.date,
+    category: expense.category,
+    category_reason: expense.categoryReason,
     billable_status: expense.billableStatus,
     billable_reason: expense.billableReason,
     billable_source: expense.billableSource,

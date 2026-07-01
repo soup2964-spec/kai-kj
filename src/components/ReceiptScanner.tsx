@@ -2,14 +2,15 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { ScannedReceipt } from "@/lib/types";
-import { CategoryBadge } from "./CategoryBadge";
-import { BillableBadge } from "./BillableBadge";
-import { CardBadge } from "./CardBadge";
-import { WorkOrderBadge } from "./WorkOrderBadge";
+import {
+  applyTransactionFieldsToScannedReceipt,
+  expenseToTransactionFields,
+  type ReceiptTransactionFields,
+} from "@/lib/expense-update";
 import { IconCamera, IconCheck, IconPhoto, IconSpark } from "./icons";
 import { ScanToast } from "./ScanToast";
 import { ReceiptLineItemsList } from "./ReceiptLineItemsList";
-import { formatCurrency, formatDate } from "@/lib/categories";
+import { ReceiptTransactionEditForm } from "./ReceiptTransactionEditForm";
 import { prepareReceiptImage } from "@/lib/image-utils";
 import { scanReceiptFile } from "@/lib/scan-receipt-client";
 
@@ -29,6 +30,8 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ScannedReceipt | null>(null);
+  const [transactionFields, setTransactionFields] =
+    useState<ReceiptTransactionFields | null>(null);
   const [preparing, setPreparing] = useState(false);
   const [showScannedToast, setShowScannedToast] = useState(false);
 
@@ -74,6 +77,7 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
     try {
       const { result: scanned } = await scanReceiptFile(uploadFile);
       setResult(scanned);
+      setTransactionFields(expenseToTransactionFields(scanned));
       setStep("result");
       setShowScannedToast(true);
     } catch (err) {
@@ -88,6 +92,7 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
     setUploadFile(null);
     setThumbnailUrl(null);
     setResult(null);
+    setTransactionFields(null);
     setError(null);
     setPreparing(false);
     if (cameraInputRef.current) cameraInputRef.current.value = "";
@@ -95,8 +100,12 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
   }
 
   function save() {
-    if (!result || !preview) return;
-    onScanComplete(result, preview);
+    if (!result || !preview || !transactionFields) return;
+    const edited = applyTransactionFieldsToScannedReceipt(
+      result,
+      transactionFields,
+    );
+    onScanComplete(edited, preview);
     reset();
   }
 
@@ -219,47 +228,21 @@ export function ReceiptScanner({ onScanComplete }: ReceiptScannerProps) {
                 </div>
               )}
 
-              {step === "result" && result && (
+              {step === "result" && result && transactionFields && (
                 <div className="qb-animate-in overflow-hidden rounded-lg border border-qb-blue/30 bg-qb-blue-light">
                   <div className="flex items-center gap-2 border-b border-qb-blue/20 bg-white/60 px-4 py-2.5">
                     <IconSpark className="h-4 w-4 text-qb-blue" />
                     <span className="text-xs font-bold uppercase tracking-wider text-qb-blue-dark">
-                      Categorized
+                      Review and edit
                     </span>
                   </div>
                   <div className="space-y-3 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-lg font-bold text-qb-text">
-                          {result.merchant}
-                        </p>
-                        <p className="text-sm text-qb-text-secondary">
-                          {formatDate(result.date)}
-                        </p>
-                      </div>
-                      <p className="shrink-0 text-2xl font-bold tabular-nums text-qb-text">
-                        {formatCurrency(result.amount)}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CategoryBadge category={result.category} size="md" />
-                      <BillableBadge status={result.billableStatus} size="md" />
-                      <CardBadge
-                        lastFour={result.cardLastFour}
-                        brand={result.cardBrand}
-                        size="md"
-                      />
-                      <WorkOrderBadge expense={result} size="md" />
-                    </div>
-
-                    <p className="text-sm leading-relaxed text-qb-text-secondary">
-                      {result.categoryReason}
-                    </p>
-
-                    <p className="text-sm leading-relaxed text-qb-text-secondary">
-                      {result.billableReason}
-                    </p>
+                    <ReceiptTransactionEditForm
+                      idPrefix="scan-result"
+                      values={transactionFields}
+                      onChange={setTransactionFields}
+                      showSaveButton={false}
+                    />
 
                     {result.lineItems.length > 0 && (
                       <ReceiptLineItemsList items={result.lineItems} limit={8} />

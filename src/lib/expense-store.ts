@@ -23,9 +23,11 @@ import {
 import { reconcileStatementsRemote } from "./statement-sync";
 import { normalizeLineItems } from "./receipt-line-items";
 import { emitLiveFeedEvent } from "./live-feed/store";
+import type { ExpenseTransactionPatch } from "./expense-update";
 import type {
   BillableStatus,
   Expense,
+  ExpenseCategory,
   ReceiptInboxStatus,
   ScannedReceipt,
 } from "./types";
@@ -320,24 +322,36 @@ export function useExpenses() {
   );
 
   const updateExpense = useCallback(
-    (
-      id: string,
-      patch: {
-        billableStatus?: BillableStatus;
-        cardLastFour?: string | null;
-        workOrderNumber?: string | null;
-        inboxStatus?: ReceiptInboxStatus;
-        propertyName?: string | null;
-        vendorName?: string | null;
-        duplicateOfId?: string | null;
-      },
-    ) => {
+    (id: string, patch: ExpenseTransactionPatch) => {
       let updated: Expense | null = null;
 
       const next = readExpenses().map((expense) => {
         if (expense.id !== id) return expense;
 
         const nextExpense = { ...expense };
+
+        if (patch.merchant !== undefined) {
+          nextExpense.merchant = patch.merchant.trim() || expense.merchant;
+        }
+
+        if (patch.amount !== undefined) {
+          nextExpense.amount = patch.amount;
+        }
+
+        if (patch.date !== undefined) {
+          nextExpense.date = normalizeExpenseDate(patch.date);
+        }
+
+        if (patch.category !== undefined) {
+          nextExpense.category = patch.category;
+          if (patch.category !== expense.category) {
+            nextExpense.categoryReason = "Updated manually";
+          }
+        }
+
+        if (patch.categoryReason !== undefined) {
+          nextExpense.categoryReason = patch.categoryReason;
+        }
 
         if (patch.cardLastFour !== undefined) {
           nextExpense.cardLastFour = normalizeCardLastFour(patch.cardLastFour);

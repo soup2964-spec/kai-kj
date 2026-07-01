@@ -5,7 +5,7 @@ import {
   AccountingSyncBadge,
   canSubmitAccountingReview,
 } from "@/components/AccountingSyncBadge";
-import type { BillableStatus, Expense, ReceiptInboxStatus } from "@/lib/types";
+import type { Expense, ReceiptInboxStatus } from "@/lib/types";
 import {
   GROUP_MODE_LABELS,
   groupExpenses,
@@ -13,13 +13,16 @@ import {
   type ExpenseGroup,
   type ExpenseGroupMode,
 } from "@/lib/expense-grouping";
-import { formatCardLabel } from "@/lib/card-last-four";
-import { countMissingWorkOrders, formatWorkOrderLabel } from "@/lib/work-order";
+import {
+  expenseToTransactionFields,
+  transactionFieldsToPatch,
+  type ExpenseTransactionPatch,
+} from "@/lib/expense-update";
+import { countMissingWorkOrders } from "@/lib/work-order";
 import { ExpenseExportButton } from "@/components/ExpenseExportButton";
 import { useExpenseContext } from "@/lib/expense-context";
 import {
   getMissingInfoReasons,
-  getVendorName,
   INBOX_STATUS_LABELS,
   INBOX_STATUS_ORDER,
   MISSING_INFO_LABELS,
@@ -40,24 +43,14 @@ import {
   IconX,
 } from "./icons";
 import { formatCurrency, formatDate } from "@/lib/categories";
+import { ReceiptTransactionEditForm } from "./ReceiptTransactionEditForm";
 
 interface ExpenseListProps {
   expenses: Expense[];
   dateSort?: ExpenseDateSort;
   onDateSortChange?: (sort: ExpenseDateSort) => void;
   onRemove: (id: string) => void;
-  onUpdate: (
-    id: string,
-    patch: {
-      billableStatus?: BillableStatus;
-      cardLastFour?: string | null;
-      workOrderNumber?: string | null;
-      inboxStatus?: ReceiptInboxStatus;
-      propertyName?: string | null;
-      vendorName?: string | null;
-      duplicateOfId?: string | null;
-    },
-  ) => void;
+  onUpdate: (id: string, patch: ExpenseTransactionPatch) => void;
 }
 
 function MissingInfoBadges({ expense }: { expense: Expense }) {
@@ -166,33 +159,15 @@ function ExpenseRow({
   onUpdate: ExpenseListProps["onUpdate"];
 }) {
   const hasLineItems = expense.lineItems.length > 0;
-  const [cardInput, setCardInput] = useState(expense.cardLastFour ?? "");
-  const [workOrderInput, setWorkOrderInput] = useState(
-    expense.workOrderNumber ?? "",
+  const [transactionFields, setTransactionFields] = useState(() =>
+    expenseToTransactionFields(expense),
   );
-  const [vendorInput, setVendorInput] = useState(getVendorName(expense));
-  const [propertyInput, setPropertyInput] = useState(
-    expense.propertyName ?? "",
-  );
-  const showWorkOrderField =
-    expense.billableStatus === "billable" ||
-    expense.billableStatus === "review";
 
   useEffect(() => {
     if (expanded) {
-      setCardInput(expense.cardLastFour ?? "");
-      setWorkOrderInput(expense.workOrderNumber ?? "");
-      setVendorInput(getVendorName(expense));
-      setPropertyInput(expense.propertyName ?? "");
+      setTransactionFields(expenseToTransactionFields(expense));
     }
-  }, [
-    expanded,
-    expense.cardLastFour,
-    expense.merchant,
-    expense.propertyName,
-    expense.vendorName,
-    expense.workOrderNumber,
-  ]);
+  }, [expanded, expense]);
 
   return (
     <li className="group">
@@ -329,215 +304,51 @@ function ExpenseRow({
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor={`inbox-${expense.id}`}
-                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
-              >
-                Inbox status
-              </label>
-              <select
-                id={`inbox-${expense.id}`}
-                value={expense.inboxStatus}
-                onChange={(event) =>
-                  onUpdate(expense.id, {
-                    inboxStatus: event.target.value as ReceiptInboxStatus,
-                  })
+          <div className="rounded-lg border border-qb-border bg-qb-surface p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted">
+              Transaction details
+            </p>
+            <p className="mt-1 text-xs text-qb-text-secondary">
+              Update merchant, amount, date, category, and other fields after upload.
+            </p>
+            <div className="mt-3">
+              <ReceiptTransactionEditForm
+                idPrefix={`expense-${expense.id}`}
+                values={transactionFields}
+                onChange={setTransactionFields}
+                onSave={() =>
+                  onUpdate(expense.id, transactionFieldsToPatch(transactionFields))
                 }
-                className="mt-1.5 w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
-              >
-                {INBOX_STATUS_ORDER.map((status) => (
-                  <option key={status} value={status}>
-                    {INBOX_STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-qb-text-secondary">
-                Move receipts from new to review, approved, exported, and reconciled.
-              </p>
+              />
             </div>
+          </div>
 
-            <div>
-              <label
-                htmlFor={`billable-${expense.id}`}
-                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
-              >
-                Billable status
-              </label>
-              <select
-                id={`billable-${expense.id}`}
-                value={expense.billableStatus}
-                onChange={(event) =>
-                  onUpdate(expense.id, {
-                    billableStatus: event.target.value as BillableStatus,
-                  })
-                }
-                className="mt-1.5 w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
-              >
-                <option value="billable">Billable</option>
-                <option value="non_billable">Non-billable</option>
-                <option value="review">Needs review</option>
-              </select>
-              <p className="mt-1 text-xs text-qb-text-secondary">
-                {expense.billableReason}
-              </p>
-            </div>
-
-            {showWorkOrderField ? (
-              <div>
-                <label
-                  htmlFor={`wo-${expense.id}`}
-                  className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
-                >
-                  AppFolio work order
-                </label>
-                <div className="mt-1.5 flex gap-2">
-                  <input
-                    id={`wo-${expense.id}`}
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="76-2234"
-                    value={workOrderInput}
-                    onChange={(event) => {
-                      const raw = event.target.value
-                        .replace(/[^\d-]/g, "")
-                        .slice(0, 10);
-                      setWorkOrderInput(raw);
-                    }}
-                    className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm tabular-nums text-qb-text"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onUpdate(expense.id, {
-                        workOrderNumber:
-                          workOrderInput.trim() === ""
-                            ? null
-                            : workOrderInput,
-                      })
-                    }
-                    className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
-                  >
-                    Save
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-qb-text-secondary">
-                  {expense.workOrderNumber
-                    ? formatWorkOrderLabel(expense.workOrderNumber)
-                    : "Required for billable receipts — enter the WO from AppFolio (e.g. 76-2234)"}
-                </p>
-              </div>
-            ) : null}
-
-            <div>
-              <label
-                htmlFor={`vendor-${expense.id}`}
-                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
-              >
-                Vendor
-              </label>
-              <div className="mt-1.5 flex gap-2">
-                <input
-                  id={`vendor-${expense.id}`}
-                  type="text"
-                  placeholder="Vendor name"
-                  value={vendorInput}
-                  onChange={(event) => setVendorInput(event.target.value)}
-                  className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdate(expense.id, {
-                      vendorName:
-                        vendorInput.trim() === "" ? null : vendorInput,
-                    })
-                  }
-                  className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
-                >
-                  Save
-                </button>
-              </div>
-              <p className="mt-1 text-xs text-qb-text-secondary">
-                Defaults to merchant when no vendor is entered.
-              </p>
-            </div>
-
-            <div>
-              <label
-                htmlFor={`property-${expense.id}`}
-                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
-              >
-                Property
-              </label>
-              <div className="mt-1.5 flex gap-2">
-                <input
-                  id={`property-${expense.id}`}
-                  type="text"
-                  placeholder="Property A"
-                  value={propertyInput}
-                  onChange={(event) => setPropertyInput(event.target.value)}
-                  className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdate(expense.id, {
-                      propertyName:
-                        propertyInput.trim() === "" ? null : propertyInput,
-                    })
-                  }
-                  className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
-                >
-                  Save
-                </button>
-              </div>
-              <p className="mt-1 text-xs text-qb-text-secondary">
-                Required before export for property-management workflows.
-              </p>
-            </div>
-
-            <div>
-              <label
-                htmlFor={`card-${expense.id}`}
-                className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
-              >
-                Card last 4
-              </label>
-              <div className="mt-1.5 flex gap-2">
-                <input
-                  id={`card-${expense.id}`}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={4}
-                  placeholder="1234"
-                  value={cardInput}
-                  onChange={(event) =>
-                    setCardInput(
-                      event.target.value.replace(/\D/g, "").slice(0, 4),
-                    )
-                  }
-                  className="w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm tabular-nums text-qb-text"
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    onUpdate(expense.id, {
-                      cardLastFour: cardInput.length === 4 ? cardInput : null,
-                    })
-                  }
-                  className="qb-btn-secondary shrink-0 px-3 py-2 text-sm"
-                >
-                  Save
-                </button>
-              </div>
-              <p className="mt-1 text-xs text-qb-text-secondary">
-                {expense.cardLastFour
-                  ? formatCardLabel(expense.cardLastFour)
-                  : "Not detected — enter digits to file under a card folder"}
-              </p>
-            </div>
+          <div>
+            <label
+              htmlFor={`inbox-${expense.id}`}
+              className="text-[11px] font-bold uppercase tracking-wider text-qb-text-muted"
+            >
+              Inbox status
+            </label>
+            <select
+              id={`inbox-${expense.id}`}
+              value={expense.inboxStatus}
+              onChange={(event) =>
+                onUpdate(expense.id, {
+                  inboxStatus: event.target.value as ReceiptInboxStatus,
+                })
+              }
+              className="mt-1.5 w-full rounded border border-qb-border bg-qb-surface px-3 py-2 text-sm text-qb-text"
+            >
+              {INBOX_STATUS_ORDER.map((status) => (
+                <option key={status} value={status}>
+                  {INBOX_STATUS_LABELS[status]}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-qb-text-secondary">
+              Move receipts from new to review, approved, exported, and reconciled.
+            </p>
           </div>
 
           {hasLineItems ? (
