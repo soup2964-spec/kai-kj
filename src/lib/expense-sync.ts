@@ -1,8 +1,9 @@
 import type { Expense } from "@/lib/types";
 import type { ExpenseDateSort } from "@/lib/expense-grouping";
+import type { AccountingDecision } from "@/lib/accounting-decision";
 import { getOwnerId } from "@/lib/owner-id";
 
-export type AccountingDecision = "approve" | "disapprove";
+export type { AccountingDecision };
 
 async function parseJsonResponse(response: Response) {
   const data = await response.json();
@@ -57,12 +58,13 @@ export async function updateExpenseRemote(expense: Expense): Promise<Expense> {
 export async function submitAccountingDecisionRemote(
   expenseId: string,
   decision: AccountingDecision,
+  expense: Expense,
 ): Promise<{ expense: Expense; error?: string }> {
   const ownerId = getOwnerId();
   const response = await fetch(`/api/expenses/${expenseId}/accounting`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ownerId, decision }),
+    body: JSON.stringify({ ownerId, decision, expense }),
   });
   const data = await response.json();
 

@@ -20,6 +20,7 @@ import {
   updateExpenseRemote,
   type AccountingDecision,
 } from "./expense-sync";
+import { applyAccountingDecision } from "./accounting-decision";
 import { reconcileStatementsRemote } from "./statement-sync";
 import { normalizeLineItems } from "./receipt-line-items";
 import { emitLiveFeedEvent } from "./live-feed/store";
@@ -168,7 +169,12 @@ async function tryAutoReconcileExpense(expense: Expense): Promise<Expense> {
 
 function replaceExpense(expenses: Expense[], updated: Expense) {
   return expenses.map((expense) =>
-    expense.id === updated.id ? normalizeExpense(updated) : expense,
+    expense.id === updated.id
+      ? normalizeExpense({
+          ...updated,
+          receiptImage: updated.receiptImage ?? expense.receiptImage,
+        })
+      : expense,
   );
 }
 
@@ -301,19 +307,39 @@ export function useExpenses() {
       setAccountingBusyId(id);
       setSyncError(null);
 
+      const currentExpense = readExpenses().find((expense) => expense.id === id);
+      if (!currentExpense) {
+        setSyncError("Receipt not found.");
+        setAccountingBusyId(null);
+        return;
+      }
+
       try {
         const { expense, error } = await submitAccountingDecisionRemote(
           id,
           decision,
+          currentExpense,
         );
         persist(replaceExpense(readExpenses(), expense));
         setSyncError(error ?? null);
       } catch (error) {
-        setSyncError(
-          error instanceof Error
-            ? error.message
-            : "Could not update accounting status.",
-        );
+        try {
+          const { expense: updated, error: localError } =
+            await applyAccountingDecision(currentExpense, decision);
+          persist(replaceExpense(readExpenses(), updated));
+          setSyncError(
+            localError ??
+              (error instanceof Error
+                ? error.message
+                : "Could not update accounting status."),
+          );
+        } catch {
+          setSyncError(
+            error instanceof Error
+              ? error.message
+              : "Could not update accounting status.",
+          );
+        }
       } finally {
         setAccountingBusyId(null);
       }

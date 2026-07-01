@@ -124,7 +124,8 @@ function AccountingActions({
       <button
         type="button"
         disabled={busy}
-        onClick={() => {
+        onClick={(event) => {
+          event.stopPropagation();
           void submitAccountingDecision(expense.id, "approve");
         }}
         className="qb-btn-primary qb-btn-compact"
@@ -135,7 +136,8 @@ function AccountingActions({
       <button
         type="button"
         disabled={busy}
-        onClick={() => {
+        onClick={(event) => {
+          event.stopPropagation();
           void submitAccountingDecision(expense.id, "disapprove");
         }}
         className="qb-btn-secondary qb-btn-compact"
