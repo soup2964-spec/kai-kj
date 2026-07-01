@@ -27,16 +27,16 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
     icon: IconCamera,
   },
   {
-    href: "/dashboard/live-feed",
-    label: "Live feed",
-    description: "Track agent activity and pending expenses in real time",
-    icon: IconLiveFeed,
-  },
-  {
     href: "/dashboard/agent",
     label: "Agent",
     description: "Connect integrations and enable the receipt agent",
     icon: IconSpark,
+  },
+  {
+    href: "/dashboard/live-feed",
+    label: "Live feed",
+    description: "Track agent activity and pending expenses in real time",
+    icon: IconLiveFeed,
   },
   {
     href: "/dashboard/support",
