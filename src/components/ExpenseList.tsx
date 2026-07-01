@@ -9,6 +9,7 @@ import type { Expense, ReceiptInboxStatus } from "@/lib/types";
 import {
   GROUP_MODE_LABELS,
   groupExpenses,
+  sortExpensesByDate,
   type ExpenseDateSort,
   type ExpenseGroup,
   type ExpenseGroupMode,
@@ -47,6 +48,7 @@ import { ReceiptTransactionEditForm } from "./ReceiptTransactionEditForm";
 
 interface ExpenseListProps {
   expenses: Expense[];
+  variant?: "folders" | "flat";
   dateSort?: ExpenseDateSort;
   onDateSortChange?: (sort: ExpenseDateSort) => void;
   onRemove: (id: string) => void;
@@ -423,6 +425,7 @@ function FolderSection({
 
 export function ExpenseList({
   expenses,
+  variant = "folders",
   dateSort: dateSortProp,
   onDateSortChange,
   onRemove,
@@ -444,6 +447,11 @@ export function ExpenseList({
     [expenses, groupMode, dateSort],
   );
 
+  const flatExpenses = useMemo(
+    () => sortExpensesByDate(expenses, dateSort),
+    [expenses, dateSort],
+  );
+
   const handleToggleExpense = (id: string) => {
     setExpandedId((current) => (current === id ? null : id));
   };
@@ -452,6 +460,25 @@ export function ExpenseList({
     if (expandedId === id) setExpandedId(null);
     onRemove(id);
   };
+
+  if (variant === "flat") {
+    if (expenses.length === 0) return null;
+
+    return (
+      <ul className="divide-y divide-qb-border-light rounded-lg border border-qb-border-light">
+        {flatExpenses.map((expense) => (
+          <ExpenseRow
+            key={expense.id}
+            expense={expense}
+            expanded={expandedId === expense.id}
+            onToggle={() => handleToggleExpense(expense.id)}
+            onRemove={() => handleRemove(expense.id)}
+            onUpdate={onUpdate}
+          />
+        ))}
+      </ul>
+    );
+  }
 
   if (expenses.length === 0) {
     return (

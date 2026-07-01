@@ -21,8 +21,6 @@ export function DashboardOverview() {
           ["Missing work orders", metrics.missingWorkOrders],
           ["Missing info", metrics.missingInfo],
           ["Duplicates", metrics.duplicateReceipts],
-          ["Unmatched transactions", metrics.unmatchedTransactions],
-          ["Reconciliation complete", `${metrics.reconciliationCompletion}%`],
         ].map(([label, value]) => (
           <div key={label} className="qb-stat">
             <p className="qb-stat-label">{label}</p>
@@ -64,6 +62,7 @@ export function DashboardOverview() {
           ) : (
             <ExpenseList
               expenses={recentExpenses}
+              variant="flat"
               onRemove={removeExpense}
               onUpdate={updateExpense}
             />
