@@ -1,12 +1,16 @@
 "use client";
 
 import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { SidebarReceiptFolders } from "@/components/SidebarReceiptFolders";
 import { IconReceipt } from "@/components/icons";
+import { useExpenseContext } from "@/lib/expense-context";
 
 export function DashboardSidebar() {
+  const { expenses } = useExpenseContext();
+
   return (
     <aside className="flex h-full w-full flex-col border-r border-qb-border bg-qb-surface">
-      <div className="dashboard-top-bar dashboard-gutter bg-qb-blue-dark">
+      <div className="dashboard-top-bar dashboard-gutter shrink-0 bg-qb-blue-dark">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded bg-white/15">
             <IconReceipt className="h-4 w-4 text-white" />
@@ -19,6 +23,7 @@ export function DashboardSidebar() {
       </div>
 
       <DashboardNav variant="sidebar" />
+      <SidebarReceiptFolders expenses={expenses} />
     </aside>
   );
 }
