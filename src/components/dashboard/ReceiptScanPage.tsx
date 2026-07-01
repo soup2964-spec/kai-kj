@@ -15,11 +15,7 @@ export function ReceiptScanPage() {
           addExpense(result, thumbnailUrl);
         }}
       />
-      <BulkUpload
-        onScanComplete={(result, thumbnailUrl) => {
-          addExpense(result, thumbnailUrl);
-        }}
-      />
+      <BulkUpload />
       <InstallPrompt />
     </>
   );
