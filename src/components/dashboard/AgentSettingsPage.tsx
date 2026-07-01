@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { GoogleSheetsConnectCard } from "@/components/dashboard/GoogleSheetsConnectCard";
 import { GoogleSheetsLayoutMapper } from "@/components/dashboard/GoogleSheetsLayoutMapper";
-import { NotifyConnectCard } from "@/components/dashboard/NotifyConnectCard";
 import { IconCheck, IconSpark } from "@/components/icons";
 import {
   getUseAgentPipeline,
@@ -11,7 +10,6 @@ import {
 } from "@/lib/agent-scan-preference";
 import { isGoogleSheetsSyncReady } from "@/lib/google-sheets-setup";
 import { useGoogleSheetsIntegration } from "@/lib/integrations-store";
-import { useNotificationIntegrations } from "@/lib/notify-integrations-store";
 
 function AgentToggle({
   enabled,
@@ -94,8 +92,6 @@ export function AgentSettingsPage() {
   const [useAgent, setUseAgent] = useState(false);
   const { status: sheetsStatus, loaded: sheetsLoaded } =
     useGoogleSheetsIntegration();
-  const { status: notifyStatus, loaded: notifyLoaded } =
-    useNotificationIntegrations();
 
   useEffect(() => {
     setUseAgent(getUseAgentPipeline());
@@ -109,20 +105,18 @@ export function AgentSettingsPage() {
   const setup = useMemo(() => {
     const sheetsConnected = Boolean(sheetsStatus?.connected);
     const sheetsReady = isGoogleSheetsSyncReady(sheetsStatus);
-    const alertsReady = Boolean(notifyStatus?.notificationsConfigured);
-    const stepsComplete = [sheetsReady, alertsReady].filter(Boolean).length;
+    const stepsComplete = [sheetsConnected, sheetsReady].filter(Boolean).length;
 
     return {
       sheetsConnected,
       sheetsReady,
       layoutReady: sheetsReady,
-      alertsReady,
       stepsComplete,
-      readyToRun: sheetsReady && alertsReady,
+      readyToRun: sheetsReady,
     };
-  }, [sheetsStatus, notifyStatus]);
+  }, [sheetsStatus]);
 
-  const loaded = sheetsLoaded && notifyLoaded;
+  const loaded = sheetsLoaded;
 
   return (
     <div className="space-y-5">
@@ -142,8 +136,7 @@ export function AgentSettingsPage() {
                 </h2>
                 <p className="mt-1 max-w-xl text-sm leading-relaxed text-qb-text-secondary">
                   Connect your tools once, then flip the switch. Moodna runs
-                  work-order checks, writes to Sheets, and alerts your team on
-                  ORANGE receipts.
+                  work-order checks and writes to Sheets after each scan.
                 </p>
               </div>
             </div>
@@ -173,12 +166,12 @@ export function AgentSettingsPage() {
           </div>
         </div>
 
-        <div className="grid gap-px bg-qb-border-light sm:grid-cols-3">
+        <div className="grid gap-px bg-qb-border-light sm:grid-cols-2">
           {[
             {
               label: "Setup progress",
               value: loaded ? `${setup.stepsComplete} / 2` : "…",
-              hint: "Sheets + alerts configured",
+              hint: "Integrations configured",
             },
             {
               label: "Google Sheets",
@@ -190,11 +183,6 @@ export function AgentSettingsPage() {
               hint: setup.sheetsReady
                 ? "Syncing to your spreadsheet"
                 : "Connect your CC ledger in step 1",
-            },
-            {
-              label: "Alerts",
-              value: setup.alertsReady ? "Configured" : "Not configured",
-              hint: "Slack or email for ORANGE receipts",
             },
           ].map((stat) => (
             <div key={stat.label} className="bg-white px-4 py-3.5">
@@ -209,8 +197,8 @@ export function AgentSettingsPage() {
 
         {useAgent && loaded && !setup.readyToRun ? (
           <div className="border-t border-amber-200 bg-amber-50/70 px-5 py-3 text-sm text-amber-950">
-            Connect Google Sheets and at least one alert channel before relying
-            on the agent in production.
+            Connect Google Sheets and map your columns before relying on the
+            agent in production.
           </div>
         ) : null}
       </section>
@@ -219,8 +207,7 @@ export function AgentSettingsPage() {
         <div className="border-b border-qb-border-light py-4">
           <h3 className="text-base font-bold text-qb-text">Connect integrations</h3>
           <p className="mt-1 text-sm text-qb-text-secondary">
-            Two quick steps for Sheets, plus alerts. Each user connects their own
-            spreadsheet once.
+            Two quick steps. Each user connects their own spreadsheet once.
           </p>
         </div>
 
@@ -240,17 +227,6 @@ export function AgentSettingsPage() {
           complete={setup.sheetsReady}
         >
           <GoogleSheetsLayoutMapper embedded />
-        </SetupStep>
-
-        <SetupStep
-          step={3}
-          title="Work order alerts"
-          description="Notify maintenance when a billable receipt is missing a work order."
-          complete={setup.alertsReady}
-        >
-          <Suspense fallback={null}>
-            <NotifyConnectCard embedded />
-          </Suspense>
         </SetupStep>
       </section>
     </div>
